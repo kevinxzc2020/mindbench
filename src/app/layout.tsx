@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "MindBench — 测试你的大脑极限",
-  description: "一系列认知能力测试：反应时间、记忆力、视觉感知……挑战你的大脑极限，与全球玩家比较成绩。",
+  title: "MindBench — Test Your Brain's Limits",
+  description: "Cognitive tests for reaction time, memory, and visual perception. Challenge your brain and compare with players worldwide.",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
           <div className="min-h-screen flex flex-col">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
+import { useLang } from "@/lib/language-context";
 
 type Phase = "idle" | "showing" | "input" | "correct" | "wrong";
 
@@ -22,6 +23,7 @@ export default function NumberMemoryPage() {
 }
 
 function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void }) {
+  const { t } = useLang();
   const [phase, setPhase] = useState<Phase>("idle");
   const [level, setLevel] = useState(1);
   const [target, setTarget] = useState("");
@@ -29,7 +31,7 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
   const [showFor, setShowFor] = useState(2000);
 
   const startRound = useCallback((lvl: number) => {
-    const digits = lvl + 2; // start at 3 digits
+    const digits = lvl + 2;
     const num = generateNumber(digits);
     const displayTime = Math.max(1000, digits * 500);
     setTarget(num);
@@ -40,8 +42,8 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
 
   useEffect(() => {
     if (phase === "showing") {
-      const t = setTimeout(() => setPhase("input"), showFor);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setPhase("input"), showFor);
+      return () => clearTimeout(timer);
     }
   }, [phase, showFor]);
 
@@ -65,12 +67,10 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     return (
       <div className="card p-10 text-center space-y-6">
         <div className="text-6xl">🔢</div>
-        <h2 className="text-xl font-bold">数字记忆</h2>
-        <p className="text-gray-400 max-w-xs mx-auto">
-          屏幕会显示一串数字，消失后请你正确输入。每过一关，数字增加一位。
-        </p>
+        <h2 className="text-xl font-bold">{t.nmTitle}</h2>
+        <p className="text-gray-400 max-w-xs mx-auto">{t.nmInstruction}</p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1); }}>
-          开始
+          {t.start}
         </button>
       </div>
     );
@@ -79,11 +79,11 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
   if (phase === "showing") {
     return (
       <div className="card p-10 text-center space-y-4">
-        <p className="text-sm text-gray-400">第 {level} 级 — 记住这串数字</p>
+        <p className="text-sm text-gray-400">{t.level} {level} — {t.nmShowing}</p>
         <div className="text-6xl font-mono font-black tracking-widest text-white animate-fade-in">
           {target}
         </div>
-        <div className="text-xs text-gray-500">{(showFor / 1000).toFixed(1)} 秒后消失</div>
+        <div className="text-xs text-gray-500">{(showFor / 1000).toFixed(1)} {t.nmDisappear}</div>
       </div>
     );
   }
@@ -91,7 +91,7 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
   if (phase === "input") {
     return (
       <form onSubmit={handleSubmit} className="card p-10 text-center space-y-6">
-        <p className="text-sm text-gray-400">第 {level} 级 — 请输入刚才看到的数字</p>
+        <p className="text-sm text-gray-400">{t.level} {level} — {t.nmInput}</p>
         <input
           autoFocus
           type="text"
@@ -99,10 +99,10 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
           className="input text-center text-3xl font-mono tracking-widest h-16"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value.replace(/\D/g, ""))}
-          placeholder="输入数字…"
+          placeholder={t.nmInputPlaceholder}
         />
         <button type="submit" className="btn-primary px-10 py-3 w-full" disabled={!userInput}>
-          提交
+          {t.nmSubmit}
         </button>
       </form>
     );
@@ -112,10 +112,10 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">✅</div>
-        <p className="text-green-400 text-xl font-bold">正确！</p>
-        <p className="text-gray-400">第 {level} 级通过，下一级数字更长</p>
+        <p className="text-green-400 text-xl font-bold">{t.nmCorrect}</p>
+        <p className="text-gray-400">{t.level} {level} {t.nmCorrectDesc}</p>
         <button className="btn-primary px-10 py-3" onClick={nextLevel}>
-          继续 →
+          {t.nextLevel}
         </button>
       </div>
     );
@@ -125,14 +125,14 @@ function NumberMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">❌</div>
-        <p className="text-red-400 text-xl font-bold">错误！</p>
+        <p className="text-red-400 text-xl font-bold">{t.nmWrong}</p>
         <div className="space-y-1 text-sm">
-          <p className="text-gray-400">正确答案：<span className="font-mono text-white">{target}</span></p>
-          <p className="text-gray-400">你的答案：<span className="font-mono text-red-300">{userInput}</span></p>
+          <p className="text-gray-400">{t.nmAnswer}<span className="font-mono text-white">{target}</span></p>
+          <p className="text-gray-400">{t.nmYours}<span className="font-mono text-red-300">{userInput}</span></p>
         </div>
-        <p className="text-brand-400 font-bold text-lg">最终成绩：第 {level} 级</p>
+        <p className="text-brand-400 font-bold text-lg">{t.finalScore} {level}</p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1); }}>
-          重新开始
+          {t.restart}
         </button>
       </div>
     );

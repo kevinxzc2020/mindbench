@@ -56,6 +56,27 @@ export default function HomePage() {
         ))}
       </div>
 
+      {/* MBTI Card */}
+      <div className="mt-6">
+        <Link
+          href="/mbti"
+          className="card p-6 flex items-center gap-5 hover:border-gray-600 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:shadow-purple-900/20 group"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
+            🧬
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-lg text-white mb-0.5 group-hover:text-purple-300 transition-colors">
+              {t.mbtiTitle}
+            </h2>
+            <p className="text-sm text-gray-400">{t.mbtiDesc}</p>
+          </div>
+          <div className="text-purple-400 font-semibold text-sm flex items-center gap-1 flex-shrink-0">
+            {t.startTest} <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+          </div>
+        </Link>
+      </div>
+
       {/* Stats teaser */}
       <div className="mt-20 grid grid-cols-3 gap-8 text-center">
         {stats.map((stat) => (

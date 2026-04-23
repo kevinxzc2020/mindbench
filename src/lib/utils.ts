@@ -39,11 +39,38 @@ export const GAMES = [
     color: "from-green-400 to-emerald-600",
     lowerIsBetter: false,
   },
+  {
+    id: "cps-test",
+    titleKey: "cpsTitle" as const,
+    descKey: "cpsDesc" as const,
+    icon: "🖱️",
+    color: "from-rose-400 to-pink-600",
+    lowerIsBetter: false,
+  },
+  {
+    id: "aim-trainer",
+    titleKey: "aimTitle" as const,
+    descKey: "aimDesc" as const,
+    icon: "🎯",
+    color: "from-cyan-400 to-blue-600",
+    lowerIsBetter: false,
+  },
+  {
+    id: "typing-test",
+    titleKey: "typeTitle" as const,
+    descKey: "typeDesc" as const,
+    icon: "⌨️",
+    color: "from-emerald-400 to-teal-600",
+    lowerIsBetter: false,
+  },
 ] as const;
 
 export type GameId = (typeof GAMES)[number]["id"];
 
 export function formatScore(gameId: GameId, value: number, t: Translations): string {
   if (gameId === "reaction-time") return `${Math.round(value)} ms`;
+  if (gameId === "cps-test") return `${value.toFixed(1)} CPS`;
+  if (gameId === "aim-trainer") return `${Math.round(value)} ${t.aimHitsUnit}`;
+  if (gameId === "typing-test") return `${Math.round(value)} WPM`;
   return `${t.level} ${Math.round(value)}`;
 }

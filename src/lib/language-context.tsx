@@ -10,13 +10,13 @@ interface LanguageContextValue {
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  lang: "zh",
+  lang: "en",
   setLang: () => {},
-  t: translations.zh,
+  t: translations.en,
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("zh");
+  const [lang, setLangState] = useState<Lang>("en");
 
   // Persist language choice
   useEffect(() => {

@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/language-context";
 
-const GRID_SIZE = 9; // 3x3
+const GRID_SIZE = 9;
 
 type Phase = "idle" | "showing" | "input" | "correct" | "wrong";
 
@@ -17,6 +18,7 @@ export default function SequenceMemoryPage() {
 }
 
 function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => void }) {
+  const { t } = useLang();
   const [phase, setPhase] = useState<Phase>("idle");
   const [level, setLevel] = useState(1);
   const [sequence, setSequence] = useState<number[]>([]);
@@ -55,19 +57,14 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
     if (phase !== "input") return;
     const newUserSeq = [...userSequence, idx];
     const pos = newUserSeq.length - 1;
-
     if (sequence[pos] !== idx) {
       setWrongCell(idx);
       setPhase("wrong");
       onComplete(level);
       return;
     }
-
     setUserSequence(newUserSeq);
-
-    if (newUserSeq.length === sequence.length) {
-      setPhase("correct");
-    }
+    if (newUserSeq.length === sequence.length) setPhase("correct");
   };
 
   const nextLevel = () => {
@@ -80,12 +77,10 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
     return (
       <div className="card p-10 text-center space-y-6">
         <div className="text-6xl">🧩</div>
-        <h2 className="text-xl font-bold">序列记忆</h2>
-        <p className="text-gray-400 max-w-xs mx-auto">
-          方块会依次亮起，然后你要按照相同顺序点击。每关增加一个方块。
-        </p>
+        <h2 className="text-xl font-bold">{t.smTitle}</h2>
+        <p className="text-gray-400 max-w-xs mx-auto">{t.smInstruction}</p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1); }}>
-          开始
+          {t.start}
         </button>
       </div>
     );
@@ -95,10 +90,10 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">❌</div>
-        <p className="text-red-400 text-xl font-bold">错误！</p>
-        <p className="text-brand-400 font-bold text-lg">最终成绩：第 {level} 级</p>
+        <p className="text-red-400 text-xl font-bold">{t.smWrong}</p>
+        <p className="text-brand-400 font-bold text-lg">{t.finalScore} {level}</p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1, []); }}>
-          重新开始
+          {t.restart}
         </button>
       </div>
     );
@@ -108,10 +103,10 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">✅</div>
-        <p className="text-green-400 text-xl font-bold">正确！</p>
-        <p className="text-gray-400">第 {level} 级通过，序列增加一个方块</p>
+        <p className="text-green-400 text-xl font-bold">{t.correct}</p>
+        <p className="text-gray-400">{t.smLevel} {level} {t.smCorrectDesc}</p>
         <button className="btn-primary px-10 py-3" onClick={nextLevel}>
-          继续 →
+          {t.nextLevel}
         </button>
       </div>
     );
@@ -121,11 +116,12 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
     <div className="space-y-6">
       <div className="text-center">
         <p className="text-sm text-gray-400">
-          {phase === "showing" ? "观察顺序…" : `第 ${level} 级 — 按顺序点击 (${userSequence.length}/${sequence.length})`}
+          {phase === "showing"
+            ? t.smShowing
+            : `${t.smLevel} ${level} — ${t.smInput} (${userSequence.length}/${sequence.length})`}
         </p>
       </div>
 
-      {/* 3×3 grid */}
       <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
         {Array.from({ length: GRID_SIZE }, (_, i) => {
           const isHighlighted = highlighted === i;
@@ -150,9 +146,8 @@ function SequenceMemoryGame({ onComplete }: { onComplete: (score: number) => voi
         })}
       </div>
 
-      {/* Progress */}
       <div className="text-center text-xs text-gray-500">
-        第 {level} 级 · 序列长度 {sequence.length}
+        {t.smLevel} {level} · {t.smSeqLen} {sequence.length}
       </div>
     </div>
   );

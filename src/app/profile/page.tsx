@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
+import { useLang } from "@/lib/language-context";
 
 interface ScoreEntry {
   game: string;
@@ -14,6 +15,7 @@ interface ScoreEntry {
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const { t } = useLang();
   const router = useRouter();
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function ProfilePage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400">加载中…</div>
+        <div className="text-gray-400">{t.loading}</div>
       </div>
     );
   }
@@ -55,7 +57,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Score cards */}
-      <h2 className="text-lg font-bold mb-4 text-gray-200">我的最佳成绩</h2>
+      <h2 className="text-lg font-bold mb-4 text-gray-200">{t.myBest}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
         {GAMES.map((game) => {
           const scoreData = scores.find((s) => s.game === game.id);
@@ -66,17 +68,17 @@ export default function ProfilePage() {
                   {game.icon}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">{game.titleZh}</p>
-                  <p className="text-xs text-gray-500">共测试 {scoreData?.attempts ?? 0} 次</p>
+                  <p className="font-semibold text-sm">{t[game.titleKey]}</p>
+                  <p className="text-xs text-gray-500">{t.totalAttempts} {scoreData?.attempts ?? 0}</p>
                 </div>
               </div>
               <p className="text-2xl font-extrabold text-brand-300">
                 {scoreData?.best != null
-                  ? formatScore(game.id as GameId, scoreData.best)
+                  ? formatScore(game.id as GameId, scoreData.best, t)
                   : "—"}
               </p>
               <Link href={`/games/${game.id}`} className="text-xs text-brand-400 hover:underline mt-2 inline-block">
-                再次测试 →
+                {t.testAgain}
               </Link>
             </div>
           );
@@ -85,8 +87,8 @@ export default function ProfilePage() {
 
       {/* Links */}
       <div className="flex gap-4">
-        <Link href="/leaderboard" className="btn-primary">查看排行榜</Link>
-        <Link href="/" className="btn-ghost">返回首页</Link>
+        <Link href="/leaderboard" className="btn-primary">{t.lbTitle}</Link>
+        <Link href="/" className="btn-ghost">{t.home}</Link>
       </div>
     </div>
   );

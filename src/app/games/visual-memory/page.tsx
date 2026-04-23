@@ -3,20 +3,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/language-context";
 
 type Phase = "idle" | "showing" | "input" | "correct" | "wrong";
 
 function getGridConfig(level: number) {
-  if (level <= 3) return { cols: 3, count: level + 2 }; // 3×3
-  if (level <= 7) return { cols: 4, count: level + 3 }; // 4×4
-  return { cols: 5, count: level + 4 }; // 5×5
+  if (level <= 3) return { cols: 3, count: level + 2 };
+  if (level <= 7) return { cols: 4, count: level + 3 };
+  return { cols: 5, count: level + 4 };
 }
 
 function sampleCells(total: number, count: number): Set<number> {
   const cells = new Set<number>();
-  while (cells.size < count) {
-    cells.add(Math.floor(Math.random() * total));
-  }
+  while (cells.size < count) cells.add(Math.floor(Math.random() * total));
   return cells;
 }
 
@@ -29,6 +28,7 @@ export default function VisualMemoryPage() {
 }
 
 function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void }) {
+  const { t } = useLang();
   const [phase, setPhase] = useState<Phase>("idle");
   const [level, setLevel] = useState(1);
   const [targetCells, setTargetCells] = useState<Set<number>>(new Set());
@@ -52,55 +52,39 @@ function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void 
 
   useEffect(() => {
     if (phase === "showing") {
-      const t = setTimeout(() => setPhase("input"), 2500);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setPhase("input"), 2500);
+      return () => clearTimeout(timer);
     }
   }, [phase]);
 
   const handleCellClick = (idx: number) => {
-    if (phase !== "input") return;
-    if (selectedCells.has(idx)) return;
-
+    if (phase !== "input" || selectedCells.has(idx)) return;
     const newSelected = new Set(selectedCells);
     newSelected.add(idx);
     setSelectedCells(newSelected);
-
     if (!targetCells.has(idx)) {
       const newMistakes = mistakes + 1;
       setMistakes(newMistakes);
-      if (newMistakes >= MAX_MISTAKES) {
-        setPhase("wrong");
-        onComplete(level);
-        return;
-      }
+      if (newMistakes >= MAX_MISTAKES) { setPhase("wrong"); onComplete(level); return; }
     } else {
-      // Check if all correct cells selected
       const correctSelected = [...newSelected].filter((c) => targetCells.has(c));
-      if (correctSelected.length === targetCells.size) {
-        setPhase("correct");
-      }
+      if (correctSelected.length === targetCells.size) setPhase("correct");
     }
   };
 
-  const nextLevel = () => {
-    const next = level + 1;
-    setLevel(next);
-    startRound(next);
-  };
-
-  const gridStyle = `grid gap-2` + ` grid-cols-${gridCols}`;
+  const nextLevel = () => { const next = level + 1; setLevel(next); startRound(next); };
   const maxWidth = gridCols === 3 ? "max-w-xs" : gridCols === 4 ? "max-w-sm" : "max-w-md";
 
   if (phase === "idle") {
     return (
       <div className="card p-10 text-center space-y-6">
         <div className="text-6xl">👁️</div>
-        <h2 className="text-xl font-bold">视觉记忆</h2>
+        <h2 className="text-xl font-bold">{t.vmTitle}</h2>
         <p className="text-gray-400 max-w-xs mx-auto">
-          记住亮白色的方块，消失后点击它们的位置。每关有 {MAX_MISTAKES} 次错误机会。
+          {t.vmInstruction} {MAX_MISTAKES} {t.vmInstructionEnd}
         </p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1); }}>
-          开始
+          {t.start}
         </button>
       </div>
     );
@@ -110,10 +94,10 @@ function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">❌</div>
-        <p className="text-red-400 text-xl font-bold">错误次数已满！</p>
-        <p className="text-brand-400 font-bold text-lg">最终成绩：第 {level} 级</p>
+        <p className="text-red-400 text-xl font-bold">{t.vmWrong}</p>
+        <p className="text-brand-400 font-bold text-lg">{t.finalScore} {level}</p>
         <button className="btn-primary px-10 py-3" onClick={() => { setLevel(1); startRound(1); }}>
-          重新开始
+          {t.restart}
         </button>
       </div>
     );
@@ -123,10 +107,10 @@ function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     return (
       <div className="card p-10 text-center space-y-5">
         <div className="text-5xl">✅</div>
-        <p className="text-green-400 text-xl font-bold">全部找对！</p>
-        <p className="text-gray-400">第 {level} 级通过，下一级更多方块</p>
+        <p className="text-green-400 text-xl font-bold">{t.correct}</p>
+        <p className="text-gray-400">{t.level} {level} {t.vmCorrectDesc}</p>
         <button className="btn-primary px-10 py-3" onClick={nextLevel}>
-          继续 →
+          {t.nextLevel}
         </button>
       </div>
     );
@@ -136,7 +120,9 @@ function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void 
     <div className="space-y-6">
       <div className="flex items-center justify-between text-sm">
         <p className="text-gray-400">
-          {phase === "showing" ? "记住亮白色的方块…" : `点击你记住的方块 (${[...selectedCells].filter(c => targetCells.has(c)).length}/${targetCells.size})`}
+          {phase === "showing"
+            ? t.vmShowing
+            : `${t.vmInput} (${[...selectedCells].filter(c => targetCells.has(c)).length}/${targetCells.size})`}
         </p>
         {phase === "input" && (
           <div className="flex gap-1">
@@ -154,35 +140,24 @@ function VisualMemoryGame({ onComplete }: { onComplete: (score: number) => void 
             const isSelected = selectedCells.has(i);
             const isCorrectSelected = isSelected && isTarget;
             const isWrongSelected = isSelected && !isTarget;
-
             let cellStyle = "bg-gray-800 border-gray-700 hover:bg-gray-700 cursor-pointer";
             if (phase === "showing") {
-              cellStyle = isTarget
-                ? "bg-white border-white scale-105 shadow-lg shadow-white/30"
-                : "bg-gray-800 border-gray-700";
+              cellStyle = isTarget ? "bg-white border-white scale-105 shadow-lg shadow-white/30" : "bg-gray-800 border-gray-700";
             } else if (phase === "input") {
               if (isCorrectSelected) cellStyle = "bg-green-500 border-green-400 cursor-default";
               else if (isWrongSelected) cellStyle = "bg-red-500 border-red-400 cursor-default";
               else cellStyle = "bg-gray-800 border-gray-700 hover:bg-gray-700 cursor-pointer";
             }
-
             return (
-              <button
-                key={i}
-                onClick={() => handleCellClick(i)}
-                disabled={phase !== "input" || isSelected}
-                className={cn(
-                  "aspect-square rounded-lg border-2 transition-all duration-150 focus:outline-none",
-                  cellStyle
-                )}
-              />
+              <button key={i} onClick={() => handleCellClick(i)} disabled={phase !== "input" || isSelected}
+                className={cn("aspect-square rounded-lg border-2 transition-all duration-150 focus:outline-none", cellStyle)} />
             );
           })}
         </div>
       </div>
 
       <div className="text-center text-xs text-gray-500">
-        第 {level} 级 · {targetCells.size} 个目标方块 · 剩余 {MAX_MISTAKES - mistakes} 次错误机会
+        {t.level} {level} · {targetCells.size} {t.vmTargets} · {t.vmRemaining}{MAX_MISTAKES - mistakes} {t.vmMistakes}
       </div>
     </div>
   );

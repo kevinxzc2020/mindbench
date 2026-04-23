@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/language-context";
 
 interface LeaderboardEntry {
   rank: number;
@@ -13,6 +14,7 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const { t } = useLang();
   const [activeGame, setActiveGame] = useState<GameId>("reaction-time");
   const [data, setData] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,8 +33,8 @@ export default function LeaderboardPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold mb-2">排行榜</h1>
-        <p className="text-gray-400">全球最佳成绩，实时更新</p>
+        <h1 className="text-3xl font-extrabold mb-2">{t.lbTitle}</h1>
+        <p className="text-gray-400">{t.lbDesc}</p>
       </div>
 
       {/* Game tabs */}
@@ -49,7 +51,7 @@ export default function LeaderboardPage() {
             )}
           >
             <span>{g.icon}</span>
-            <span>{g.titleZh}</span>
+            <span>{t[g.titleKey]}</span>
           </button>
         ))}
       </div>
@@ -61,19 +63,17 @@ export default function LeaderboardPage() {
             {game.icon}
           </div>
           <div>
-            <h2 className="font-bold">{game.titleZh}</h2>
+            <h2 className="font-bold">{t[game.titleKey]}</h2>
             <p className="text-xs text-gray-400">
-              {game.lowerIsBetter ? "越低越好" : "越高越好"} · 显示每位玩家最佳成绩
+              {game.lowerIsBetter ? t.lbLower : t.lbHigher} · {t.lbBest}
             </p>
           </div>
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-gray-500">加载中…</div>
+          <div className="py-16 text-center text-gray-500">{t.loading}</div>
         ) : data.length === 0 ? (
-          <div className="py-16 text-center text-gray-500">
-            暂无数据，快来成为第一个登榜的人！
-          </div>
+          <div className="py-16 text-center text-gray-500">{t.lbEmpty}</div>
         ) : (
           <div className="divide-y divide-gray-800">
             {data.map((entry) => (
@@ -91,7 +91,7 @@ export default function LeaderboardPage() {
                 </div>
                 <div className="flex-1 font-medium">{entry.userName}</div>
                 <div className="font-mono font-bold text-brand-300">
-                  {formatScore(activeGame, entry.value)}
+                  {formatScore(activeGame, entry.value, t)}
                 </div>
               </div>
             ))}

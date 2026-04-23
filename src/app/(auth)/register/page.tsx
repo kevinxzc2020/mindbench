@@ -4,9 +4,11 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLang } from "@/lib/language-context";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,12 +27,11 @@ export default function RegisterPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error ?? "注册失败");
+      setError(data.error ?? t.registerBtn);
       setLoading(false);
       return;
     }
 
-    // Auto-login after register
     await signIn("credentials", {
       email: form.email,
       password: form.password,
@@ -47,24 +48,24 @@ export default function RegisterPage() {
       <div className="card p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">🧠</div>
-          <h1 className="text-2xl font-bold">创建账号</h1>
-          <p className="text-gray-400 text-sm mt-1">加入 MindBench，保存你的测试成绩</p>
+          <h1 className="text-2xl font-bold">{t.createAccount}</h1>
+          <p className="text-gray-400 text-sm mt-1">{t.registerDesc}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">用户名</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.username}</label>
             <input
               type="text"
               className="input"
-              placeholder="你的昵称"
+              placeholder={t.usernamePlaceholder}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">邮箱</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.email}</label>
             <input
               type="email"
               className="input"
@@ -75,7 +76,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">密码（至少6位）</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.passwordHint}</label>
             <input
               type="password"
               className="input"
@@ -93,14 +94,14 @@ export default function RegisterPage() {
           )}
 
           <button type="submit" className="btn-primary w-full mt-2" disabled={loading}>
-            {loading ? "注册中…" : "创建账号"}
+            {loading ? t.registering : t.registerBtn}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-400 mt-6">
-          已有账号？{" "}
+          {t.hasAccount}{" "}
           <Link href="/login" className="text-brand-400 hover:text-brand-300 font-medium">
-            立即登录
+            {t.loginNow}
           </Link>
         </p>
       </div>

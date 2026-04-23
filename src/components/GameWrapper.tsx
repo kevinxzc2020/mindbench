@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/language-context";
 
 interface GameWrapperProps {
   gameId: GameId;
@@ -13,6 +13,7 @@ interface GameWrapperProps {
 
 export function GameWrapper({ gameId, children }: GameWrapperProps) {
   const { data: session } = useSession();
+  const { t } = useLang();
   const game = GAMES.find((g) => g.id === gameId)!;
 
   const [latestScore, setLatestScore] = useState<number | null>(null);
@@ -35,9 +36,9 @@ export function GameWrapper({ gameId, children }: GameWrapperProps) {
         body: JSON.stringify({ game: gameId, value: score }),
       });
       if (res.ok) setSaved(true);
-      else setError("保存失败，请重试");
+      else setError(t.saveFailed);
     } catch {
-      setError("网络错误");
+      setError(t.networkError);
     } finally {
       setSaving(false);
     }
@@ -51,8 +52,8 @@ export function GameWrapper({ gameId, children }: GameWrapperProps) {
           {game.icon}
         </div>
         <div>
-          <h1 className="text-2xl font-bold">{game.titleZh}</h1>
-          <p className="text-gray-400 text-sm">{game.description}</p>
+          <h1 className="text-2xl font-bold">{t[game.titleKey]}</h1>
+          <p className="text-gray-400 text-sm">{t[game.descKey]}</p>
         </div>
       </div>
 
@@ -62,28 +63,28 @@ export function GameWrapper({ gameId, children }: GameWrapperProps) {
       {/* Score feedback */}
       {latestScore !== null && (
         <div className="mt-8 card p-6 text-center animate-fade-in">
-          <p className="text-gray-400 text-sm mb-2">本次成绩</p>
+          <p className="text-gray-400 text-sm mb-2">{t.thisScore}</p>
           <p className="text-4xl font-extrabold text-brand-400">
-            {formatScore(gameId, latestScore)}
+            {formatScore(gameId, latestScore, t)}
           </p>
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-            {saving && <span className="text-gray-400">保存中…</span>}
+            {saving && <span className="text-gray-400">{t.saving}</span>}
             {saved && (
               <span className="text-green-400 flex items-center gap-1">
-                ✓ 成绩已保存
+                ✓ {t.scoreSaved}
               </span>
             )}
             {error && <span className="text-red-400">{error}</span>}
             {!session && !saving && (
               <span className="text-gray-400">
-                <Link href="/login" className="text-brand-400 hover:underline">登录</Link>{" "}
-                以保存成绩到排行榜
+                <Link href="/login" className="text-brand-400 hover:underline">{t.login}</Link>{" "}
+                {t.loginToSave}
               </span>
             )}
           </div>
           <div className="mt-4">
             <Link href="/leaderboard" className="text-brand-400 text-sm hover:underline">
-              查看排行榜 →
+              {t.viewLb}
             </Link>
           </div>
         </div>

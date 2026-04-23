@@ -8,9 +8,9 @@ import { useLang } from "@/lib/language-context";
 import type { Lang } from "@/lib/translations";
 
 const LANGS: { code: Lang; label: string }[] = [
-  { code: "zh", label: "中" },
   { code: "en", label: "EN" },
   { code: "es", label: "ES" },
+  { code: "zh", label: "中" },
 ];
 
 export function Header() {
