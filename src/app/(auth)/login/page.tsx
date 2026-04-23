@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AuthOAuthSection } from "@/components/AuthOAuthSection";
 import { useLang } from "@/lib/language-context";
 
 export default function LoginPage() {
@@ -43,6 +44,9 @@ export default function LoginPage() {
           <p className="text-gray-400 text-sm mt-1">{t.loginDesc}</p>
         </div>
 
+        <div className="space-y-6">
+          <AuthOAuthSection />
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.email}</label>
@@ -77,6 +81,7 @@ export default function LoginPage() {
             {loading ? t.loggingIn : t.loginBtn}
           </button>
         </form>
+        </div>
 
         <p className="text-center text-sm text-gray-400 mt-6">
           {t.noAccount}{" "}

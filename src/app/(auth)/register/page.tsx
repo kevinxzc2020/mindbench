@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AuthOAuthSection } from "@/components/AuthOAuthSection";
 import { useLang } from "@/lib/language-context";
 
 export default function RegisterPage() {
@@ -52,6 +53,9 @@ export default function RegisterPage() {
           <p className="text-gray-400 text-sm mt-1">{t.registerDesc}</p>
         </div>
 
+        <div className="space-y-6">
+          <AuthOAuthSection />
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.username}</label>
@@ -97,6 +101,7 @@ export default function RegisterPage() {
             {loading ? t.registering : t.registerBtn}
           </button>
         </form>
+        </div>
 
         <p className="text-center text-sm text-gray-400 mt-6">
           {t.hasAccount}{" "}

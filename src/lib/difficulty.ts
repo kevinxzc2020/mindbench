@@ -171,16 +171,22 @@ export const CPS_TEST_CONFIG: Record<Difficulty, { durationMs: number }> = {
 
 // aim-trainer
 //   durationSec: 游戏时长 (秒)
-//   targetDiameterPx: 靶的直径 (像素)
+//   targetDiameterPx: 旧版 2D 靶直径（排行榜/展示仍可参考）
 //   targetLifeMs: 靶出现后多久自动消失 (null = 一直等到点中；超时 = miss 并换下一个)
+//   sphereRadius: 3D 场景中球体半径（世界单位）
 export const AIM_TRAINER_CONFIG: Record<
   Difficulty,
-  { durationSec: number; targetDiameterPx: number; targetLifeMs: number | null }
+  {
+    durationSec: number;
+    targetDiameterPx: number;
+    targetLifeMs: number | null;
+    sphereRadius: number;
+  }
 > = {
-  easy:   { durationSec: 30, targetDiameterPx: 90, targetLifeMs: null },  // unchanged
-  medium: { durationSec: 30, targetDiameterPx: 56, targetLifeMs: 2500 },  // 轻度速度压力：2.5s 不点就换
-  hard:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: null },  // unchanged
-  hell:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: 1200 },  // Hard + 1.2s 内不点就消失
+  easy:   { durationSec: 30, targetDiameterPx: 90, targetLifeMs: null, sphereRadius: 0.55 },
+  medium: { durationSec: 30, targetDiameterPx: 56, targetLifeMs: 2500, sphereRadius: 0.36 },
+  hard:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: null, sphereRadius: 0.26 },
+  hell:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: 1200, sphereRadius: 0.24 },
 };
 
 // last-hit (MOBA 补刀 — 真正的 LoL 模型)

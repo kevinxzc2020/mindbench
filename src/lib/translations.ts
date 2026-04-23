@@ -45,6 +45,8 @@ export const translations = {
     registerBtn: "创建账号",
     hasAccount: "已有账号？",
     loginNow: "立即登录",
+    continueWithGoogle: "使用 Google 账号继续",
+    authSeparator: "或",
 
     // Leaderboard
     lbTitle: "排行榜",
@@ -153,13 +155,15 @@ export const translations = {
 
     // Aim Trainer
     aimTitle: "瞄准训练",
-    aimDesc: "点击目标，测试你的 FPS 瞄准精准度",
+    aimDesc: "第一人称 3D 场景：端枪定点射击随机出现的球体",
     aimSelectDuration: "选择时长",
     aimDuration15: "15 秒",
     aimDuration30: "30 秒",
     aimDuration60: "60 秒",
     aimClickToStart: "点击开始",
-    aimInstruction: "目标出现时立即点击，尽量不要点到空白处",
+    aimInstruction: "锁定鼠标后移动视角，用屏幕中心准星射击发光的球",
+    aimLockCursor: "点击画面锁定鼠标",
+    aimEscHint: "按 Esc 可解除锁定",
     aimHits: "命中",
     aimMisses: "失误",
     aimAccuracy: "准确率",
@@ -337,6 +341,8 @@ export const translations = {
     registerBtn: "Create Account",
     hasAccount: "Already have an account?",
     loginNow: "Log in",
+    continueWithGoogle: "Continue with Google",
+    authSeparator: "or",
 
     lbTitle: "Leaderboard",
     lbDesc: "Global best scores, updated in real time",
@@ -437,13 +443,15 @@ export const translations = {
 
     // Aim Trainer
     aimTitle: "Aim Trainer",
-    aimDesc: "Click targets to test your FPS aiming precision",
+    aimDesc: "First-person 3D range: hold your rifle and shoot random spheres",
     aimSelectDuration: "Choose duration",
     aimDuration15: "15 sec",
     aimDuration30: "30 sec",
     aimDuration60: "60 sec",
     aimClickToStart: "Click to start",
-    aimInstruction: "Click each target as fast and accurately as you can",
+    aimInstruction: "Lock the mouse, look around, and shoot spheres with the center crosshair",
+    aimLockCursor: "Click the scene to lock the mouse",
+    aimEscHint: "Press Esc to unlock",
     aimHits: "Hits",
     aimMisses: "Misses",
     aimAccuracy: "Accuracy",
@@ -621,6 +629,8 @@ export const translations = {
     registerBtn: "Crear cuenta",
     hasAccount: "¿Ya tienes cuenta?",
     loginNow: "Inicia sesión",
+    continueWithGoogle: "Continuar con Google",
+    authSeparator: "o",
 
     lbTitle: "Clasificación",
     lbDesc: "Mejores puntuaciones globales, actualizadas en tiempo real",
@@ -721,13 +731,15 @@ export const translations = {
 
     // Aim Trainer
     aimTitle: "Entrenador de puntería",
-    aimDesc: "Haz clic en los objetivos y mide tu precisión en juegos FPS",
+    aimDesc: "Galería 3D en primera persona: rifle fijo y esferas aleatorias",
     aimSelectDuration: "Elegir duración",
     aimDuration15: "15 seg",
     aimDuration30: "30 seg",
     aimDuration60: "60 seg",
     aimClickToStart: "Haz clic para empezar",
-    aimInstruction: "Haz clic en cada objetivo lo más rápido y preciso posible",
+    aimInstruction: "Bloquea el ratón, mira alrededor y dispara con la mira central",
+    aimLockCursor: "Haz clic en la escena para bloquear el ratón",
+    aimEscHint: "Esc para desbloquear",
     aimHits: "Aciertos",
     aimMisses: "Fallos",
     aimAccuracy: "Precisión",
@@ -867,4 +879,5 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof typeof translations.zh;
-export type Translations = typeof translations.zh;
+/** Same keys for zh / en / es; value is the union of per-language string literals. */
+export type Translations = (typeof translations)[Lang];

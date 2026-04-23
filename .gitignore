@@ -10,6 +10,9 @@
 /.next/
 /out/
 
+# generated from src/app/resources/pistol (see scripts/sync-pistol-assets.mjs)
+/public/resources/pistol/
+
 # production
 /build
 
