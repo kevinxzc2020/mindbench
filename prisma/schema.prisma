@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -59,14 +59,15 @@ model VerificationToken {
 }
 
 model Score {
-  id        String   @id @default(cuid())
-  userId    String
-  game      String   // "reaction-time" | "number-memory" | "sequence-memory" | "visual-memory"
-  value     Float    // lower is better for reaction-time, higher is better for others
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  game       String   // "reaction-time" | "number-memory" | "sequence-memory" | "visual-memory" | "cps-test" | "aim-trainer" | "typing-test"
+  difficulty String   @default("medium") // "easy" | "medium" | "hard" | "hell"
+  value      Float    // lower is better for reaction-time, higher is better for others
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([game, value])
-  @@index([userId, game])
+  @@index([game, difficulty, value])
+  @@index([userId, game, difficulty])
 }

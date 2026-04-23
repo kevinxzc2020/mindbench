@@ -77,6 +77,48 @@ export default function HomePage() {
         </Link>
       </div>
 
+      {/* Tarot Card */}
+      <div className="mt-4">
+        <Link
+          href="/tarot"
+          className="card p-6 flex items-center gap-5 hover:border-gray-600 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:shadow-indigo-900/20 group"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-700 to-slate-900 flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
+            🔮
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-lg text-white mb-0.5 group-hover:text-indigo-300 transition-colors">
+              {t.tarotTitle}
+            </h2>
+            <p className="text-sm text-gray-400">{t.tarotDesc}</p>
+          </div>
+          <div className="text-indigo-400 font-semibold text-sm flex items-center gap-1 flex-shrink-0">
+            {t.startTest} <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Daily Fortune Card */}
+      <div className="mt-4">
+        <Link
+          href="/fortune"
+          className="card p-6 flex items-center gap-5 hover:border-gray-600 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:shadow-amber-900/20 group"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
+            🍀
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-lg text-white mb-0.5 group-hover:text-amber-300 transition-colors">
+              {t.fortuneTitle}
+            </h2>
+            <p className="text-sm text-gray-400">{t.fortuneDesc}</p>
+          </div>
+          <div className="text-amber-400 font-semibold text-sm flex items-center gap-1 flex-shrink-0">
+            {t.startTest} <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+          </div>
+        </Link>
+      </div>
+
       {/* Stats teaser */}
       <div className="mt-20 grid grid-cols-3 gap-8 text-center">
         {stats.map((stat) => (

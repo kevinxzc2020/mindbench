@@ -5,13 +5,16 @@ import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 
+// CPS Test 不走难度体系 —— 它本身就是个纯粹的速度测试，
+// 所以保留经典的 5/10/15 秒时长选择，分数统一归 medium 档存榜。
+
 const DURATIONS = [5, 10, 15] as const;
 type Duration = (typeof DURATIONS)[number];
 type Phase = "idle" | "running" | "done";
 
 export default function CpsTestPage() {
   return (
-    <GameWrapper gameId="cps-test">
+    <GameWrapper gameId="cps-test" noDifficulty>
       {(onComplete) => <CpsGame onComplete={onComplete} />}
     </GameWrapper>
   );
@@ -22,10 +25,9 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
   const [duration, setDuration] = useState<Duration>(10);
   const [phase, setPhase] = useState<Phase>("idle");
   const [clicks, setClicks] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState<number>(duration);
   const [peakCps, setPeakCps] = useState(0);
 
-  // Click timestamps for peak-CPS calculation (rolling 1-second window)
   const clickTimestamps = useRef<number[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -51,7 +53,6 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
       const remaining = Math.max(0, duration - elapsed);
       setTimeLeft(remaining);
 
-      // Calculate peak CPS over the last 1 second
       const now = performance.now();
       const recent = clickTimestamps.current.filter((ts) => now - ts <= 1000);
       const currentPeak = Math.max(latestPeak.current, recent.length);
@@ -61,13 +62,14 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
       if (remaining <= 0) {
         clearTick();
         setPhase("done");
-        const finalCps = parseFloat((latestClicks.current / duration).toFixed(2));
+        const finalCps = parseFloat(
+          (latestClicks.current / duration).toFixed(2)
+        );
         onComplete(finalCps);
       }
-    }, 50); // 20fps tick is smooth enough
+    }, 50);
   }, [duration, onComplete]);
 
-  // Change duration resets to idle
   const handleDurationChange = (d: Duration) => {
     clearTick();
     setDuration(d);
@@ -78,10 +80,15 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
   };
 
   useEffect(() => () => clearTick(), []);
-  useEffect(() => { setTimeLeft(duration); }, [duration]);
+  useEffect(() => {
+    setTimeLeft(duration);
+  }, [duration]);
 
   const handleClick = () => {
-    if (phase === "idle") { startGame(); return; }
+    if (phase === "idle") {
+      startGame();
+      return;
+    }
     if (phase !== "running") return;
 
     const now = performance.now();
@@ -93,7 +100,7 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
 
   const elapsed = duration - timeLeft;
   const cps = elapsed > 0 ? clicks / elapsed : 0;
-  const progress = elapsed / duration; // 0→1
+  const progress = elapsed / duration;
 
   const durationLabel: Record<Duration, string> = {
     5: t.cpsDuration5,
@@ -101,12 +108,11 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
     15: t.cpsDuration15,
   };
 
-  // Colour gradient for the click button based on CPS
   const buttonGlow =
-    cps >= 12 ? "shadow-pink-500/60" :
-    cps >= 8  ? "shadow-rose-400/50" :
-    cps >= 4  ? "shadow-orange-400/40" :
-    "shadow-brand-600/30";
+    cps >= 12 ? "shadow-pink-500/60"
+    : cps >= 8  ? "shadow-rose-400/50"
+    : cps >= 4  ? "shadow-orange-400/40"
+    : "shadow-brand-600/30";
 
   if (phase === "done") {
     const finalCps = (clicks / duration).toFixed(2);
@@ -116,13 +122,13 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
           <div className="text-5xl">🖱️</div>
           <p className="text-2xl font-extrabold text-white">{t.cpsDone}</p>
 
-          {/* Big CPS number */}
           <div className="py-4">
-            <p className="text-7xl font-black text-rose-400 tabular-nums">{finalCps}</p>
+            <p className="text-7xl font-black text-rose-400 tabular-nums">
+              {finalCps}
+            </p>
             <p className="text-gray-400 text-sm mt-1">CPS</p>
           </div>
 
-          {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-gray-800 rounded-xl p-4">
               <p className="text-2xl font-bold text-white">{clicks}</p>
@@ -140,7 +146,12 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
 
           <button
             className="btn-primary w-full py-3"
-            onClick={() => { setPhase("idle"); setClicks(0); setTimeLeft(duration); setPeakCps(0); }}
+            onClick={() => {
+              setPhase("idle");
+              setClicks(0);
+              setTimeLeft(duration);
+              setPeakCps(0);
+            }}
           >
             {t.cpsRestart}
           </button>
@@ -181,18 +192,26 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
             "h-full rounded-full transition-all",
             phase === "running" ? "bg-rose-500" : "bg-gray-600"
           )}
-          style={{ width: phase === "running" ? `${(1 - progress) * 100}%` : "100%", transition: phase === "running" ? "width 0.05s linear" : "none" }}
+          style={{
+            width:
+              phase === "running" ? `${(1 - progress) * 100}%` : "100%",
+            transition: phase === "running" ? "width 0.05s linear" : "none",
+          }}
         />
       </div>
 
       {/* Live stats row */}
       <div className="grid grid-cols-3 gap-3 text-center">
         <div className="card p-3">
-          <p className="text-xl font-bold tabular-nums">{timeLeft.toFixed(1)}s</p>
+          <p className="text-xl font-bold tabular-nums">
+            {timeLeft.toFixed(1)}s
+          </p>
           <p className="text-xs text-gray-500 mt-0.5">{t.cpsTime}</p>
         </div>
         <div className="card p-3">
-          <p className="text-xl font-bold tabular-nums text-rose-400">{cps.toFixed(1)}</p>
+          <p className="text-xl font-bold tabular-nums text-rose-400">
+            {cps.toFixed(1)}
+          </p>
           <p className="text-xs text-gray-500 mt-0.5">CPS</p>
         </div>
         <div className="card p-3">
@@ -211,10 +230,6 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
             ? "h-64 bg-rose-600 hover:bg-rose-500 text-2xl shadow-lg shadow-rose-600/30"
             : `h-64 bg-gradient-to-br from-rose-500 to-pink-600 text-3xl shadow-2xl ${buttonGlow}`
         )}
-        style={{
-          // Subtle flash on each click registered
-          transform: undefined,
-        }}
       >
         <div className="flex flex-col items-center gap-3 pointer-events-none">
           {phase === "idle" ? (
@@ -226,7 +241,9 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
           ) : (
             <>
               <span className="text-5xl font-black tabular-nums">{clicks}</span>
-              <span className="text-base font-semibold text-white/80">{t.cpsClicking}</span>
+              <span className="text-base font-semibold text-white/80">
+                {t.cpsClicking}
+              </span>
             </>
           )}
         </div>

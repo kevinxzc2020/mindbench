@@ -3,41 +3,46 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/language-context";
-import { QUESTIONS, MBTI_TYPES, calculateMbtiType } from "@/lib/mbti-data";
+import { MBTI_TYPES } from "@/lib/mbti-data";
+import { SCENARIOS, calculateMbtiType } from "@/lib/mbti-scenarios";
 import { cn } from "@/lib/utils";
 
 type Phase = "intro" | "questions" | "result";
 
+// Option letters shown as A/B/C/D
+const OPT_LETTERS = ["A", "B", "C", "D"] as const;
+
 export default function MbtiPage() {
   const { t, lang } = useLang();
   const [phase, setPhase] = useState<Phase>("intro");
-  const [current, setCurrent] = useState(0); // question index
-  const [answers, setAnswers] = useState<Record<number, "a" | "b">>({});
+  const [current, setCurrent] = useState(0); // scenario index
+  // answers: scenarioId → selected option index
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<string | null>(null);
-  const [chosen, setChosen] = useState<"a" | "b" | null>(null); // flash feedback
+  const [chosenIdx, setChosenIdx] = useState<number | null>(null); // flash feedback
 
-  const totalQuestions = QUESTIONS.length;
+  const totalQuestions = SCENARIOS.length;
 
   function startTest() {
     setCurrent(0);
     setAnswers({});
     setResult(null);
-    setChosen(null);
+    setChosenIdx(null);
     setPhase("questions");
   }
 
-  function handleAnswer(choice: "a" | "b") {
-    if (chosen) return; // debounce double-tap
-    setChosen(choice);
+  function handleAnswer(optIdx: number) {
+    if (chosenIdx !== null) return; // debounce double-tap
+    setChosenIdx(optIdx);
 
-    const q = QUESTIONS[current];
-    const newAnswers = { ...answers, [q.id]: choice };
+    const s = SCENARIOS[current];
+    const newAnswers = { ...answers, [s.id]: optIdx };
 
     setTimeout(() => {
       if (current + 1 < totalQuestions) {
         setAnswers(newAnswers);
         setCurrent(current + 1);
-        setChosen(null);
+        setChosenIdx(null);
       } else {
         // Finished
         const type = calculateMbtiType(newAnswers);
@@ -46,6 +51,17 @@ export default function MbtiPage() {
         setPhase("result");
       }
     }, 300);
+  }
+
+  function goBack() {
+    if (current === 0) return;
+    const prevScenario = SCENARIOS[current - 1];
+    // Clear the previous answer so user can re-answer if they want
+    const newAnswers = { ...answers };
+    delete newAnswers[prevScenario.id];
+    setAnswers(newAnswers);
+    setCurrent(current - 1);
+    setChosenIdx(null);
   }
 
   // ── Intro screen ────────────────────────────────────────────────────────────
@@ -57,7 +73,7 @@ export default function MbtiPage() {
           <h1 className="text-3xl font-extrabold text-white">{t.mbtiIntroTitle}</h1>
           <p className="text-gray-400 leading-relaxed max-w-md mx-auto">{t.mbtiIntroDesc}</p>
           <div className="inline-block bg-gray-800 rounded-full px-4 py-1.5 text-xs text-gray-400 font-medium">
-            {t.mbtiMeta}
+            {totalQuestions} {lang === "zh" ? "个场景" : lang === "es" ? "escenarios" : "scenarios"} · 2–3 min
           </div>
 
           {/* Dimension pills */}
@@ -88,7 +104,7 @@ export default function MbtiPage() {
 
   // ── Questions screen ────────────────────────────────────────────────────────
   if (phase === "questions") {
-    const q = QUESTIONS[current];
+    const s = SCENARIOS[current];
     const progress = current / totalQuestions;
 
     return (
@@ -108,49 +124,56 @@ export default function MbtiPage() {
         </div>
 
         {/* Question card */}
-        <div className="card p-8 space-y-6 animate-fade-in" key={current}>
+        <div className="card p-8 space-y-5 animate-fade-in" key={current}>
           {/* Dimension badge */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold bg-gray-800 text-gray-400 px-2 py-0.5 rounded">
-              {q.dimension}
+              {s.dimension === "EI" ? "E / I" : s.dimension === "SN" ? "S / N" : s.dimension === "TF" ? "T / F" : "J / P"}
             </span>
           </div>
 
-          <p className="text-xl font-semibold text-white leading-snug">
-            {q.text[lang]}
+          {/* Scenario context — gray, italic-feel, sets up the situation */}
+          <p className="text-sm text-gray-400 leading-relaxed border-l-2 border-gray-700 pl-4">
+            {s.scenario[lang]}
           </p>
 
+          {/* Specific question — big and bold */}
+          <p className="text-xl font-semibold text-white leading-snug">
+            {s.question[lang]}
+          </p>
+
+          {/* Options */}
           <div className="grid grid-cols-1 gap-3">
-            {(["a", "b"] as const).map((opt) => {
-              const isChosen = chosen === opt;
+            {s.options.map((opt, idx) => {
+              const isChosen = chosenIdx === idx;
               return (
                 <button
-                  key={opt}
-                  onClick={() => handleAnswer(opt)}
-                  disabled={!!chosen}
+                  key={idx}
+                  onClick={() => handleAnswer(idx)}
+                  disabled={chosenIdx !== null}
                   className={cn(
-                    "w-full text-left px-5 py-4 rounded-xl border text-sm font-medium transition-all duration-200",
+                    "w-full text-left px-5 py-4 rounded-xl border text-sm font-medium transition-all duration-200 flex items-start gap-3",
                     isChosen
                       ? "bg-brand-600 border-brand-500 text-white scale-[0.99]"
                       : "bg-gray-800/60 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-500 hover:text-white",
-                    chosen && !isChosen ? "opacity-40" : ""
+                    chosenIdx !== null && !isChosen ? "opacity-40" : ""
                   )}
                 >
-                  <span className="inline-block w-6 h-6 rounded-full border-2 border-current mr-3 text-center text-xs leading-5 font-bold flex-shrink-0 align-middle">
-                    {opt.toUpperCase()}
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-current text-xs font-bold flex-shrink-0 mt-0.5">
+                    {OPT_LETTERS[idx]}
                   </span>
-                  {q[opt][lang]}
+                  <span className="flex-1 leading-relaxed">{opt.label[lang]}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Back button (only from q2 onward) */}
+        {/* Back button (only from scenario 2 onward) */}
         {current > 0 && (
           <div className="mt-4 text-center">
             <button
-              onClick={() => { setCurrent(current - 1); setChosen(null); }}
+              onClick={goBack}
               className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
             >
               ← Back
@@ -163,7 +186,7 @@ export default function MbtiPage() {
 
   // ── Result screen ────────────────────────────────────────────────────────────
   if (phase === "result" && result) {
-    const typeInfo = MBTI_TYPES.find((t) => t.type === result);
+    const typeInfo = MBTI_TYPES.find((tp) => tp.type === result);
 
     if (!typeInfo) {
       return (
