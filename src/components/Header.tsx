@@ -32,7 +32,10 @@ export function Header() {
           <Link href="/" className="btn-ghost text-sm">{t.home}</Link>
           <Link href="/leaderboard" className="btn-ghost text-sm">{t.leaderboard}</Link>
           {session && (
-            <Link href="/profile" className="btn-ghost text-sm">{t.myRecords}</Link>
+            <>
+              <Link href="/stats" className="btn-ghost text-sm">{t.statsTitle}</Link>
+              <Link href="/profile" className="btn-ghost text-sm">{t.myRecords}</Link>
+            </>
           )}
         </nav>
 
@@ -69,6 +72,13 @@ export function Header() {
               </button>
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-48 card shadow-xl py-1">
+                  <Link
+                    href="/stats"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    📊 {t.statsTitle}
+                  </Link>
                   <Link
                     href="/profile"
                     className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"

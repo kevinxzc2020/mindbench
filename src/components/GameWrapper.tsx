@@ -57,9 +57,22 @@ export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrap
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ game: gameId, value: score, difficulty }),
       });
-      if (res.ok) setSaved(true);
-      else setError(t.saveFailed);
-    } catch {
+      if (res.ok) {
+        setSaved(true);
+      } else {
+        // Try to surface the real server error so we can diagnose
+        let detail = "";
+        try {
+          const body = await res.json();
+          detail = body?.error ? ` (${body.error})` : "";
+        } catch {
+          /* ignore JSON parse errors */
+        }
+        setError(`${t.saveFailed}${detail}`);
+        console.error("[GameWrapper] save failed", res.status, detail);
+      }
+    } catch (err) {
+      console.error("[GameWrapper] network error", err);
       setError(t.networkError);
     } finally {
       setSaving(false);

@@ -7,31 +7,54 @@ import { DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty } from "@/lib/difficu
 
 // POST /api/scores — submit a new score
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "请先登录" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.warn("[scores POST] no session — user not logged in");
+      return NextResponse.json({ error: "请先登录" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { game, value, difficulty } = body;
+
+    const validGames = GAMES.map((g) => g.id);
+    if (!validGames.includes(game)) {
+      console.warn("[scores POST] invalid game:", game);
+      return NextResponse.json(
+        { error: `无效游戏: ${game}` },
+        { status: 400 }
+      );
+    }
+    if (typeof value !== "number" || value < 0) {
+      console.warn("[scores POST] invalid value:", value);
+      return NextResponse.json(
+        { error: `无效分数: ${value}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate difficulty (fall back to default if missing/invalid — legacy clients)
+    const diff: Difficulty = DIFFICULTIES.includes(difficulty)
+      ? difficulty
+      : DEFAULT_DIFFICULTY;
+
+    const score = await prisma.score.create({
+      data: { userId: session.user.id, game, value, difficulty: diff },
+    });
+
+    console.log(
+      `[scores POST] saved ${game}/${diff}=${value} for user ${session.user.id}`
+    );
+    return NextResponse.json({ score }, { status: 201 });
+  } catch (err) {
+    // Surface Prisma errors so the user can diagnose (e.g., schema out of sync)
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[scores POST] DB error:", msg);
+    return NextResponse.json(
+      { error: `Save failed: ${msg}` },
+      { status: 500 }
+    );
   }
-
-  const { game, value, difficulty } = await req.json();
-
-  const validGames = GAMES.map((g) => g.id);
-  if (!validGames.includes(game)) {
-    return NextResponse.json({ error: "无效游戏" }, { status: 400 });
-  }
-  if (typeof value !== "number" || value < 0) {
-    return NextResponse.json({ error: "无效分数" }, { status: 400 });
-  }
-
-  // Validate difficulty (fall back to default if missing/invalid — legacy clients)
-  const diff: Difficulty = DIFFICULTIES.includes(difficulty)
-    ? difficulty
-    : DEFAULT_DIFFICULTY;
-
-  const score = await prisma.score.create({
-    data: { userId: session.user.id, game, value, difficulty: diff },
-  });
-
-  return NextResponse.json({ score }, { status: 201 });
 }
 
 // GET /api/scores?game=reaction-time&difficulty=medium — leaderboard

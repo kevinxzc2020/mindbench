@@ -14,12 +14,16 @@ import { cn } from "@/lib/utils";
 
 export default function FortunePage() {
   const { t, lang } = useLang();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [fortune, setFortune] = useState<Fortune | null>(null);
   const [dateLabel, setDateLabel] = useState<string>("");
 
-  // Generate on client only — date is derived from the user's local clock
+  // Generate on client only — WAIT for session status to resolve so the userKey
+  // is stable. Without this, a logged-in user would first see the anonymous
+  // fortune (while session loads) and then "flip" to their personalized one —
+  // making it look like the fortune changed within the day.
   useEffect(() => {
+    if (status === "loading") return;
     const date = todayStr();
     const userKey = session?.user?.id ?? "anonymous";
     setFortune(generateFortune(date, lang, userKey));
@@ -42,7 +46,7 @@ export default function FortunePage() {
     } catch {
       setDateLabel(date);
     }
-  }, [lang, session?.user?.id]);
+  }, [lang, status, session?.user?.id]);
 
   if (!fortune) {
     return (

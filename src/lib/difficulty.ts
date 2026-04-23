@@ -183,6 +183,113 @@ export const AIM_TRAINER_CONFIG: Record<
   hell:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: 1200 },  // Hard + 1.2s 内不点就消失
 };
 
+// last-hit (MOBA 补刀 — 真正的 LoL 模型)
+//
+// 核心：敌方小兵有 HP，盟军的远程兵会一下下把它打死（每一下扣固定伤害），
+// 你自己也有一个 ATK 数值 —— 你的普攻能一击打掉 ATK 点 HP。
+// 只有你的攻击是"致命一击"（打完后 HP≤0）才算补到刀（得金币）。
+// 你的攻击有弹道飞行时间，期间盟军可能抢先把兵打死 = 被抢。
+//
+//   rounds:         一局有几波兵（每波一个敌人）
+//   minionHp:       敌方小兵血量（统一 100，便于心算）
+//   playerAtk:      你的一次普攻伤害 → 这也就是"击杀窗口"的上限 (HP≤playerAtk 可杀)
+//   playerTravelMs: 你的弹道飞行时间（远程英雄特性；近战 ≈ 0）
+//   allyDamage:     每个盟军兵一次攻击打多少伤害
+//   allyHits:       一波内总共来多少次盟军攻击（够不够杀死小兵）
+//   allyIntervalMs: 两次盟军攻击之间的基础间隔（再加 ±jitter）
+//   allyIntervalJitterMs: 间隔随机扰动，让节奏不可预测
+//   towerDamage:    防御塔一次攻击伤害（hell 才有塔；其他设 0）
+//   towerIntervalMs: 塔攻击间隔（hell 用）
+export const LAST_HIT_CONFIG: Record<
+  Difficulty,
+  {
+    rounds: number;
+    minionHp: number;
+    playerAtk: number;
+    playerTravelMs: number;
+    allyDamage: number;
+    allyHits: number;
+    allyIntervalMs: number;
+    allyIntervalJitterMs: number;
+    towerDamage: number;
+    towerIntervalMs: number;
+  }
+> = {
+  // HP schedule examples (allies-only, no player intervention):
+  //   easy  ally=15, 7 hits → 100→85→70→55→40→25→10→dies
+  //   med   ally=15, 7 hits → same schedule, shorter interval
+  //   hard  ally=14, 8 hits → 100→86→72→58→44→30→16→2→dies
+  //   hell  ally=13, 8 hits → 100→87→74→61→48→35→22→9→dies (+ tower chaos)
+  //
+  // Kill window opens when HP ≤ playerAtk. With playerAtk ≈ 20% of maxHp,
+  // window only appears in the final 1-2 ally hits — matching real LoL feel.
+  easy: {
+    rounds: 12, minionHp: 100, playerAtk: 25, playerTravelMs: 300,
+    allyDamage: 15, allyHits: 7, allyIntervalMs: 850, allyIntervalJitterMs: 120,
+    towerDamage: 0, towerIntervalMs: 0,
+  },
+  medium: {
+    rounds: 15, minionHp: 100, playerAtk: 20, playerTravelMs: 400,
+    allyDamage: 15, allyHits: 7, allyIntervalMs: 650, allyIntervalJitterMs: 180,
+    towerDamage: 0, towerIntervalMs: 0,
+  },
+  hard: {
+    rounds: 15, minionHp: 100, playerAtk: 16, playerTravelMs: 500,
+    allyDamage: 14, allyHits: 8, allyIntervalMs: 520, allyIntervalJitterMs: 220,
+    towerDamage: 0, towerIntervalMs: 0,
+  },
+  hell: {
+    rounds: 15, minionHp: 100, playerAtk: 12, playerTravelMs: 500,
+    allyDamage: 13, allyHits: 8, allyIntervalMs: 400, allyIntervalJitterMs: 280,
+    // 塔固定 50 伤害、1.5s 间隔 —— 塔打两下就切 100 HP，会强行插到节奏里
+    towerDamage: 50, towerIntervalMs: 1500,
+  },
+};
+
+// skill-shot (MOBA 技能预判)
+//   shots: 一局投几次
+//   travelMs: 技能命中的飞行时间 (点击后等 travelMs 才判定)
+//   tolerancePx: 落点与目标距离在这个像素内算命中
+//   path: 目标运动模式
+//   speedPctPerSec: 目标每秒跑过 arena 多少百分比 (speed)
+export const SKILL_SHOT_CONFIG: Record<
+  Difficulty,
+  {
+    shots: number;
+    travelMs: number;
+    tolerancePx: number;
+    path: "straight" | "zigzag" | "wave" | "erratic";
+    speedPctPerSec: number;
+  }
+> = {
+  easy:   { shots: 15, travelMs: 300, tolerancePx: 45, path: "straight", speedPctPerSec: 25 },
+  medium: { shots: 15, travelMs: 400, tolerancePx: 35, path: "zigzag",   speedPctPerSec: 35 },
+  hard:   { shots: 15, travelMs: 500, tolerancePx: 28, path: "wave",     speedPctPerSec: 45 },
+  hell:   { shots: 15, travelMs: 600, tolerancePx: 22, path: "erratic",  speedPctPerSec: 55 },
+};
+
+// combo (连招尝试)
+//   keys: 该难度允许出现的按键池
+//   startLen: 起始连招长度
+//   showMsPerKey: 每个键展示时长 (展示阶段的节奏)
+//   inputMsPerKey: 每个键允许的输入时长 (null = 不限时)
+//   inputMinMs: 输入总时长下限
+export const COMBO_CONFIG: Record<
+  Difficulty,
+  {
+    keys: string[];
+    startLen: number;
+    showMsPerKey: number;
+    inputMsPerKey: number | null;
+    inputMinMs: number;
+  }
+> = {
+  easy:   { keys: ["Q", "W"],                startLen: 3, showMsPerKey: 700, inputMsPerKey: null, inputMinMs: 0    },
+  medium: { keys: ["Q", "W", "E"],           startLen: 3, showMsPerKey: 550, inputMsPerKey: 1500, inputMinMs: 5000 },
+  hard:   { keys: ["Q", "W", "E", "R"],      startLen: 3, showMsPerKey: 450, inputMsPerKey: 1200, inputMinMs: 4000 },
+  hell:   { keys: ["Q", "W", "E", "R", "A"], startLen: 4, showMsPerKey: 350, inputMsPerKey: 700,  inputMinMs: 2500 },
+};
+
 // typing-test
 //   durationSec: 时间窗口 (秒) —— 同时给出一个合适的上限
 //   passageTier: 用哪个难度等级的文章池 (来自 typing-passages.ts)
