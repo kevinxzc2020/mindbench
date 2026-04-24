@@ -231,6 +231,9 @@ export const translations = {
     tarotDrawAgain: "再抽一次",
     tarotKeywords: "关键词",
     tarotMeaning: "解读",
+    tarotSpreadInstruction:
+      "大阿尔卡那牌已铺开在桌面上。请依次轻点三张背面朝上的牌，依序代表：过去、现在、未来。",
+    tarotPicked: "已选",
 
     // Fortune
     fortuneTitle: "今日运势",
@@ -519,6 +522,9 @@ export const translations = {
     tarotDrawAgain: "Draw Again",
     tarotKeywords: "Keywords",
     tarotMeaning: "Meaning",
+    tarotSpreadInstruction:
+      "The Major Arcana are spread on the table. Click three face-down cards in order: past, then present, then future.",
+    tarotPicked: "Selected",
 
     // Fortune
     fortuneTitle: "Daily Fortune",
@@ -807,6 +813,9 @@ export const translations = {
     tarotDrawAgain: "Extraer de Nuevo",
     tarotKeywords: "Palabras clave",
     tarotMeaning: "Significado",
+    tarotSpreadInstruction:
+      "El Arcano Mayor está extendido. Pulsa tres cartas boca abajo en este orden: pasado, luego presente, luego futuro.",
+    tarotPicked: "Elegidas",
 
     // Fortune
     fortuneTitle: "Fortuna del Día",
