@@ -5,7 +5,8 @@ import { Application, Assets, BlurFilter, Container, Graphics, Sprite, Texture }
 import Matter from "matter-js";
 import { buildShuffleSeed } from "@/lib/tarot-seeded";
 
-const CARD_BACK_URL = "/resources/card/card.png";
+const CARD_BACK_URL = "/resources/card/cardlow.png";
+const CARD_BACK_MASK_URL = "/resources/card/cardmasklow.png";
 const TABLE_BACKGROUND_URL = "/resources/card/background.png";
 const CARD_COUNT = 78;
 const TABLE_PAD = 36;
@@ -89,11 +90,13 @@ function clampCardBodiesToTable(
   cardPhysW: number,
   cardPhysH: number
 ) {
-  const pad = Math.hypot(cardPhysW, cardPhysH) * 0.5 + 3;
-  const minX = pad;
-  const maxX = layoutW - pad;
-  const minY = pad;
-  const maxY = layoutH - pad;
+  // 使用接近牌宽高的轴向边距，避免使用半对角导致贴边时出现明显“跳入场内”观感。
+  const padX = cardPhysW * 0.54;
+  const padY = cardPhysH * 0.54;
+  const minX = padX;
+  const maxX = layoutW - padX;
+  const minY = padY;
+  const maxY = layoutH - padY;
   if (minX >= maxX || minY >= maxY) return;
 
   for (const b of bodies) {
@@ -123,7 +126,10 @@ function clampCardBodiesToTable(
       fixed = true;
     }
     if (fixed) {
-      Body.setPosition(b, { x, y });
+      // 仅做温和回推而非硬瞬移，减少边缘继续施压时的突兀闪现。
+      const nx = b.position.x + (x - b.position.x) * 0.5;
+      const ny = b.position.y + (y - b.position.y) * 0.5;
+      Body.setPosition(b, { x: nx, y: ny });
       Body.setVelocity(b, { x: b.velocity.x * 0.3, y: b.velocity.y * 0.3 });
       Body.setAngularVelocity(b, b.angularVelocity * 0.45);
     }
@@ -175,15 +181,29 @@ type GatherItem = {
   zFinal: number;
 };
 
+type SpreadItem = {
+  sprite: Sprite;
+  fromX: number;
+  fromY: number;
+  fromR: number;
+  toX: number;
+  toY: number;
+  toR: number;
+  startAt: number;
+  duration: number;
+  zFinal: number;
+};
+
 export function TarotShuffleStage({ onComplete, onBack }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const [hint, setHint] = useState("在桌面上滑动鼠标，推开牌堆进行洗牌");
+  const [hint, setHint] = useState("在桌面上滑动鼠标，推开牌堆进行洗牌（背面朝上，内部真实洗牌）");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [stageReady, setStageReady] = useState(false);
   const [gatherBusy, setGatherBusy] = useState(false);
   const [gatherDone, setGatherDone] = useState(false);
   const [physUi, setPhysUi] = useState({ cardW: 0, cardH: 0, pointerR: 0 });
   const stopShuffleRef = useRef<(() => void) | null>(null);
+  const deckEntropyRef = useRef(0);
 
   const seedInputRef = useRef({
     pointerPathPx: 0,
@@ -208,6 +228,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       durationMs,
       lastX: s.lastX,
       lastY: s.lastY,
+      deckEntropy: deckEntropyRef.current,
     });
   }, []);
 
@@ -225,11 +246,23 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
     let engine: Matter.Engine | null = null;
     let onTick: (() => void) | null = null;
     let gatherAnim: { items: GatherItem[] } | null = null;
+    let spreadAnim: { items: SpreadItem[] } | null = null;
     let gatherCompletedLocal = false;
+    let spreadCompletedLocal = false;
     let resizeObserver: ResizeObserver | null = null;
     let resizeRafId = 0;
     let deckShadowLayer: Container | null = null;
     let deckHoverRing: Graphics | null = null;
+    let deckHoverAura: Sprite | null = null;
+    let deckHoverMaskGlow:
+      | { root: Container; fill: Sprite; mask: Sprite }
+      | null = null;
+    let spreadHoverRing: Graphics | null = null;
+    let spreadHoverAura: Sprite | null = null;
+    let spreadHoverMaskGlow:
+      | { root: Container; fill: Sprite; mask: Sprite }
+      | null = null;
+    let spreadHoverLerp: number[] = Array.from({ length: CARD_COUNT }, () => 0);
     /** 0→1，收拢后指针在牌叠上时趋近 1（平滑），用于缩放 / tint / 描边 */
     let deckHoverLerp = 0;
     /** 填满 host 的挂载层，尺寸与 Pixi renderer 一一对应，避免在 card 上测到错误宽高 */
@@ -269,9 +302,10 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           backgroundColor: 0x121520,
           backgroundAlpha: 1,
           antialias: true,
-          /** 与挂载层 CSS 1:1，避免 autoDensity + 外层 flex 导致「逻辑牌小、整屏被拉大」 */
-          resolution: 1,
-          autoDensity: false,
+          /** 折中清晰度与性能：高 DPI 屏提高清晰度，但限制上限避免负载过高 */
+          resolution:
+            typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1,
+          autoDensity: true,
         });
         if (!aliveRef.current) {
           app.destroy(true);
@@ -287,9 +321,10 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           touchAction: "none",
         });
 
-        const [tex, bgTex] = await Promise.all([
+        const [tex, bgTex, cardMaskTex] = await Promise.all([
           Assets.load<Texture>(CARD_BACK_URL),
           Assets.load<Texture>(TABLE_BACKGROUND_URL),
+          Assets.load<Texture>(CARD_BACK_MASK_URL),
         ]);
         if (!tex || tex.orig.width < 2) {
           throw new Error("card texture invalid");
@@ -298,6 +333,9 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
         const cardTexH = Math.max(1, tex.orig.height);
         if (!bgTex || bgTex.orig.width < 2) {
           throw new Error("table background texture invalid");
+        }
+        if (!cardMaskTex || cardMaskTex.orig.width < 2) {
+          throw new Error("card mask texture invalid");
         }
         if (!aliveRef.current) {
           app.destroy(true);
@@ -364,6 +402,13 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
         const cardBodies: Matter.Body[] = [];
         const sprites: Sprite[] = [];
         const rng = () => Math.random();
+        const hiddenCardIds = Array.from({ length: CARD_COUNT }, (_, i) => i);
+        for (let i = hiddenCardIds.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          const t = hiddenCardIds[i]!;
+          hiddenCardIds[i] = hiddenCardIds[j]!;
+          hiddenCardIds[j] = t;
+        }
 
         for (let i = 0; i < CARD_COUNT; i++) {
           const x = TABLE_PAD + rng() * Math.max(8, layoutW - TABLE_PAD * 2 - cardPhysW);
@@ -381,7 +426,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               restitution: 0.07,
               density: 0.0019,
               chamfer: { radius: 3 },
-              label: `card-${i}`,
+              label: `card-${hiddenCardIds[i]}`,
               collisionFilter: {
                 category: COL.CARD,
                 mask: COL.WALL | COL.POINTER,
@@ -433,11 +478,17 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
         const tm = (e: TouchEvent) => {
           if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
         };
+        const mc = (e: MouseEvent) => onCanvasClick(e.clientX, e.clientY);
+        const te = (e: TouchEvent) => {
+          if (e.changedTouches[0]) onCanvasClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        };
 
         app.canvas.addEventListener("mousemove", mm);
         app.canvas.addEventListener("mouseleave", onLeave);
         app.canvas.addEventListener("touchmove", tm, { passive: true });
         app.canvas.addEventListener("touchend", onLeave);
+        app.canvas.addEventListener("click", mc);
+        app.canvas.addEventListener("touchend", te, { passive: true });
 
         const destroyDeckShadowLayer = () => {
           if (deckShadowLayer) {
@@ -453,7 +504,36 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             deckHoverRing.destroy();
             deckHoverRing = null;
           }
+          if (deckHoverAura) {
+            world.removeChild(deckHoverAura);
+            deckHoverAura.destroy();
+            deckHoverAura = null;
+          }
+          if (deckHoverMaskGlow) {
+            world.removeChild(deckHoverMaskGlow.root);
+            deckHoverMaskGlow.root.destroy({ children: true });
+            deckHoverMaskGlow = null;
+          }
           deckHoverLerp = 0;
+        };
+
+        const destroySpreadHoverRing = () => {
+          if (spreadHoverRing) {
+            world.removeChild(spreadHoverRing);
+            spreadHoverRing.destroy();
+            spreadHoverRing = null;
+          }
+          if (spreadHoverAura) {
+            world.removeChild(spreadHoverAura);
+            spreadHoverAura.destroy();
+            spreadHoverAura = null;
+          }
+          if (spreadHoverMaskGlow) {
+            world.removeChild(spreadHoverMaskGlow.root);
+            spreadHoverMaskGlow.root.destroy({ children: true });
+            spreadHoverMaskGlow = null;
+          }
+          spreadHoverLerp = Array.from({ length: CARD_COUNT }, () => 0);
         };
 
         /** 多层模糊暗色牌形叠加：底层 blur 大、alpha 略高；上层 blur 小，边缘更「利」 */
@@ -494,6 +574,14 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
 
         const applyGatheredCardVisibility = () => {
           if (!gatherCompletedLocal) return;
+          if (spreadCompletedLocal || spreadAnim) {
+            for (const sp of sprites) {
+              sp.visible = true;
+              sp.tint = 0xffffff;
+              sp.alpha = 1;
+            }
+            return;
+          }
           let topZ = -1;
           for (const sp of sprites) topZ = Math.max(topZ, sp.zIndex);
           for (const sp of sprites) {
@@ -510,8 +598,93 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           sp.tint = 0xffffff;
         };
 
+        const recalcDeckEntropy = () => {
+          const cx = layoutW / 2;
+          const cy = layoutH / 2;
+          const ordered = cardBodies
+            .map((b, i) => ({
+              i,
+              x: b.position.x,
+              y: b.position.y,
+              ang: Math.atan2(b.position.y - cy, b.position.x - cx),
+            }))
+            .sort((a, b) => {
+              const da = a.ang - b.ang;
+              if (Math.abs(da) > 1e-6) return da;
+              return a.i - b.i;
+            });
+          let h = 0x811c9dc5 >>> 0;
+          for (let k = 0; k < ordered.length; k++) {
+            const it = ordered[k]!;
+            const cardId = hiddenCardIds[it.i]!;
+            const px = Math.max(0, Math.min(0xffff, Math.floor(it.x * 4)));
+            const py = Math.max(0, Math.min(0xffff, Math.floor(it.y * 4)));
+            const v = (cardId ^ (px << 8) ^ (py << 1) ^ (k * 0x9e37)) >>> 0;
+            h ^= v;
+            h = Math.imul(h, 0x01000193) >>> 0;
+          }
+          deckEntropyRef.current = h >>> 0;
+        };
+
+        const isPointerOverDeck = (x: number, y: number) => {
+          if (!gatherCompletedLocal || spreadCompletedLocal || spreadAnim) return false;
+          const cx = layoutW / 2;
+          const cy = layoutH / 2;
+          return (
+            Math.abs(x - cx) <= cardPhysW / 2 + DECK_HOVER_HIT_PAD &&
+            Math.abs(y - cy) <= cardPhysH / 2 + DECK_HOVER_HIT_PAD
+          );
+        };
+
+        const startSpread = () => {
+          if (!gatherCompletedLocal || spreadCompletedLocal || spreadAnim) return;
+          destroyDeckShadowLayer();
+          destroyDeckHoverRing();
+          destroySpreadHoverRing();
+          const cx = layoutW / 2;
+          const cy = layoutH / 2;
+          const radius = Math.max(cardPhysH * 1.1, Math.min(layoutW, layoutH) * 0.31);
+          const now = performance.now();
+          const items: SpreadItem[] = sprites.map((sp, i) => {
+            const theta = (i / CARD_COUNT) * Math.PI * 2 - Math.PI / 2;
+            const toX = cx + Math.cos(theta) * radius;
+            const toY = cy + Math.sin(theta) * radius;
+            const toR = theta + Math.PI / 2;
+            return {
+              sprite: sp,
+              fromX: sp.x,
+              fromY: sp.y,
+              fromR: sp.rotation,
+              toX,
+              toY,
+              toR,
+              startAt: now + i * 8,
+              duration: 560,
+              zFinal: i,
+            };
+          });
+          for (const sp of sprites) {
+            sp.visible = true;
+          }
+          spreadAnim = { items };
+          if (aliveRef.current) {
+            setHint("牌已开扇成圆形，可在桌面上选牌");
+          }
+        };
+
+        const onCanvasClick = (clientX: number, clientY: number) => {
+          const rect = app.canvas.getBoundingClientRect();
+          const sx = rect.width / app.renderer.width;
+          const sy = rect.height / app.renderer.height;
+          const x = (clientX - rect.left) / sx;
+          const y = (clientY - rect.top) / sy;
+          if (isPointerOverDeck(x, y)) {
+            startSpread();
+          }
+        };
+
         const applyViewportResize = () => {
-          if (!aliveRef.current || !application || gatherAnim || !pixiMount) return;
+          if (!aliveRef.current || !application || gatherAnim || spreadAnim || !pixiMount) return;
 
           const { w: nw, h: nh } = readMountRect(pixiMount);
           if (nw < 100 || nh < 100) return;
@@ -524,7 +697,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           const sx = nw / layoutW;
           const sy = nh / layoutH;
 
-          if (gatherCompletedLocal) {
+          if (gatherCompletedLocal && !spreadCompletedLocal) {
             for (const b of cardBodies) {
               Body.setPosition(b, { x: nx, y: ny });
               Body.setAngle(b, 0);
@@ -535,6 +708,24 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               const sp = sprites[i]!;
               sp.position.set(nx, ny);
               sp.rotation = 0;
+            }
+          } else if (spreadCompletedLocal) {
+            const radius = Math.max(cardPhysH * 1.1, Math.min(nw, nh) * 0.31);
+            for (let i = 0; i < cardBodies.length; i++) {
+              const theta = (i / CARD_COUNT) * Math.PI * 2 - Math.PI / 2;
+              const px = nx + Math.cos(theta) * radius;
+              const py = ny + Math.sin(theta) * radius;
+              const rot = theta + Math.PI / 2;
+              const b = cardBodies[i]!;
+              const sp = sprites[i]!;
+              Body.setPosition(b, { x: px, y: py });
+              Body.setAngle(b, rot);
+              Body.setVelocity(b, { x: 0, y: 0 });
+              Body.setAngularVelocity(b, 0);
+              sp.position.set(px, py);
+              sp.rotation = rot;
+              sp.visible = true;
+              sp.zIndex = i;
             }
           } else {
             for (let i = 0; i < cardBodies.length; i++) {
@@ -594,7 +785,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           tableBg.scale.set(nw / bgTw, nh / bgTh);
           layoutW = nw;
           layoutH = nh;
-          if (gatherCompletedLocal) {
+          if (gatherCompletedLocal && !spreadCompletedLocal) {
             applyGatheredCardVisibility();
             rebuildDeckShadowLayer(nw / 2, nh / 2);
           }
@@ -608,6 +799,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           if (gatherAnim !== null || gatherCompletedLocal) return;
           destroyDeckShadowLayer();
           destroyDeckHoverRing();
+          destroySpreadHoverRing();
           for (const sp of sprites) {
             sp.visible = true;
           }
@@ -700,21 +892,125 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               }
               gatherAnim = null;
               gatherCompletedLocal = true;
+              spreadCompletedLocal = false;
               applyGatheredCardVisibility();
               rebuildDeckShadowLayer(cx, cy);
               if (!deckHoverRing) {
                 const g = new Graphics();
                 g.eventMode = "none";
-                g.zIndex = 60;
+                g.zIndex = 2600;
                 world.addChild(g);
                 deckHoverRing = g;
                 world.sortChildren();
               }
+              if (!deckHoverAura) {
+                const aura = new Sprite(tex);
+                aura.anchor.set(0.5, 0.5);
+                aura.visible = false;
+                aura.eventMode = "none";
+                aura.zIndex = 2500;
+                aura.tint = 0xf2c14e;
+                aura.alpha = 0;
+                aura.blendMode = "add";
+                world.addChild(aura);
+                deckHoverAura = aura;
+              }
+              if (!deckHoverMaskGlow) {
+                const root = new Container();
+                root.eventMode = "none";
+                root.zIndex = 2550;
+                root.visible = false;
+                const fill = new Sprite(Texture.WHITE);
+                fill.anchor.set(0.5, 0.5);
+                fill.tint = 0xffd46b;
+                fill.alpha = 0;
+                fill.blendMode = "screen";
+                const mask = new Sprite(cardMaskTex);
+                mask.anchor.set(0.5, 0.5);
+                fill.mask = mask;
+                root.addChild(fill);
+                root.addChild(mask);
+                world.addChild(root);
+                deckHoverMaskGlow = { root, fill, mask };
+              }
               if (aliveRef.current) {
                 setGatherBusy(false);
                 setGatherDone(true);
-                setHint("牌已收拢至桌面中心，可点击「完成洗牌」继续");
+                setHint("牌已收拢至桌面中心，点击牌堆可开扇成圆形");
               }
+              recalcDeckEntropy();
+            }
+            return;
+          }
+
+          if (spreadAnim) {
+            const now = performance.now();
+            let allDone = true;
+            for (const it of spreadAnim.items) {
+              if (now < it.startAt) {
+                allDone = false;
+                continue;
+              }
+              const u = Math.min(1, (now - it.startAt) / it.duration);
+              const p = easeGatherStack(u);
+              it.sprite.x = it.fromX + (it.toX - it.fromX) * p;
+              it.sprite.y = it.fromY + (it.toY - it.fromY) * p;
+              it.sprite.rotation = it.fromR + (it.toR - it.fromR) * p;
+              it.sprite.zIndex = it.zFinal;
+              it.sprite.visible = true;
+              if (u < 1) allDone = false;
+            }
+            world.sortChildren();
+            if (allDone) {
+              for (let i = 0; i < spreadAnim.items.length; i++) {
+                const it = spreadAnim.items[i]!;
+                const b = cardBodies[i]!;
+                Body.setPosition(b, { x: it.toX, y: it.toY });
+                Body.setAngle(b, it.toR);
+                Body.setVelocity(b, { x: 0, y: 0 });
+                Body.setAngularVelocity(b, 0);
+              }
+              spreadAnim = null;
+              spreadCompletedLocal = true;
+              if (!spreadHoverRing) {
+                const g = new Graphics();
+                g.eventMode = "none";
+                g.zIndex = 2600;
+                world.addChild(g);
+                spreadHoverRing = g;
+              }
+              if (!spreadHoverAura) {
+                const aura = new Sprite(tex);
+                aura.anchor.set(0.5, 0.5);
+                aura.visible = false;
+                aura.eventMode = "none";
+                aura.zIndex = 2500;
+                aura.tint = 0xf2c14e;
+                aura.alpha = 0;
+                aura.blendMode = "add";
+                world.addChild(aura);
+                spreadHoverAura = aura;
+              }
+              if (!spreadHoverMaskGlow) {
+                const root = new Container();
+                root.eventMode = "none";
+                root.zIndex = 2550;
+                root.visible = false;
+                const fill = new Sprite(Texture.WHITE);
+                fill.anchor.set(0.5, 0.5);
+                fill.tint = 0xffd46b;
+                fill.alpha = 0;
+                fill.blendMode = "screen";
+                const mask = new Sprite(cardMaskTex);
+                mask.anchor.set(0.5, 0.5);
+                mask.tint = 0xffffff;
+                fill.mask = mask;
+                root.addChild(fill);
+                root.addChild(mask);
+                world.addChild(root);
+                spreadHoverMaskGlow = { root, fill, mask };
+              }
+              recalcDeckEntropy();
             }
             return;
           }
@@ -744,7 +1040,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               const py = b.position.y;
               const dEdge = Math.min(px - pad, layoutW - pad - px, py - pad, layoutH - pad - py);
               if (dEdge >= edgeZone) continue;
-              const w = Math.max(0, (edgeZone - dEdge) / edgeZone);
+              const w = Math.min(1, Math.max(0, (edgeZone - dEdge) / edgeZone));
               const wx = w * w;
               const dx = cxPull - px;
               const dy = cyPull - py;
@@ -766,11 +1062,37 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             const sp = sprites[i]!;
             syncSpriteToBody(sp, b);
             if (!gatherCompletedLocal) {
+              // 贴边时加入轻微“受压形变”（仅视觉），强化推墙反馈并降低突兀感。
+              const edgeDist = Math.min(
+                b.position.x,
+                layoutW - b.position.x,
+                b.position.y,
+                layoutH - b.position.y
+              );
+              const nearEdgeT = Math.min(
+                1,
+                Math.max(0, (Math.min(cardPhysW, cardPhysH) * 0.7 - edgeDist) / Math.max(1, Math.min(cardPhysW, cardPhysH) * 0.7))
+              );
+              if (nearEdgeT > 0.001) {
+                const sxBase = cardPhysW / cardTexW;
+                const syBase = cardPhysH / cardTexH;
+                const squeeze = 1 - 0.12 * nearEdgeT;
+                const stretch = 1 + 0.1 * nearEdgeT;
+                const vx = Math.abs(b.velocity.x);
+                const vy = Math.abs(b.velocity.y);
+                if (vx >= vy) {
+                  sp.scale.set(sxBase * squeeze, syBase * stretch);
+                } else {
+                  sp.scale.set(sxBase * stretch, syBase * squeeze);
+                }
+              } else {
+                sp.scale.set(cardPhysW / cardTexW, cardPhysH / cardTexH);
+              }
               sp.zIndex = k;
             }
           }
 
-          if (gatherCompletedLocal) {
+          if (gatherCompletedLocal && !spreadCompletedLocal) {
             const cx = layoutW / 2;
             const cy = layoutH / 2;
             const pr = pointerRef.current;
@@ -782,6 +1104,8 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             const dm = app.ticker.deltaMS || 16;
             const blend = Math.min(1, dm * DECK_HOVER_BLEND_PER_MS);
             deckHoverLerp += (target - deckHoverLerp) * blend;
+            const breathe = 0.5 + 0.5 * Math.sin(performance.now() * 0.0022);
+            const breatheSoft = 0.72 + 0.28 * breathe;
 
             if (deckHoverRing) {
               deckHoverRing.clear();
@@ -793,7 +1117,16 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
                 const rr = Math.min(16, Math.min(cardPhysW, cardPhysH) * 0.09);
                 deckHoverRing
                   .roundRect(cx - rw / 2, cy - rh / 2, rw, rh, rr)
-                  .stroke({ width: 2, color: 0xd8b4fe, alpha: 0.32 + 0.48 * t });
+                  .stroke({ width: 3, color: 0xf2c14e, alpha: (0.4 + 0.28 * breatheSoft) * t });
+                deckHoverRing.filters = [
+                  new BlurFilter({
+                    strength: (3 + 6 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 9,
+                  }),
+                ];
+              } else {
+                deckHoverRing.filters = null;
               }
             }
 
@@ -805,15 +1138,192 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
                 continue;
               }
               const t = deckHoverLerp;
-              const s = 1 + 0.036 * t;
+              const s = 1 + (0.026 + 0.012 * breatheSoft) * t;
               sp.scale.set(sxBase * s, syBase * s);
-              const tr = Math.round(255 - 20 * t);
-              const tg = Math.round(255 - 30 * t);
-              const tb = Math.round(255 - 12 * t);
+              const tr = Math.round(255 - 8 * t);
+              const tg = Math.round(255 - 12 * t);
+              const tb = Math.round(255 - 34 * t);
               sp.tint = (tr << 16) | (tg << 8) | tb;
+            }
+            if (deckHoverAura) {
+              const t = deckHoverLerp;
+              if (t > 0.01) {
+                deckHoverAura.visible = true;
+                deckHoverAura.position.set(cx, cy);
+                const auraScale = 1.12 + 0.12 * t;
+                deckHoverAura.scale.set(sxBase * auraScale, syBase * auraScale);
+                deckHoverAura.alpha = (0.22 + 0.34 * breatheSoft) * t;
+                deckHoverAura.filters = [
+                  new BlurFilter({
+                    strength: (8 + 11 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 11,
+                  }),
+                ];
+              } else {
+                deckHoverAura.visible = false;
+                deckHoverAura.alpha = 0;
+                deckHoverAura.filters = null;
+              }
+            }
+            if (deckHoverMaskGlow) {
+              const t = deckHoverLerp;
+              if (t > 0.01) {
+                deckHoverMaskGlow.root.visible = true;
+                deckHoverMaskGlow.root.position.set(cx, cy);
+                deckHoverMaskGlow.fill.width = cardPhysW;
+                deckHoverMaskGlow.fill.height = cardPhysH;
+                deckHoverMaskGlow.fill.alpha = (0.16 + 0.28 * breatheSoft) * t;
+                deckHoverMaskGlow.fill.filters = [
+                  new BlurFilter({
+                    strength: (0.6 + 1.4 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 7,
+                  }),
+                ];
+                deckHoverMaskGlow.mask.scale.set(sxBase, syBase);
+              } else {
+                deckHoverMaskGlow.root.visible = false;
+                deckHoverMaskGlow.fill.alpha = 0;
+                deckHoverMaskGlow.fill.filters = null;
+              }
             }
 
             app.canvas.style.cursor = deckHoverLerp > 0.08 ? "pointer" : "default";
+          } else if (spreadCompletedLocal) {
+            const cx = layoutW / 2;
+            const cy = layoutH / 2;
+            const pr = pointerRef.current;
+            let hoveredIndex = -1;
+            if (pr.active) {
+              for (let i = sprites.length - 1; i >= 0; i--) {
+                const sp = sprites[i]!;
+                if (!sp.visible) continue;
+                const dx = pr.x - sp.x;
+                const dy = pr.y - sp.y;
+                const c = Math.cos(sp.rotation);
+                const s = Math.sin(sp.rotation);
+                const lx = dx * c + dy * s;
+                const ly = -dx * s + dy * c;
+                if (Math.abs(lx) <= cardPhysW / 2 + 3 && Math.abs(ly) <= cardPhysH / 2 + 3) {
+                  hoveredIndex = i;
+                  break;
+                }
+              }
+            }
+
+            const dm = app.ticker.deltaMS || 16;
+            const blend = Math.min(1, dm * 0.02);
+            const nowMs = performance.now();
+            const breathe = 0.5 + 0.5 * Math.sin(nowMs * 0.0022);
+            const breatheSoft = 0.72 + 0.28 * breathe;
+            for (let i = 0; i < sprites.length; i++) {
+              const b = cardBodies[i]!;
+              const sp = sprites[i]!;
+              const target = i === hoveredIndex ? 1 : 0;
+              spreadHoverLerp[i] += (target - spreadHoverLerp[i]!) * blend;
+              const t = spreadHoverLerp[i]!;
+              const nx0 = b.position.x - cx;
+              const ny0 = b.position.y - cy;
+              const len = Math.hypot(nx0, ny0) || 1;
+              const nx = nx0 / len;
+              const ny = ny0 / len;
+              const lift = (6 + 4 * breatheSoft) * t;
+              sp.x = b.position.x + nx * lift;
+              sp.y = b.position.y + ny * lift;
+              const baseSX = cardPhysW / cardTexW;
+              const baseSY = cardPhysH / cardTexH;
+              const sHover = 1 + (0.026 + 0.012 * breatheSoft) * t;
+              sp.scale.set(baseSX * sHover, baseSY * sHover);
+              const tr = Math.round(255 - 8 * t);
+              const tg = Math.round(255 - 12 * t);
+              const tb = Math.round(255 - 34 * t);
+              sp.tint = (tr << 16) | (tg << 8) | tb;
+              sp.zIndex = i + (i === hoveredIndex ? 1000 : 0);
+            }
+
+            if (spreadHoverRing) {
+              spreadHoverRing.clear();
+              if (hoveredIndex >= 0) {
+                const sp = sprites[hoveredIndex]!;
+                const t = spreadHoverLerp[hoveredIndex]!;
+                const pad = 4 + 4 * t;
+                const rw = cardPhysW + pad * 2;
+                const rh = cardPhysH + pad * 2;
+                const rr = Math.min(16, Math.min(cardPhysW, cardPhysH) * 0.09);
+                spreadHoverRing.position.set(sp.x, sp.y);
+                spreadHoverRing.rotation = sp.rotation;
+                spreadHoverRing
+                  .roundRect(-rw / 2, -rh / 2, rw, rh, rr)
+                  .stroke({ width: 3, color: 0xf2c14e, alpha: (0.4 + 0.28 * breatheSoft) * t });
+                spreadHoverRing.filters = [
+                  new BlurFilter({
+                    strength: (3 + 6 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 9,
+                  }),
+                ];
+              } else {
+                spreadHoverRing.filters = null;
+              }
+            }
+
+            if (spreadHoverAura) {
+              if (hoveredIndex >= 0) {
+                const sp = sprites[hoveredIndex]!;
+                const t = spreadHoverLerp[hoveredIndex]!;
+                spreadHoverAura.visible = true;
+                spreadHoverAura.position.set(sp.x, sp.y);
+                spreadHoverAura.rotation = sp.rotation;
+                const baseSX = cardPhysW / cardTexW;
+                const baseSY = cardPhysH / cardTexH;
+                const auraScale = 1.12 + 0.12 * t;
+                spreadHoverAura.scale.set(baseSX * auraScale, baseSY * auraScale);
+                spreadHoverAura.alpha = (0.22 + 0.34 * breatheSoft) * t;
+                spreadHoverAura.tint = 0xf2c14e;
+                spreadHoverAura.filters = [
+                  new BlurFilter({
+                    strength: (8 + 11 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 11,
+                  }),
+                ];
+              } else {
+                spreadHoverAura.visible = false;
+                spreadHoverAura.alpha = 0;
+                spreadHoverAura.filters = null;
+              }
+            }
+
+            if (spreadHoverMaskGlow) {
+              if (hoveredIndex >= 0) {
+                const sp = sprites[hoveredIndex]!;
+                const t = spreadHoverLerp[hoveredIndex]!;
+                const baseSX = cardPhysW / cardTexW;
+                const baseSY = cardPhysH / cardTexH;
+                spreadHoverMaskGlow.root.visible = true;
+                spreadHoverMaskGlow.root.position.set(sp.x, sp.y);
+                spreadHoverMaskGlow.root.rotation = sp.rotation;
+                spreadHoverMaskGlow.fill.width = cardPhysW;
+                spreadHoverMaskGlow.fill.height = cardPhysH;
+                spreadHoverMaskGlow.fill.alpha = (0.16 + 0.28 * breatheSoft) * t;
+                spreadHoverMaskGlow.fill.tint = 0xffd46b;
+                spreadHoverMaskGlow.fill.filters = [
+                  new BlurFilter({
+                    strength: (0.6 + 1.4 * breatheSoft) * t,
+                    quality: 2,
+                    kernelSize: 7,
+                  }),
+                ];
+                spreadHoverMaskGlow.mask.scale.set(baseSX, baseSY);
+              } else {
+                spreadHoverMaskGlow.root.visible = false;
+                spreadHoverMaskGlow.fill.alpha = 0;
+                spreadHoverMaskGlow.fill.filters = null;
+              }
+            }
+
+            app.canvas.style.cursor = hoveredIndex >= 0 ? "pointer" : "default";
           } else {
             deckHoverLerp = 0;
             const sxB = cardPhysW / cardTexW;
@@ -821,12 +1331,43 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             for (const sp of sprites) {
               sp.scale.set(sxB, syB);
             }
+            if (spreadHoverRing) {
+              spreadHoverRing.clear();
+              spreadHoverRing.filters = null;
+            }
+            if (deckHoverRing) {
+              deckHoverRing.clear();
+              deckHoverRing.filters = null;
+            }
+            if (deckHoverAura) {
+              deckHoverAura.visible = false;
+              deckHoverAura.alpha = 0;
+              deckHoverAura.filters = null;
+            }
+            if (deckHoverMaskGlow) {
+              deckHoverMaskGlow.root.visible = false;
+              deckHoverMaskGlow.fill.alpha = 0;
+              deckHoverMaskGlow.fill.filters = null;
+            }
+            if (spreadHoverAura) {
+              spreadHoverAura.visible = false;
+              spreadHoverAura.alpha = 0;
+              spreadHoverAura.filters = null;
+            }
+            if (spreadHoverMaskGlow) {
+              spreadHoverMaskGlow.root.visible = false;
+              spreadHoverMaskGlow.fill.alpha = 0;
+              spreadHoverMaskGlow.fill.filters = null;
+            }
+            spreadHoverLerp.fill(0);
             app.canvas.style.cursor = "";
           }
 
           world.sortChildren();
+          recalcDeckEntropy();
         };
         app.ticker.add(onTick);
+        recalcDeckEntropy();
 
         if (typeof ResizeObserver !== "undefined") {
           resizeObserver = new ResizeObserver(() => {
@@ -862,10 +1403,18 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       resizeObserver = null;
       stopShuffleRef.current = null;
       gatherAnim = null;
+      spreadAnim = null;
       gatherCompletedLocal = false;
+      spreadCompletedLocal = false;
       deckShadowLayer = null;
       deckHoverRing = null;
+      deckHoverAura = null;
+      deckHoverMaskGlow = null;
+      spreadHoverRing = null;
+      spreadHoverAura = null;
+      spreadHoverMaskGlow = null;
       deckHoverLerp = 0;
+      spreadHoverLerp = [];
       setStageReady(false);
       setGatherBusy(false);
       setGatherDone(false);
@@ -908,13 +1457,6 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               onClick={() => stopShuffleRef.current?.()}
             >
               {gatherBusy ? "收拢中…" : "停止洗牌"}
-            </button>
-            <button
-              type="button"
-              className="btn-primary px-4 py-2 text-sm"
-              onClick={() => onComplete(snapshotSeed())}
-            >
-              完成洗牌 · 继续
             </button>
           </div>
         </div>

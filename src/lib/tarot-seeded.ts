@@ -18,12 +18,14 @@ export function buildShuffleSeed(input: {
   durationMs: number;
   lastX: number;
   lastY: number;
+  deckEntropy?: number;
 }): number {
   const a = Math.floor(input.pointerPathPx * 1000) >>> 0;
   const b = (input.durationMs >>> 0) ^ 0x9e3779b9;
   const c = Math.floor(input.lastX * 1000) >>> 0;
   const d = Math.floor(input.lastY * 1000) >>> 0;
-  return (a ^ (b << 1) ^ (c << 2) ^ (d << 3)) >>> 0;
+  const e = (input.deckEntropy ?? 0) >>> 0;
+  return (a ^ (b << 1) ^ (c << 2) ^ (d << 3) ^ (e << 4) ^ (e >>> 7)) >>> 0;
 }
 
 /** 与 `drawThreeCards` 相同规则，但使用洗牌阶段得到的 seed */
