@@ -9,6 +9,15 @@ const CARD_BACK_URL = "/resources/card/cardlow.png";
 const CARD_BACK_MASK_URL = "/resources/card/cardmasklow.png";
 const TABLE_BACKGROUND_URL = "/resources/card/background.png";
 const CARD_COUNT = 78;
+/** 开扇后从扇面选入顶栏的牌数 */
+const PICK_SLOT_COUNT = 4;
+/** 选牌飞到顶栏的时长 */
+const PICK_FLY_DURATION_MS = 580;
+/** 选满四张后：剩余扇面收拢至中心 */
+const REMAIN_CLOSE_STAGGER_MS = 26;
+const REMAIN_CLOSE_DURATION_MS = 700;
+/** 收拢后再渐隐 */
+const REMAIN_FADE_DURATION_MS = 600;
 const TABLE_PAD = 36;
 /** 距内边小于此比例×短边时，施加指向中心的微弱拉力（避免牌全贴在四墙） */
 const EDGE_PULL_ZONE_FRAC = 0.15;
@@ -79,6 +88,13 @@ function easeGatherStack(t: number): number {
   }
   const u = (t - t2) / (1 - t2);
   return 0.89 + 0.11 * (1 - Math.pow(1 - u, 2.35));
+}
+
+function easeOutCubic(t: number): number {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  const u = 1 - t;
+  return 1 - u * u * u;
 }
 
 /** 限速 + 将牌心钳在桌面内（保守半对角），防止高速/大 delta 穿墙飞出可视区 */
@@ -164,7 +180,7 @@ async function waitForMountLayout(
         h: h < 80 ? 480 : h,
       };
     }
-    await new Promise<void>((r) => requestAnimationFrame(r));
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
   }
   return { w: 800, h: 480 };
 }
@@ -194,14 +210,17 @@ type SpreadItem = {
   zFinal: number;
 };
 
+/** 关扇：未选中牌收拢到桌面中心（与 GatherItem 同形，外加 cardIndex） */
+type RemainCloseItem = GatherItem & { cardIndex: number };
+
 export function TarotShuffleStage({ onComplete, onBack }: Props) {
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const [hint, setHint] = useState("在桌面上滑动鼠标，推开牌堆进行洗牌（背面朝上，内部真实洗牌）");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [stageReady, setStageReady] = useState(false);
   const [gatherBusy, setGatherBusy] = useState(false);
   const [gatherDone, setGatherDone] = useState(false);
-  const [physUi, setPhysUi] = useState({ cardW: 0, cardH: 0, pointerR: 0 });
   const stopShuffleRef = useRef<(() => void) | null>(null);
   const deckEntropyRef = useRef(0);
 
@@ -263,6 +282,29 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       | { root: Container; fill: Sprite; mask: Sprite }
       | null = null;
     let spreadHoverLerp: number[] = Array.from({ length: CARD_COUNT }, () => 0);
+    /** 开扇后已选中的牌（顺序即顶栏槽位 0..3） */
+    let pickedOrder: number[] = [];
+    const pickedSet = new Set<number>();
+    type PickFlyAnim = {
+      cardIndex: number;
+      slot: number;
+      startAt: number;
+      duration: number;
+      fromX: number;
+      fromY: number;
+      fromR: number;
+      toX: number;
+      toY: number;
+      toR: number;
+    };
+    let pickFlyAnims: PickFlyAnim[] = [];
+    /** 四张飞到位后开始关扇+渐隐，避免重复触发 */
+    let postPickCloseStarted = false;
+    let remainCloseAnim: { items: RemainCloseItem[] } | null = null;
+    let remainFadeAnim: { startAt: number } | null = null;
+    /** 关扇动画中的牌：不同步 Matter 位姿，避免拉回扇面 */
+    let remainCloseIndices = new Set<number>();
+    let exitToNextPhaseDone = false;
     /** 0→1，收拢后指针在牌叠上时趋近 1（平滑），用于缩放 / tint / 描边 */
     let deckHoverLerp = 0;
     /** 填满 host 的挂载层，尺寸与 Pixi renderer 一一对应，避免在 card 上测到错误宽高 */
@@ -608,6 +650,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               y: b.position.y,
               ang: Math.atan2(b.position.y - cy, b.position.x - cx),
             }))
+            .filter((o) => !(spreadCompletedLocal && pickedSet.has(o.i)))
             .sort((a, b) => {
               const da = a.ang - b.ang;
               if (Math.abs(da) > 1e-6) return da;
@@ -667,9 +710,140 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             sp.visible = true;
           }
           spreadAnim = { items };
-          if (aliveRef.current) {
-            setHint("牌已开扇成圆形，可在桌面上选牌");
+        };
+
+        /**
+         * 四张选中牌落点：左上 / 右上 / 左下 / 右下。
+         * 先取靠角的安全锚点，再沿「角 → 桌面中心」内推一段，使牌停在边角与中央牌堆之间的空白带，不贴角。
+         */
+        const computeHandSlotBase = (
+          slot: number,
+          lw: number = layoutW,
+          lh: number = layoutH,
+          cw: number = cardPhysW,
+          ch: number = cardPhysH
+        ) => {
+          const cx = lw / 2;
+          const cy = lh / 2;
+          const padX = Math.max(18, cw * 0.2);
+          const padY = Math.max(18, ch * 0.16);
+          let bx: number;
+          let by: number;
+          if (slot === 0) {
+            bx = padX + cw / 2;
+            by = padY + ch / 2;
+          } else if (slot === 1) {
+            bx = lw - padX - cw / 2;
+            by = padY + ch / 2;
+          } else if (slot === 2) {
+            bx = padX + cw / 2;
+            by = lh - padY - ch / 2;
+          } else {
+            bx = lw - padX - cw / 2;
+            by = lh - padY - ch / 2;
           }
+          /** 0=贴角，1=桌面中心；取中间偏内，落在「角—牌堆」之间的视觉空隙 */
+          const inwardFrac = 0.44;
+          const x = bx + (cx - bx) * inwardFrac;
+          const y = by + (cy - by) * inwardFrac;
+          return { x, y, r: 0 };
+        };
+
+        const cornerSettleWobble = (slot: number, nowMs: number) => {
+          const w = Math.sin(nowMs * 0.0022 + slot * 0.66) * 4;
+          const dir =
+            slot === 0 ? [1, 1] : slot === 1 ? [-1, 1] : slot === 2 ? [1, -1] : [-1, -1];
+          return { ox: dir[0]! * w, oy: dir[1]! * w };
+        };
+
+        const hitTestSpreadFan = (wx: number, wy: number): number => {
+          if (!spreadCompletedLocal || spreadAnim) return -1;
+          for (let i = sprites.length - 1; i >= 0; i--) {
+            if (pickedSet.has(i)) continue;
+            const sp = sprites[i]!;
+            if (!sp.visible) continue;
+            const dx = wx - sp.x;
+            const dy = wy - sp.y;
+            const c = Math.cos(sp.rotation);
+            const s = Math.sin(sp.rotation);
+            const lx = dx * c + dy * s;
+            const ly = -dx * s + dy * c;
+            if (Math.abs(lx) <= cardPhysW / 2 + 4 && Math.abs(ly) <= cardPhysH / 2 + 4) {
+              return i;
+            }
+          }
+          return -1;
+        };
+
+        const tryPickSpreadCard = (cardIndex: number) => {
+          if (!spreadCompletedLocal || spreadAnim) return;
+          if (pickedSet.has(cardIndex)) return;
+          if (pickedOrder.length >= PICK_SLOT_COUNT) return;
+          const slot = pickedOrder.length;
+          const sp = sprites[cardIndex]!;
+          const b = cardBodies[cardIndex]!;
+          const hand = computeHandSlotBase(slot);
+          pickFlyAnims.push({
+            cardIndex,
+            slot,
+            startAt: performance.now(),
+            duration: PICK_FLY_DURATION_MS,
+            fromX: sp.x,
+            fromY: sp.y,
+            fromR: sp.rotation,
+            toX: hand.x,
+            toY: hand.y,
+            toR: hand.r,
+          });
+          pickedOrder.push(cardIndex);
+          pickedSet.add(cardIndex);
+          Body.setStatic(b, true);
+          Body.setVelocity(b, { x: 0, y: 0 });
+          Body.setAngularVelocity(b, 0);
+          Body.setPosition(b, { x: -9000, y: -9000 - cardIndex * 4 });
+          b.collisionFilter = { category: 0, mask: 0 };
+          spreadHoverLerp[cardIndex] = 0;
+        };
+
+        const startRemainCloseToCenter = () => {
+          destroySpreadHoverRing();
+          const cx = layoutW / 2;
+          const cy = layoutH / 2;
+          const now = performance.now();
+          const indices: number[] = [];
+          for (let i = 0; i < sprites.length; i++) {
+            if (!pickedSet.has(i)) indices.push(i);
+          }
+          const ordered = indices
+            .map((i) => {
+              const b = cardBodies[i]!;
+              return {
+                i,
+                dist: Math.hypot(b.position.x - cx, b.position.y - cy),
+              };
+            })
+            .sort((a, b) => b.dist - a.dist);
+          const items: RemainCloseItem[] = ordered.map((o, rank) => {
+            const sp = sprites[o.i]!;
+            return {
+              cardIndex: o.i,
+              sprite: sp,
+              fromX: sp.x,
+              fromY: sp.y,
+              fromR: sp.rotation,
+              startAt: now + rank * REMAIN_CLOSE_STAGGER_MS,
+              duration: REMAIN_CLOSE_DURATION_MS,
+              toX: cx,
+              toY: cy,
+              zFinal: rank,
+            };
+          });
+          remainCloseIndices = new Set(items.map((it) => it.cardIndex));
+          for (const it of items) {
+            it.sprite.zIndex = it.zFinal;
+          }
+          world.sortChildren();
+          remainCloseAnim = { items };
         };
 
         const onCanvasClick = (clientX: number, clientY: number) => {
@@ -680,11 +854,17 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           const y = (clientY - rect.top) / sy;
           if (isPointerOverDeck(x, y)) {
             startSpread();
+            return;
+          }
+          if (spreadCompletedLocal && !spreadAnim && pickedOrder.length < PICK_SLOT_COUNT) {
+            const hi = hitTestSpreadFan(x, y);
+            if (hi >= 0) tryPickSpreadCard(hi);
           }
         };
 
         const applyViewportResize = () => {
-          if (!aliveRef.current || !application || gatherAnim || spreadAnim || !pixiMount) return;
+          if (!aliveRef.current || !application || gatherAnim || spreadAnim || remainCloseAnim || !pixiMount)
+            return;
 
           const { w: nw, h: nh } = readMountRect(pixiMount);
           if (nw < 100 || nh < 100) return;
@@ -712,6 +892,14 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           } else if (spreadCompletedLocal) {
             const radius = Math.max(cardPhysH * 1.1, Math.min(nw, nh) * 0.31);
             for (let i = 0; i < cardBodies.length; i++) {
+              if (pickedSet.has(i)) {
+                const b = cardBodies[i]!;
+                Body.setPosition(b, { x: -9000, y: -9000 - i * 4 });
+                Body.setAngle(b, 0);
+                Body.setVelocity(b, { x: 0, y: 0 });
+                Body.setAngularVelocity(b, 0);
+                continue;
+              }
               const theta = (i / CARD_COUNT) * Math.PI * 2 - Math.PI / 2;
               const px = nx + Math.cos(theta) * radius;
               const py = ny + Math.sin(theta) * radius;
@@ -726,6 +914,12 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               sp.rotation = rot;
               sp.visible = true;
               sp.zIndex = i;
+            }
+            for (const anim of pickFlyAnims) {
+              const hb = computeHandSlotBase(anim.slot, nw, nh);
+              anim.toX = hb.x;
+              anim.toY = hb.y;
+              anim.toR = hb.r;
             }
           } else {
             for (let i = 0; i < cardBodies.length; i++) {
@@ -790,9 +984,6 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             rebuildDeckShadowLayer(nw / 2, nh / 2);
           }
 
-          if (aliveRef.current) {
-            setPhysUi({ cardW: cardPhysW, cardH: cardPhysH, pointerR: pointerRadius });
-          }
         };
 
         const startGather = () => {
@@ -800,6 +991,14 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           destroyDeckShadowLayer();
           destroyDeckHoverRing();
           destroySpreadHoverRing();
+          pickedOrder = [];
+          pickedSet.clear();
+          pickFlyAnims = [];
+          postPickCloseStarted = false;
+          remainCloseAnim = null;
+          remainFadeAnim = null;
+          remainCloseIndices = new Set<number>();
+          exitToNextPhaseDone = false;
           for (const sp of sprites) {
             sp.visible = true;
           }
@@ -936,7 +1135,6 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               if (aliveRef.current) {
                 setGatherBusy(false);
                 setGatherDone(true);
-                setHint("牌已收拢至桌面中心，点击牌堆可开扇成圆形");
               }
               recalcDeckEntropy();
             }
@@ -1054,13 +1252,19 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             }
           }
 
+          const flyingSet = new Set(pickFlyAnims.map((a) => a.cardIndex));
           const order = cardBodies
             .map((b, i) => ({ b, i }))
             .sort((a, b) => a.b.position.y - b.b.position.y);
           for (let k = 0; k < order.length; k++) {
             const { b, i } = order[k]!;
             const sp = sprites[i]!;
-            syncSpriteToBody(sp, b);
+            const skipBodySync =
+              spreadCompletedLocal &&
+              (pickedSet.has(i) || flyingSet.has(i) || remainCloseIndices.has(i));
+            if (!skipBodySync) {
+              syncSpriteToBody(sp, b);
+            }
             if (!gatherCompletedLocal) {
               // 贴边时加入轻微“受压形变”（仅视觉），强化推墙反馈并降低突兀感。
               const edgeDist = Math.min(
@@ -1193,10 +1397,126 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           } else if (spreadCompletedLocal) {
             const cx = layoutW / 2;
             const cy = layoutH / 2;
+            const nowMs = performance.now();
+            const breathe = 0.5 + 0.5 * Math.sin(nowMs * 0.0022);
+            const breatheSoft = 0.72 + 0.28 * breathe;
+
+            if (remainCloseAnim) {
+              let allCloseDone = true;
+              for (const it of remainCloseAnim.items) {
+                if (nowMs < it.startAt) {
+                  allCloseDone = false;
+                  continue;
+                }
+                const u = Math.min(1, (nowMs - it.startAt) / it.duration);
+                const p = easeGatherStack(u);
+                it.sprite.x = it.fromX + (it.toX - it.fromX) * p;
+                it.sprite.y = it.fromY + (it.toY - it.fromY) * p;
+                it.sprite.rotation = it.fromR * (1 - p);
+                it.sprite.zIndex = it.zFinal;
+                it.sprite.visible = true;
+                it.sprite.alpha = 1;
+                if (u < 1) allCloseDone = false;
+              }
+              world.sortChildren();
+              if (allCloseDone) {
+                for (const it of remainCloseAnim.items) {
+                  const b = cardBodies[it.cardIndex]!;
+                  Body.setPosition(b, { x: cx, y: cy });
+                  Body.setAngle(b, 0);
+                  Body.setVelocity(b, { x: 0, y: 0 });
+                  Body.setAngularVelocity(b, 0);
+                  it.sprite.position.set(cx, cy);
+                  it.sprite.rotation = 0;
+                }
+                remainCloseAnim = null;
+                remainCloseIndices.clear();
+                remainFadeAnim = { startAt: nowMs };
+              }
+            }
+
+            if (remainFadeAnim && !exitToNextPhaseDone) {
+              const uFade = Math.min(1, (nowMs - remainFadeAnim.startAt) / REMAIN_FADE_DURATION_MS);
+              const a = 1 - easeOutCubic(uFade);
+              for (let i = 0; i < sprites.length; i++) {
+                if (pickedSet.has(i)) continue;
+                sprites[i]!.alpha = a;
+              }
+              if (uFade >= 1) {
+                exitToNextPhaseDone = true;
+                remainFadeAnim = null;
+                for (let i = 0; i < sprites.length; i++) {
+                  if (!pickedSet.has(i)) {
+                    sprites[i]!.visible = false;
+                    sprites[i]!.alpha = 0;
+                  }
+                }
+                queueMicrotask(() => {
+                  if (aliveRef.current) onCompleteRef.current(snapshotSeed());
+                });
+              }
+            }
+
+            const nextFlies: PickFlyAnim[] = [];
+            for (const anim of pickFlyAnims) {
+              const u = Math.min(1, (nowMs - anim.startAt) / anim.duration);
+              const p = easeOutCubic(u);
+              const sp = sprites[anim.cardIndex]!;
+              sp.x = anim.fromX + (anim.toX - anim.fromX) * p;
+              sp.y = anim.fromY + (anim.toY - anim.fromY) * p;
+              sp.rotation = anim.fromR + (anim.toR - anim.fromR) * p;
+              const baseSX = cardPhysW / cardTexW;
+              const baseSY = cardPhysH / cardTexH;
+              sp.scale.set(baseSX * (1 + 0.02 * p), baseSY * (1 + 0.02 * p));
+              sp.tint = 0xffffff;
+              sp.zIndex = 3200 + anim.slot;
+              if (u < 1) {
+                nextFlies.push(anim);
+              } else {
+                const hb = computeHandSlotBase(anim.slot);
+                const { ox, oy } = cornerSettleWobble(anim.slot, nowMs);
+                sp.position.set(hb.x + ox, hb.y + oy);
+                sp.rotation = hb.r;
+                sp.scale.set(baseSX, baseSY);
+              }
+            }
+            pickFlyAnims = nextFlies;
+
+            if (
+              pickFlyAnims.length === 0 &&
+              pickedOrder.length === PICK_SLOT_COUNT &&
+              !postPickCloseStarted &&
+              !remainCloseAnim &&
+              !remainFadeAnim
+            ) {
+              postPickCloseStarted = true;
+              startRemainCloseToCenter();
+            }
+
+            const flyingIdx = new Set(pickFlyAnims.map((a) => a.cardIndex));
+            for (let slot = 0; slot < pickedOrder.length; slot++) {
+              const idx = pickedOrder[slot]!;
+              if (flyingIdx.has(idx)) continue;
+              const sp = sprites[idx]!;
+              const hb = computeHandSlotBase(slot);
+              const { ox, oy } = cornerSettleWobble(slot, nowMs);
+              sp.position.set(hb.x + ox, hb.y + oy);
+              sp.rotation = hb.r;
+              sp.tint = 0xffffff;
+              sp.scale.set(cardPhysW / cardTexW, cardPhysH / cardTexH);
+              sp.zIndex = 3100 + slot;
+            }
+
             const pr = pointerRef.current;
             let hoveredIndex = -1;
-            if (pr.active) {
+            if (
+              pr.active &&
+              pickedOrder.length < PICK_SLOT_COUNT &&
+              !remainCloseAnim &&
+              !remainFadeAnim
+            ) {
               for (let i = sprites.length - 1; i >= 0; i--) {
+                if (pickedSet.has(i)) continue;
                 const sp = sprites[i]!;
                 if (!sp.visible) continue;
                 const dx = pr.x - sp.x;
@@ -1214,10 +1534,9 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
 
             const dm = app.ticker.deltaMS || 16;
             const blend = Math.min(1, dm * 0.02);
-            const nowMs = performance.now();
-            const breathe = 0.5 + 0.5 * Math.sin(nowMs * 0.0022);
-            const breatheSoft = 0.72 + 0.28 * breathe;
             for (let i = 0; i < sprites.length; i++) {
+              if (pickedSet.has(i) || flyingIdx.has(i) || remainCloseIndices.has(i)) continue;
+              if (remainFadeAnim) continue;
               const b = cardBodies[i]!;
               const sp = sprites[i]!;
               const target = i === hoveredIndex ? 1 : 0;
@@ -1323,7 +1642,12 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               }
             }
 
-            app.canvas.style.cursor = hoveredIndex >= 0 ? "pointer" : "default";
+            app.canvas.style.cursor =
+              remainCloseAnim || remainFadeAnim
+                ? "default"
+                : pickedOrder.length < PICK_SLOT_COUNT && hoveredIndex >= 0
+                  ? "pointer"
+                  : "default";
           } else {
             deckHoverLerp = 0;
             const sxB = cardPhysW / cardTexW;
@@ -1384,7 +1708,6 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
         }
 
         if (aliveRef.current) {
-          setPhysUi({ cardW: cardPhysW, cardH: cardPhysH, pointerR: pointerRadius });
           setStageReady(true);
         }
       } catch (e) {
@@ -1415,10 +1738,14 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       spreadHoverMaskGlow = null;
       deckHoverLerp = 0;
       spreadHoverLerp = [];
+      postPickCloseStarted = false;
+      remainCloseAnim = null;
+      remainFadeAnim = null;
+      remainCloseIndices = new Set<number>();
+      exitToNextPhaseDone = false;
       setStageReady(false);
       setGatherBusy(false);
       setGatherDone(false);
-      setPhysUi({ cardW: 0, cardH: 0, pointerR: 0 });
       if (application && onTick) {
         application.ticker.remove(onTick);
       }
@@ -1437,46 +1764,30 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col animate-fade-in">
-      <div className="card flex min-h-0 h-full max-h-full flex-col space-y-3 p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
-          <div>
-            <h2 className="text-lg font-extrabold text-white">洗牌</h2>
-            <p className="text-sm text-gray-400">{hint}</p>
-            {loadError && (
-              <p className="text-sm text-red-400 mt-1">贴图加载失败：{loadError}（请确认 {CARD_BACK_URL} 可访问）</p>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={onBack} className="btn-ghost px-4 py-2 text-sm">
-              返回
-            </button>
-            <button
-              type="button"
-              className="btn-ghost px-4 py-2 text-sm border border-amber-600/50 text-amber-100/90 hover:bg-amber-900/20 disabled:opacity-40 disabled:pointer-events-none"
-              disabled={!stageReady || gatherBusy || gatherDone}
-              onClick={() => stopShuffleRef.current?.()}
-            >
-              {gatherBusy ? "收拢中…" : "停止洗牌"}
-            </button>
-          </div>
+      <div className="card flex min-h-0 h-full max-h-full flex-col gap-3 p-4 sm:p-5">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <button type="button" onClick={onBack} className="btn-ghost px-4 py-2 text-sm">
+            返回
+          </button>
+          <button
+            type="button"
+            className="btn-ghost px-4 py-2 text-sm border border-amber-600/50 text-amber-100/90 hover:bg-amber-900/20 disabled:opacity-40 disabled:pointer-events-none"
+            disabled={!stageReady || gatherBusy || gatherDone}
+            onClick={() => stopShuffleRef.current?.()}
+          >
+            {gatherBusy ? "收拢中…" : "停止洗牌"}
+          </button>
         </div>
 
         <div
           ref={hostRef}
           className="relative w-full flex-1 min-h-[200px] rounded-xl border border-gray-700/60 bg-[#0b0e18] overflow-hidden"
-          onMouseEnter={() => {
-            if (!gatherDone) {
-              setHint("在牌堆上移动指针：圆形指针刚体与牌碰撞推开；牌与牌可重叠");
-            }
-          }}
         />
-        <p className="text-xs text-gray-500 shrink-0">
-          PixiJS WebGL + Matter.js：碰撞过滤（牌↔墙、牌↔指针圆形刚体；牌↔牌关闭重叠自由）。
-          {physUi.pointerR > 0
-            ? ` 牌约 ${physUi.cardW}×${physUi.cardH}px、指针半径约 ${physUi.pointerR}px（随窗口缩放）。`
-            : ""}{" "}
-          种子 = 轨迹里程 ⊕ 耗时 ⊕ 最后坐标。
-        </p>
+        {loadError && (
+          <p className="text-sm text-red-400 shrink-0">
+            贴图加载失败：{loadError}（请确认 {CARD_BACK_URL} 可访问）
+          </p>
+        )}
       </div>
     </div>
   );
