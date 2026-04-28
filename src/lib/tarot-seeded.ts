@@ -29,14 +29,15 @@ export function buildShuffleSeed(input: {
 }
 
 /** 与 `drawThreeCards` 相同规则，但使用洗牌阶段得到的 seed */
-export function drawThreeCardsSeeded(seed: number): DrawnCard[] {
+export function drawThreeCardsSeeded(seed: number, forcedReversed: boolean[] = []): DrawnCard[] {
   const rnd = mulberry32(seed);
   const pool = [...MAJOR_ARCANA];
   const drawn: DrawnCard[] = [];
   for (let i = 0; i < 3; i++) {
     const idx = Math.floor(rnd() * pool.length);
     const card = pool.splice(idx, 1)[0]!;
-    drawn.push({ card, reversed: rnd() < 0.5 });
+    const reversed = typeof forcedReversed[i] === "boolean" ? forcedReversed[i]! : rnd() < 0.5;
+    drawn.push({ card, reversed });
   }
   return drawn;
 }

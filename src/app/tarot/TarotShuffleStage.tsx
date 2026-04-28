@@ -13,6 +13,10 @@ const CARD_COUNT = 78;
 const PICK_SLOT_COUNT = 4;
 /** 选牌飞到顶栏的时长 */
 const PICK_FLY_DURATION_MS = 580;
+/** 四张牌翻开：相邻两张启动间隔 */
+const PICK_REVEAL_STAGGER_MS = 260;
+/** 单张翻牌时长 */
+const PICK_REVEAL_DURATION_MS = 520;
 /** 选满四张后：剩余扇面收拢至中心 */
 const REMAIN_CLOSE_STAGGER_MS = 26;
 const REMAIN_CLOSE_DURATION_MS = 700;
@@ -153,7 +157,7 @@ function clampCardBodiesToTable(
 }
 
 type Props = {
-  onComplete: (seed: number) => void;
+  onComplete: (seed: number, pickedOrientations: boolean[]) => void;
   onBack: () => void;
 };
 
@@ -164,6 +168,63 @@ function readMountRect(mount: HTMLElement): { w: number; h: number } {
     w: Math.max(1, Math.floor(r.width)),
     h: Math.max(1, Math.floor(r.height)),
   };
+}
+
+function isReversedByRotation(rad: number): boolean {
+  const turn = Math.PI * 2;
+  const normalized = ((rad % turn) + turn) % turn;
+  return normalized > Math.PI / 2 && normalized < Math.PI * 1.5;
+}
+
+function getCardFaceUrlCandidates(cardId: number): string[] {
+  const major: Record<number, string[]> = {
+    0: ["0fool", "0Fool", "fool"],
+    1: ["1magician", "1Magician"],
+    2: ["2highpriestess", "2HighPriestess", "2High Priestess"],
+    3: ["3empress", "3Empress"],
+    4: ["4Emperor", "4emperor"],
+    5: ["5HIEROPHANT", "5Hierophant", "5hierophant"],
+    6: ["6Lover", "6Lovers", "6lovers"],
+    7: ["7chariot", "6chariot", "7Chariot"],
+    8: ["8strength", "8Strength", "strength"],
+    9: ["9hermit", "9Hermit"],
+    10: ["10wheel of fortune", "10Wheel of Fortune"],
+    11: ["11Justice", "11justice"],
+    12: ["12Hanged Man", "12hanged man", "12HangedMan"],
+    13: ["13Death", "13death"],
+    14: ["14Temperance", "14temperance"],
+    15: ["15Devil", "15devil"],
+    16: ["16Tower", "16tower"],
+    17: ["17star", "17Star"],
+    18: ["18moon", "18Moon"],
+    19: ["19sun", "19Sun"],
+    20: ["20Judgement", "20Judgment", "20judgement"],
+    21: ["21world", "21World"],
+  };
+  if (major[cardId]) return major[cardId]!.map((n) => `/resources/card/${n}.png`);
+
+  const suit =
+    cardId >= 22 && cardId <= 35
+      ? "wands"
+      : cardId >= 36 && cardId <= 49
+        ? "Cup"
+        : cardId >= 50 && cardId <= 63
+          ? "Sword"
+          : cardId >= 64 && cardId <= 77
+            ? "pentacles"
+            : null;
+  if (!suit) return [];
+  const rank =
+    suit === "wands" ? cardId - 21 : suit === "Cup" ? cardId - 35 : suit === "Sword" ? cardId - 49 : cardId - 63;
+  const names = [
+    `${rank}${suit}`,
+    `${rank}${suit.toLowerCase()}`,
+    `${rank}${suit[0]!.toUpperCase()}${suit.slice(1)}`,
+  ];
+  if (suit === "Cup") names.push(`${rank}Cups`, `${rank}cup`);
+  if (suit === "Sword") names.push(`${rank}Swords`, `${rank}sword`);
+  if (suit === "pentacles") names.push(`${rank}pentacle`, `${rank}Pentacles`);
+  return Array.from(new Set(names)).map((n) => `/resources/card/${n}.png`);
 }
 
 async function waitForMountLayout(
@@ -278,12 +339,17 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       | null = null;
     let spreadHoverRing: Graphics | null = null;
     let spreadHoverAura: Sprite | null = null;
+    let pickedGlowAuras: (Sprite | null)[] = Array.from({ length: PICK_SLOT_COUNT }, () => null);
     let spreadHoverMaskGlow:
       | { root: Container; fill: Sprite; mask: Sprite }
       | null = null;
     let spreadHoverLerp: number[] = Array.from({ length: CARD_COUNT }, () => 0);
     /** 开扇后已选中的牌（顺序即顶栏槽位 0..3） */
     let pickedOrder: number[] = [];
+    let pickedCardIds: number[] = [];
+    let pickedFaceTextures: (Texture | null)[] = Array.from({ length: PICK_SLOT_COUNT }, () => null);
+    /** true=逆位，false=正位；顺序与 pickedOrder 一致 */
+    let pickedOrientations: boolean[] = [];
     const pickedSet = new Set<number>();
     type PickFlyAnim = {
       cardIndex: number;
@@ -298,6 +364,10 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       toR: number;
     };
     let pickFlyAnims: PickFlyAnim[] = [];
+    type PickRevealAnim = { slot: number; startAt: number; duration: number };
+    let pickRevealAnims: PickRevealAnim[] = [];
+    let pickRevealStarted = false;
+    let pickRevealDoneSlots = new Set<number>();
     /** 四张飞到位后开始关扇+渐隐，避免重复触发 */
     let postPickCloseStarted = false;
     let remainCloseAnim: { items: RemainCloseItem[] } | null = null;
@@ -383,6 +453,24 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           app.destroy(true);
           return;
         }
+        const faceTextureCache = new Map<number, Promise<Texture | null>>();
+        const loadCardFaceTexture = (cardId: number): Promise<Texture | null> => {
+          if (faceTextureCache.has(cardId)) return faceTextureCache.get(cardId)!;
+          const task = (async () => {
+            const urls = getCardFaceUrlCandidates(cardId);
+            for (const url of urls) {
+              try {
+                const t = await Assets.load<Texture>(url);
+                if (t && t.orig.width > 2) return t;
+              } catch {
+                // Try next candidate.
+              }
+            }
+            return null;
+          })();
+          faceTextureCache.set(cardId, task);
+          return task;
+        };
 
         const tableBg = new Sprite(bgTex);
         const bgTw = Math.max(1, bgTex.orig.width);
@@ -578,6 +666,17 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           spreadHoverLerp = Array.from({ length: CARD_COUNT }, () => 0);
         };
 
+        const destroyPickedGlowAuras = () => {
+          for (let i = 0; i < pickedGlowAuras.length; i++) {
+            const aura = pickedGlowAuras[i];
+            if (aura) {
+              world.removeChild(aura);
+              aura.destroy();
+              pickedGlowAuras[i] = null;
+            }
+          }
+        };
+
         /** 多层模糊暗色牌形叠加：底层 blur 大、alpha 略高；上层 blur 小，边缘更「利」 */
         const rebuildDeckShadowLayer = (cx: number, cy: number) => {
           if (!gatherCompletedLocal) return;
@@ -684,6 +783,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           destroyDeckShadowLayer();
           destroyDeckHoverRing();
           destroySpreadHoverRing();
+          destroyPickedGlowAuras();
           const cx = layoutW / 2;
           const cy = layoutH / 2;
           const radius = Math.max(cardPhysH * 1.1, Math.min(layoutW, layoutH) * 0.31);
@@ -708,6 +808,7 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           });
           for (const sp of sprites) {
             sp.visible = true;
+            sp.texture = tex;
           }
           spreadAnim = { items };
         };
@@ -782,7 +883,9 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           const slot = pickedOrder.length;
           const sp = sprites[cardIndex]!;
           const b = cardBodies[cardIndex]!;
+          const cardId = hiddenCardIds[cardIndex]!;
           const hand = computeHandSlotBase(slot);
+          const reversed = isReversedByRotation(sp.rotation);
           pickFlyAnims.push({
             cardIndex,
             slot,
@@ -793,10 +896,18 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
             fromR: sp.rotation,
             toX: hand.x,
             toY: hand.y,
-            toR: hand.r,
+            toR: reversed ? Math.PI : hand.r,
           });
           pickedOrder.push(cardIndex);
+          pickedCardIds.push(cardId);
+          pickedFaceTextures[slot] = null;
+          pickedOrientations.push(reversed);
           pickedSet.add(cardIndex);
+          void loadCardFaceTexture(cardId).then((faceTex) => {
+            if (!aliveRef.current) return;
+            if (pickedCardIds[slot] !== cardId) return;
+            pickedFaceTextures[slot] = faceTex;
+          });
           Body.setStatic(b, true);
           Body.setVelocity(b, { x: 0, y: 0 });
           Body.setAngularVelocity(b, 0);
@@ -817,12 +928,13 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           const ordered = indices
             .map((i) => {
               const b = cardBodies[i]!;
-              return {
-                i,
-                dist: Math.hypot(b.position.x - cx, b.position.y - cy),
-              };
+              const dx = b.position.x - cx;
+              const dy = b.position.y - cy;
+              // 从 12 点方向开始：top=0；逆时针递增到 2π。
+              const angleFromTopCCW = (Math.atan2(-dx, -dy) + Math.PI * 2) % (Math.PI * 2);
+              return { i, angleFromTopCCW };
             })
-            .sort((a, b) => b.dist - a.dist);
+            .sort((a, b) => a.angleFromTopCCW - b.angleFromTopCCW);
           const items: RemainCloseItem[] = ordered.map((o, rank) => {
             const sp = sprites[o.i]!;
             return {
@@ -991,7 +1103,14 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
           destroyDeckShadowLayer();
           destroyDeckHoverRing();
           destroySpreadHoverRing();
+          destroyPickedGlowAuras();
           pickedOrder = [];
+          pickedCardIds = [];
+          pickedFaceTextures = Array.from({ length: PICK_SLOT_COUNT }, () => null);
+          pickRevealAnims = [];
+          pickRevealStarted = false;
+          pickRevealDoneSlots.clear();
+          pickedOrientations = [];
           pickedSet.clear();
           pickFlyAnims = [];
           postPickCloseStarted = false;
@@ -1443,7 +1562,6 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
                 sprites[i]!.alpha = a;
               }
               if (uFade >= 1) {
-                exitToNextPhaseDone = true;
                 remainFadeAnim = null;
                 for (let i = 0; i < sprites.length; i++) {
                   if (!pickedSet.has(i)) {
@@ -1451,10 +1569,28 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
                     sprites[i]!.alpha = 0;
                   }
                 }
-                queueMicrotask(() => {
-                  if (aliveRef.current) onCompleteRef.current(snapshotSeed());
-                });
+                if (!pickRevealStarted) {
+                  pickRevealStarted = true;
+                  pickRevealAnims = pickedOrder.map((_, slot) => ({
+                    slot,
+                    startAt: nowMs + slot * PICK_REVEAL_STAGGER_MS,
+                    duration: PICK_REVEAL_DURATION_MS,
+                  }));
+                }
               }
+            }
+
+            if (pickRevealAnims.length > 0) {
+              const nextRevealAnims: PickRevealAnim[] = [];
+              for (const anim of pickRevealAnims) {
+                const u = Math.min(1, (nowMs - anim.startAt) / anim.duration);
+                if (u >= 1) {
+                  pickRevealDoneSlots.add(anim.slot);
+                } else {
+                  nextRevealAnims.push(anim);
+                }
+              }
+              pickRevealAnims = nextRevealAnims;
             }
 
             const nextFlies: PickFlyAnim[] = [];
@@ -1501,10 +1637,72 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
               const hb = computeHandSlotBase(slot);
               const { ox, oy } = cornerSettleWobble(slot, nowMs);
               sp.position.set(hb.x + ox, hb.y + oy);
-              sp.rotation = hb.r;
+              sp.rotation = hb.r + (pickedOrientations[slot] ? Math.PI : 0);
               sp.tint = 0xffffff;
-              sp.scale.set(cardPhysW / cardTexW, cardPhysH / cardTexH);
+              const baseSX = cardPhysW / cardTexW;
+              const baseSY = cardPhysH / cardTexH;
+              let revealU = pickRevealDoneSlots.has(slot) ? 1 : 0;
+              const runningReveal = pickRevealAnims.find((a) => a.slot === slot);
+              if (runningReveal) {
+                revealU = Math.min(1, Math.max(0, (nowMs - runningReveal.startAt) / runningReveal.duration));
+              }
+              const pinch = Math.max(0.08, Math.abs(1 - 2 * revealU));
+              const sxSign = revealU < 0.5 ? 1 : -1;
+              const faceTex = pickedFaceTextures[slot];
+              const shownTex = revealU >= 0.5 && faceTex ? faceTex : tex;
+              if (sp.texture !== shownTex) sp.texture = shownTex;
+              const shownTexW = Math.max(1, shownTex.orig.width);
+              const shownTexH = Math.max(1, shownTex.orig.height);
+              const shownSX = cardPhysW / shownTexW;
+              const shownSY = cardPhysH / shownTexH;
+              sp.scale.set(shownSX * pinch * sxSign, shownSY);
               sp.zIndex = 3100 + slot;
+              if (!pickedGlowAuras[slot]) {
+                const aura = new Sprite(tex);
+                aura.anchor.set(0.5, 0.5);
+                aura.eventMode = "none";
+                aura.blendMode = "add";
+                aura.tint = 0xf2c14e;
+                aura.alpha = 0;
+                aura.visible = false;
+                aura.zIndex = 3090 + slot;
+                world.addChild(aura);
+                pickedGlowAuras[slot] = aura;
+              }
+              const aura = pickedGlowAuras[slot]!;
+              const breatheAura = 0.5 + 0.5 * Math.sin(nowMs * 0.0026 + slot * 0.7);
+              aura.visible = true;
+              aura.position.set(sp.x, sp.y);
+              aura.rotation = sp.rotation;
+              const auraScale = 1.08 + 0.09 * breatheAura;
+              aura.scale.set(baseSX * auraScale, baseSY * auraScale);
+              aura.alpha = 0.18 + 0.2 * breatheAura;
+              aura.filters = [
+                new BlurFilter({
+                  strength: 8 + 10 * breatheAura,
+                  quality: 2,
+                  kernelSize: 11,
+                }),
+              ];
+            }
+            for (let slot = pickedOrder.length; slot < PICK_SLOT_COUNT; slot++) {
+              const aura = pickedGlowAuras[slot];
+              if (!aura) continue;
+              aura.visible = false;
+              aura.alpha = 0;
+              aura.filters = null;
+            }
+
+            if (
+              !exitToNextPhaseDone &&
+              pickedOrder.length === PICK_SLOT_COUNT &&
+              pickRevealStarted &&
+              pickRevealDoneSlots.size >= PICK_SLOT_COUNT
+            ) {
+              exitToNextPhaseDone = true;
+              queueMicrotask(() => {
+                if (aliveRef.current) onCompleteRef.current(snapshotSeed(), [...pickedOrientations]);
+              });
             }
 
             const pr = pointerRef.current;
@@ -1736,6 +1934,10 @@ export function TarotShuffleStage({ onComplete, onBack }: Props) {
       spreadHoverRing = null;
       spreadHoverAura = null;
       spreadHoverMaskGlow = null;
+      pickedGlowAuras = [];
+      pickRevealAnims = [];
+      pickRevealStarted = false;
+      pickRevealDoneSlots = new Set<number>();
       deckHoverLerp = 0;
       spreadHoverLerp = [];
       postPickCloseStarted = false;
