@@ -42,3 +42,14 @@ prisma/dev.db-journal
 
 # local setup doc (contains credentials)
 SETUP.md
+
+# Godot Web export (large binaries, regenerate locally)
+/public/godot-hole/*
+!/public/godot-hole/README.md
+
+# Godot project source (kept local, not synced to web)
+/Hole.io/
+/4gd-hole-io/
+
+# 3D Sample reference projects
+/goose-catch/

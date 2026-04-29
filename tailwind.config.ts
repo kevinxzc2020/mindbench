@@ -29,6 +29,7 @@ const config: Config = {
         "fade-in": "fadeIn 0.3s ease-in-out",
         "slide-up": "slideUp 0.4s ease-out",
         "bounce-in": "bounceIn 0.5s ease-out",
+        "shake": "shake 0.7s cubic-bezier(.36,.07,.19,.97) both",
       },
       keyframes: {
         fadeIn: {
@@ -43,6 +44,12 @@ const config: Config = {
           "0%": { transform: "scale(0.8)", opacity: "0" },
           "60%": { transform: "scale(1.05)" },
           "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        shake: {
+          "10%, 90%": { transform: "translate(-2px, -1px) rotate(-0.5deg)" },
+          "20%, 80%": { transform: "translate(4px, 2px) rotate(0.7deg)" },
+          "30%, 50%, 70%": { transform: "translate(-6px, 3px) rotate(-0.8deg)" },
+          "40%, 60%": { transform: "translate(6px, -2px) rotate(0.6deg)" },
         },
       },
     },

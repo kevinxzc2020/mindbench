@@ -14,7 +14,16 @@
 
 ## 功能一览
 
-### 🎮 认知测试游戏（10 个，支持难度分级）
+### 🗂️ 游戏分类（首页按 category 分区展示）
+
+| 分类 | 简介 |
+|---|---|
+| 🧠 **认知测试 (cognitive)** | Human Benchmark 风的脑力测验 |
+| ⚔️ **MOBA 衍生 (moba)** | LoL 玩法启发的技能训练 |
+| 🍡 **休闲小游戏 (casual)** | 三消等放松小游戏（受羊了个羊 / 抓大鹅启发）|
+| 🔮 **性格 & 玄学** | MBTI / 塔罗 / 今日运势（独立路径，不在 GAMES 注册表） |
+
+### 🎮 游戏列表（13 个，黑洞除外都支持难度分级）
 
 所有游戏（CPS Test 除外）都有四档难度：🟢 Easy / 🔵 Medium / 🟠 Hard / 🔥 Hell，**每档独立排行榜**。
 
@@ -39,6 +48,37 @@
 | ⚡ Combo Attempt | 连招尝试 | 通过连招长度 | 按键池（Q/W → QWE → QWER → QWERA）+ 节奏 + 输入倒计时 |
 
 所有 MOBA 游戏支持**键盘输入**（LoL 式 Q/W/E/R/A 键位 + 补刀用 Space）以及鼠标点击。
+
+**休闲小游戏（casual）—— 受微信小游戏启发：**
+
+| 游戏 | 类型 | 计分 | 难度差异点 |
+|------|------|------|-----------|
+| 🎴 Tile Match (三消脑力关) | 羊了个羊式三消 | 通过的关卡数 | 图案种类 + 牌总数 + 堆叠层数 + 锁牌数 + 槽位（Hell 缩到 6） |
+| 🦢 Goose Grab (抓大鹅) | **3D 物理三消**（基于 Rapier）| 通过的关卡数 | 同上 + **摇晃次数**（Easy 5 → Hell 1）|
+| 🕳️ Black Hole (黑洞大作战) | Hole.io **3D 单人版** | 最终质量 (kg) | **不分难度**，一个 90s 畅玩模式 |
+
+休闲游戏额外细节：
+- **Tile Match 板内 3D 背景**（`TileMatchBackground.tsx` 用 R3F 渲染 10 个糖果系几何体）—— 嵌在游戏板内部，牌堆在 3D 形状上层（z-index 控制）。
+- **Goose Grab** 升级为 **3D 物理版**：
+  - R3F + Rapier 物理引擎，食物模型自然堆叠在透明容器里
+  - 8 种 GLB 食物模型（XOIAL 在 Sketchfab 的免费 Low Poly Food Pack —— ice-cream / cookie-man / cheese / hotdog / sandwich / sandwich-toast / pancake / toast）
+  - 点击食物 → GSAP 弹到底部卡槽 → 3 同自动消除
+  - 摇一摇 = 重置物理场景，物体重新落下
+  - 借鉴自 [goose-catch 开源 sample](https://github.com/goose-catch)（用户提供）
+- **Black Hole 双引擎模式** 🎨：
+  - **优先**：如果 `public/godot-hole/index.html` 存在 → 自动 iframe 嵌入 Godot 4 HTML5 导出版本（参考 [Hole.io Godot 模板](https://github.com/your-source-here)）
+  - **Fallback**：自动 fallback 到 Three.js 实现 + GLB 模型池
+- **Black Hole 模型池** 🎨：扔 GLB 到 `public/models/black-hole/tier_X/` 并在 `manifest.json` 登记 → 游戏自动用上。每个实例还会随机：缩放 ±15% / Y 轴旋转 / X 轴翻转 / **色调微偏移**（material override），让一个模型出 N 种"看起来不同"的实例。manifest 为空时**自动 fallback** 到内置几何体形状。
+- **Black Hole** 用 **R3F (Three.js) 3D 渲染**：
+  - **9 种形状物体**（不是 box），按 tier 分布：
+    - tier 0：灌木 / 树（双层圆锥）/ 消防栓
+    - tier 1：小汽车（车身 + 车顶 + 4 轮 + 玻璃）/ 红色电话亭
+    - tier 2：小屋（带屋顶 + 窗户 + 门）/ 商店（带招牌 + 大窗）
+    - tier 3：摩天楼（带避雷针 + 黄色窗光）/ 电视塔（多段渐细 + 顶部金球）
+  - 每个物体有 **shadow casting**、自然旋转 + 尺寸抖动；总共 70 个散在 80×80 世界
+  - 黑洞：**3 层渲染** —— 黑色圆盘 + 紫色旋转环 + 反向旋转的青色外环（事件视界感）
+  - 摄像机俯视并跟随黑洞中心，黑洞越大视野越拉远
+  - 楼被吃 → **700ms** 沿黑洞方向移动 + 倒下 + 缩小 + 沉入地下 → 替换
 
 ### 🧬 MBTI 人格测试
 
@@ -113,7 +153,16 @@ src/
 │   │   ├── typing-test/
 │   │   ├── last-hit/                # MOBA 补刀计时
 │   │   ├── skill-shot/              # MOBA 技能预判
-│   │   └── combo/                   # MOBA 连招输入
+│   │   ├── combo/                   # MOBA 连招输入
+│   │   ├── tile-match/              # 三消脑力关 (羊了个羊 启发)
+│   │   │   ├── page.tsx
+│   │   │   └── TileMatchBackground.tsx  # R3F 糖果系 3D 漂浮背景
+│   │   ├── goose-grab/              # 抓大鹅 (R3F + Rapier 物理 3D 版)
+│   │   │   ├── page.tsx             # GameWrapper + HUD + idle/done
+│   │   │   └── GooseGrabScene.tsx   # 3D 场景 + 物理 + 8 GLB 食物
+│   │   └── black-hole/              # 黑洞大作战 (R3F 3D，无难度，畅玩)
+│   │       ├── page.tsx             # GameWrapper + HUD + idle/done 屏
+│   │       └── BlackHoleScene.tsx   # R3F Canvas + 游戏逻辑 + GLB 模型池支持
 │   ├── mbti/                        # MBTI 测试
 │   ├── tarot/                       # 塔罗三牌阵
 │   ├── fortune/                     # 今日运势

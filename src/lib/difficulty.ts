@@ -189,6 +189,76 @@ export const AIM_TRAINER_CONFIG: Record<
   hell:   { durationSec: 30, targetDiameterPx: 40, targetLifeMs: 1200, sphereRadius: 0.24 },
 };
 
+// tile-match (羊了个羊式 三消)
+//
+// 玩法：上方堆叠的牌，每张牌"上面没有别的牌"才能点。点了进 7 槽。
+// 槽里 3 张同图 → 自动消除。槽满 → 输。所有牌消完 → 通关，level+1。
+// 评分：通关的关卡数。失败时记录到达的最高关。
+//
+//   typeCount:    牌的图案种类数
+//   tileCount:    总牌数（必须是 3 的倍数 —— 才有可能通关）
+//   layerDepth:   最大堆叠深度（1 = 全平铺，>=2 = 有遮挡）
+//   lockedTiles:  起始锁住的牌数（用其他牌叠住，需要先消其他才能解锁）
+//   slotSize:     底部槽容量（标准 7，地狱可以 6）
+export const TILE_MATCH_CONFIG: Record<
+  Difficulty,
+  {
+    typeCount: number;
+    tileCount: number;
+    layerDepth: number;
+    lockedTiles: number;
+    slotSize: number;
+  }
+> = {
+  easy:   { typeCount: 4, tileCount: 24,  layerDepth: 1, lockedTiles: 0,  slotSize: 7 },
+  medium: { typeCount: 6, tileCount: 48,  layerDepth: 2, lockedTiles: 4,  slotSize: 7 },
+  hard:   { typeCount: 8, tileCount: 72,  layerDepth: 3, lockedTiles: 12, slotSize: 7 },
+  hell:   { typeCount: 10, tileCount: 99, layerDepth: 4, lockedTiles: 24, slotSize: 6 },
+};
+
+// goose-grab (抓大鹅 — 三消 + 摇晃按钮)
+//
+// 跟 tile-match 主要区别：
+// 1. 多了 shakeMax 摇晃次数，每次摇晃随机打乱所有未消除牌的位置/层数
+// 2. 主题是食品 / 烧烤摊 / 菜市场，emoji 不同
+// 其他参数语义和 tile-match 一致
+export const GOOSE_GRAB_CONFIG: Record<
+  Difficulty,
+  {
+    typeCount: number;
+    tileCount: number;
+    layerDepth: number;
+    lockedTiles: number;
+    slotSize: number;
+    shakeMax: number; // 每局允许摇晃多少次（0 = 完全禁用）
+  }
+> = {
+  easy:   { typeCount: 4, tileCount: 24, layerDepth: 1, lockedTiles: 0,  slotSize: 7, shakeMax: 5 },
+  medium: { typeCount: 6, tileCount: 48, layerDepth: 2, lockedTiles: 4,  slotSize: 7, shakeMax: 3 },
+  hard:   { typeCount: 8, tileCount: 72, layerDepth: 3, lockedTiles: 12, slotSize: 7, shakeMax: 2 },
+  hell:   { typeCount: 10, tileCount: 99, layerDepth: 4, lockedTiles: 24, slotSize: 6, shakeMax: 1 },
+};
+
+// black-hole (黑洞大作战 — Hole.io 单人版)
+//
+// 不分难度 —— 用 GameWrapper 的 noDifficulty 模式，所有人玩同一个配置。
+// 比的是地图上的吞噬量（kg）。
+//
+//   durationSec: 一局时长
+//   startMass: 玩家黑洞起始质量
+//   holeSpeed: 黑洞跟随鼠标的速度系数 (0..1)
+//   objectCount: 场上同时存在多少物体
+//   massDistribution: [小, 中, 大, 巨大] 物体的概率分布（总和 = 1）
+//   spawnRate: 物体被吃掉后多久刷新（ms）
+export const BLACK_HOLE_CONFIG = {
+  durationSec: 90,
+  startMass: 25,
+  holeSpeed: 0.15,
+  objectCount: 70,
+  massDistribution: [0.45, 0.32, 0.16, 0.07] as [number, number, number, number],
+  spawnRate: 1000,
+};
+
 // last-hit (MOBA 补刀 — 真正的 LoL 模型)
 //
 // 核心：敌方小兵有 HP，盟军的远程兵会一下下把它打死（每一下扣固定伤害），

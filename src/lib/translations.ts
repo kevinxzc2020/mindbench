@@ -303,6 +303,52 @@ export const translations = {
     comboYourCombo: "你的连招",
     comboExpected: "正确连招",
     comboStart: "开始",
+
+    // Categories
+    categoryCognitive: "认知测试",
+    categoryMoba: "MOBA 衍生",
+    categoryCasual: "休闲小游戏",
+
+    // Tile Match (三消)
+    tmTitle: "三消脑力关",
+    tmDesc: "灵感来自羊了个羊 —— 凑齐 3 张同图消除",
+    tmInstruction: "点击牌面把它放进底部槽。3 张同图自动消除。槽满 7 张就输。",
+    tmLevel: "第",
+    tmLevelOf: "关",
+    tmRemaining: "剩余",
+    tmSlotFull: "槽满了 —— 通关失败",
+    tmCleared: "全部消除！",
+    tmNextLevel: "下一关",
+    tmRetry: "重新挑战",
+    tmFinalScore: "通过关卡",
+    tmTutorialStep1: "上方有一堆图案牌，被叠在一起。只有最上面的牌可以点。",
+    tmTutorialStep2: "点击一张牌 → 它会进入下方的卡槽。槽里出现 3 张相同的牌就自动消除。",
+    tmTutorialStep3: "槽位最多 7 张。如果你点入 7 张不同的牌、又凑不出 3 同 → 卡死，输。",
+    tmTutorialStep4: "目标：把所有牌都消掉。每过一关难度递增。",
+
+    // Goose Grab (抓大鹅)
+    ggTitle: "抓大鹅",
+    ggDesc: "三消加摇晃 —— 灵感来自微信小游戏",
+    ggInstruction: "和三消一样，但你有几次「摇一摇」机会，能打乱所有牌的位置救你一命",
+    ggShakeBtn: "摇一摇",
+    ggShakesLeft: "剩",
+    ggTutorialStep1: "桌上是各种食材牌，被堆在一起。点最上层的牌进入下方卡槽。",
+    ggTutorialStep2: "和经典三消一样：3 张同图自动消除，槽满 7 张就输。",
+    ggTutorialStep3: "新增：右上角「摇一摇」按钮 —— 点一下，所有未消除的牌随机重新堆放。",
+    ggTutorialStep4: "摇晃次数有限。难度越高摇晃越少（地狱模式只有 1 次）。慎用。",
+
+    // Black Hole (黑洞大作战)
+    bhTitle: "黑洞大作战",
+    bhDesc: "Hole.io 单人版 —— 移动黑洞吞噬一切",
+    bhInstruction: "鼠标移动到哪，黑洞跟到哪。比黑洞小的物体会被吞噬，黑洞越变越大。",
+    bhTutorialStep1: "屏幕上有各种物体（树、车、房子、大楼）。每个有自己的「质量」。",
+    bhTutorialStep2: "鼠标控制黑洞移动。物体小于黑洞质量 → 被吞 → 黑洞质量增加。",
+    bhTutorialStep3: "时间到，比谁的黑洞最大。物体被吃后会随机刷新新的。",
+    bhTutorialStep4: "策略：先吃小的快速壮大，再去啃大件。",
+    bhMass: "质量",
+    bhMassUnit: "kg",
+    bhTimeLeft: "剩余时间",
+    bhFinalMass: "最终质量",
   },
 
   en: {
@@ -595,6 +641,52 @@ export const translations = {
     comboYourCombo: "Your input",
     comboExpected: "Expected",
     comboStart: "Start",
+
+    // Categories
+    categoryCognitive: "Cognitive Tests",
+    categoryMoba: "MOBA Skills",
+    categoryCasual: "Casual Mini-Games",
+
+    // Tile Match
+    tmTitle: "Tile Match",
+    tmDesc: "Inspired by 羊了个羊 — match 3 identical tiles",
+    tmInstruction: "Click a tile to send it to the slot. 3 same tiles auto-clear. Slot fills with 7 = lose.",
+    tmLevel: "Level",
+    tmLevelOf: "",
+    tmRemaining: "remaining",
+    tmSlotFull: "Slot full — game over",
+    tmCleared: "Board cleared!",
+    tmNextLevel: "Next Level",
+    tmRetry: "Try Again",
+    tmFinalScore: "Levels passed",
+    tmTutorialStep1: "Tiles stack on top of each other. Only top tiles can be picked.",
+    tmTutorialStep2: "Click a tile → it enters the slot. 3 same tiles in the slot auto-clear.",
+    tmTutorialStep3: "Slot holds 7 max. Fill it with 7 different tiles → stuck → game over.",
+    tmTutorialStep4: "Goal: clear the whole board. Each level scales up the difficulty.",
+
+    // Goose Grab
+    ggTitle: "Goose Grab",
+    ggDesc: "Tile match with shuffle — inspired by 抓大鹅",
+    ggInstruction: "Same tile-match rules, but you have a few \"shake\" charges that re-shuffle every tile's position.",
+    ggShakeBtn: "Shake!",
+    ggShakesLeft: "left",
+    ggTutorialStep1: "Various food tiles stack on the board. Pick top tiles into the slot.",
+    ggTutorialStep2: "Same as classic 3-match: 3 matching tiles auto-clear; slot full of 7 = lose.",
+    ggTutorialStep3: "New: a Shake button — each press randomly reshuffles every remaining tile's layer/position.",
+    ggTutorialStep4: "Shakes are limited; harder difficulties have fewer (Hell: only 1). Use wisely.",
+
+    // Black Hole
+    bhTitle: "Black Hole",
+    bhDesc: "Single-player Hole.io — devour everything",
+    bhInstruction: "The hole follows your mouse. Anything smaller than your hole gets eaten — the more you eat, the bigger you grow.",
+    bhTutorialStep1: "Objects are scattered on the map (trees, cars, houses, towers). Each has its own mass.",
+    bhTutorialStep2: "Move the mouse to steer the hole. Objects with mass < hole's mass → eaten → mass added.",
+    bhTutorialStep3: "When time runs out, your final mass is your score. Eaten objects respawn randomly.",
+    bhTutorialStep4: "Strategy: snack on small stuff first to grow, then go for the big buildings.",
+    bhMass: "Mass",
+    bhMassUnit: "kg",
+    bhTimeLeft: "Time left",
+    bhFinalMass: "Final mass",
   },
 
   es: {
@@ -887,6 +979,52 @@ export const translations = {
     comboYourCombo: "Tu entrada",
     comboExpected: "Esperado",
     comboStart: "Empezar",
+
+    // Categories
+    categoryCognitive: "Tests Cognitivos",
+    categoryMoba: "Skills de MOBA",
+    categoryCasual: "Mini-Juegos Casuales",
+
+    // Tile Match
+    tmTitle: "Tile Match",
+    tmDesc: "Inspirado en 羊了个羊 — empareja 3 fichas iguales",
+    tmInstruction: "Haz clic en una ficha para enviarla al slot. 3 iguales se eliminan. 7 = pierdes.",
+    tmLevel: "Nivel",
+    tmLevelOf: "",
+    tmRemaining: "restante",
+    tmSlotFull: "Slot lleno — game over",
+    tmCleared: "¡Tablero despejado!",
+    tmNextLevel: "Siguiente",
+    tmRetry: "Reintentar",
+    tmFinalScore: "Niveles superados",
+    tmTutorialStep1: "Las fichas se apilan. Solo las de arriba se pueden tomar.",
+    tmTutorialStep2: "Click en una ficha → entra al slot. 3 iguales se autoeliminan.",
+    tmTutorialStep3: "El slot tiene 7 huecos. 7 distintas → atascado → pierdes.",
+    tmTutorialStep4: "Objetivo: vaciar el tablero. Cada nivel escala la dificultad.",
+
+    // Goose Grab
+    ggTitle: "Goose Grab",
+    ggDesc: "Tile match con sacudida — inspirado en 抓大鹅",
+    ggInstruction: "Las mismas reglas pero con cargas de \"sacudida\" que mezclan todas las fichas.",
+    ggShakeBtn: "¡Sacudir!",
+    ggShakesLeft: "restantes",
+    ggTutorialStep1: "Varias fichas de comida se apilan. Elige las de arriba al slot.",
+    ggTutorialStep2: "Mismo 3-match clásico: 3 iguales se eliminan; slot lleno = pierdes.",
+    ggTutorialStep3: "Nuevo: botón Sacudir — re-mezcla aleatoriamente todas las fichas.",
+    ggTutorialStep4: "Sacudidas limitadas; dificultades altas tienen menos (Infierno: solo 1).",
+
+    // Black Hole
+    bhTitle: "Black Hole",
+    bhDesc: "Hole.io para un jugador — devóralo todo",
+    bhInstruction: "El agujero sigue tu ratón. Lo que sea menor que él, se lo traga.",
+    bhTutorialStep1: "Hay objetos esparcidos (árboles, autos, casas). Cada uno con su masa.",
+    bhTutorialStep2: "Mueve el ratón. Objetos con masa < tu masa → engullidos → tu masa crece.",
+    bhTutorialStep3: "Cuando se acabe el tiempo, tu masa final es tu puntuación.",
+    bhTutorialStep4: "Estrategia: come pequeños primero, luego ve a por los edificios.",
+    bhMass: "Masa",
+    bhMassUnit: "kg",
+    bhTimeLeft: "Tiempo restante",
+    bhFinalMass: "Masa final",
   },
 } as const;
 
