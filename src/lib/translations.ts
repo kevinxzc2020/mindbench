@@ -349,6 +349,10 @@ export const translations = {
     bhMassUnit: "kg",
     bhTimeLeft: "剩余时间",
     bhFinalMass: "最终质量",
+
+    // Sheep (兔了个兔 / 羊了个羊)
+    sheepTitle: "兔了个兔",
+    sheepDesc: "三消卡牌休闲游戏 —— 凑齐 3 张同花色自动消除",
   },
 
   en: {
@@ -687,6 +691,10 @@ export const translations = {
     bhMassUnit: "kg",
     bhTimeLeft: "Time left",
     bhFinalMass: "Final mass",
+
+    // Sheep
+    sheepTitle: "Bunny Match",
+    sheepDesc: "Match-3 card casual game — collect 3 of a kind to clear",
   },
 
   es: {
@@ -1025,6 +1033,10 @@ export const translations = {
     bhMassUnit: "kg",
     bhTimeLeft: "Tiempo restante",
     bhFinalMass: "Masa final",
+
+    // Sheep
+    sheepTitle: "Conejito Match",
+    sheepDesc: "Juego casual de cartas — junta 3 iguales para eliminar",
   },
 } as const;
 

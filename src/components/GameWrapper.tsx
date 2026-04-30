@@ -103,7 +103,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrap
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
+    <div className="max-w-5xl mx-auto px-4 py-12">
       {/* Title */}
       <div className="mb-8 flex items-center gap-4">
         <div

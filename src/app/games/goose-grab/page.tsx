@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -14,6 +14,12 @@ const GooseGrabScene = dynamic(() => import("./GooseGrabScene"), {
       Loading 3D scene…
     </div>
   ),
+});
+
+// 3D bag display — dynamically loaded so it doesn't bloat SSR
+const GooseBagDisplay = dynamic(() => import("./GooseBagDisplay"), {
+  ssr: false,
+  loading: () => <div className="h-20 bg-gray-900/80 rounded-xl border border-orange-900/40" />,
 });
 
 type Phase = "idle" | "playing" | "won" | "lost";
@@ -38,58 +44,38 @@ function GooseGrabGame({
   const { t } = useLang();
   const cfg = GOOSE_GRAB_CONFIG[difficulty];
 
-  // 不同难度下的 totalItems / bagCapacity 来自现有 config（用 tileCount 做 totalItems）
-  // tileCount: 24/48/72/99 → 3 的倍数化
   const totalItems = Math.floor(cfg.tileCount / 3) * 3;
-  const bagCapacity = cfg.slotSize - 1; // 给 3D 版本少一个槽更紧张
+  const bagCapacity = cfg.slotSize;
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [level, setLevel] = useState(1);
   const [itemsLeft, setItemsLeft] = useState(totalItems);
-  const [bagCount, setBagCount] = useState(0);
+  // bagTypes: full array of type-indices currently in the bag (for 2D HUD)
+  const [bagTypes, setBagTypes] = useState<number[]>([]);
   const [shakeKey, setShakeKey] = useState(0);
-  // 重新 mount scene 的 key（每关一次新场景）
   const [runKey, setRunKey] = useState(0);
-  const shakesLeftRef = useRef(cfg.shakeMax);
-  const [shakesLeft, setShakesLeft] = useState(cfg.shakeMax);
+
+  const isHell = difficulty === "hell";
 
   const startLevel = useCallback(() => {
-    shakesLeftRef.current = cfg.shakeMax;
-    setShakesLeft(cfg.shakeMax);
     setItemsLeft(totalItems);
-    setBagCount(0);
+    setBagTypes([]);
     setRunKey((k) => k + 1);
     setPhase("playing");
-  }, [cfg.shakeMax, totalItems]);
+  }, [totalItems]);
 
-  const handleWin = useCallback(() => {
-    setPhase("won");
-  }, []);
+  const handleWin = useCallback(() => setPhase("won"), []);
 
   const handleLose = useCallback(() => {
     setPhase("lost");
     onComplete(level - 1);
   }, [level, onComplete]);
 
-  const handleShake = () => {
-    if (shakesLeftRef.current <= 0) return;
-    shakesLeftRef.current -= 1;
-    setShakesLeft(shakesLeftRef.current);
-    // 只 bump shakeKey，不 bump runKey
-    // → 场景不重 mount，但每个 Item 看到 shakeKey 变化会施加冲量"跳起来"
-    setShakeKey((k) => k + 1);
-  };
+  // Shake is now unlimited — just bump shakeKey
+  const handleShake = () => setShakeKey((k) => k + 1);
 
-  const advanceLevel = () => {
-    const next = level + 1;
-    setLevel(next);
-    startLevel();
-  };
-
-  const restart = () => {
-    setLevel(1);
-    setPhase("idle");
-  };
+  const advanceLevel = () => { setLevel((l) => l + 1); startLevel(); };
+  const restart = () => { setLevel(1); setPhase("idle"); };
 
   // ── Idle ──────────────────────────────────────────────────────────────
   if (phase === "idle") {
@@ -100,63 +86,41 @@ function GooseGrabGame({
           <h2 className="text-xl font-bold text-white">{t.ggTitle}</h2>
         </div>
         <div className="space-y-3 max-w-md mx-auto text-sm text-gray-300">
-          <div className="flex items-start gap-3">
-            <span className="text-orange-400 font-bold flex-shrink-0">1.</span>
-            <p>{t.ggTutorialStep1}</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-orange-400 font-bold flex-shrink-0">2.</span>
-            <p>{t.ggTutorialStep2}</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-orange-400 font-bold flex-shrink-0">3.</span>
-            <p>{t.ggTutorialStep3}</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-orange-400 font-bold flex-shrink-0">4.</span>
-            <p>{t.ggTutorialStep4}</p>
-          </div>
+          {[t.ggTutorialStep1, t.ggTutorialStep2, t.ggTutorialStep3, t.ggTutorialStep4].map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-orange-400 font-bold flex-shrink-0">{i + 1}.</span>
+              <p>{step}</p>
+            </div>
+          ))}
         </div>
         <p className="text-center text-xs text-gray-500">
-          3D 物理版 · {totalItems} 件食物 · slot {bagCapacity} · 🤚 {cfg.shakeMax} shakes
+          3D · {totalItems} items · slot {bagCapacity} · 🤚 ∞ shakes
         </p>
         <div className="text-center">
-          <button className="btn-primary px-10 py-3" onClick={startLevel}>
-            {t.start}
-          </button>
+          <button className="btn-primary px-10 py-3" onClick={startLevel}>{t.start}</button>
         </div>
       </div>
     );
   }
 
-  // ── Won ────────────────────────────────────────────────────────────────
   if (phase === "won") {
     return (
       <div className="card p-10 text-center space-y-5 animate-fade-in">
         <div className="text-5xl">🎉</div>
         <p className="text-green-400 text-2xl font-bold">{t.tmCleared}</p>
-        <p className="text-gray-400">
-          {t.level} {level}
-        </p>
-        <button className="btn-primary px-10 py-3" onClick={advanceLevel}>
-          {t.tmNextLevel}
-        </button>
+        <p className="text-gray-400">{t.level} {level}</p>
+        <button className="btn-primary px-10 py-3" onClick={advanceLevel}>{t.tmNextLevel}</button>
       </div>
     );
   }
 
-  // ── Lost ───────────────────────────────────────────────────────────────
   if (phase === "lost") {
     return (
       <div className="card p-10 text-center space-y-5 animate-fade-in">
         <div className="text-5xl">❌</div>
         <p className="text-red-400 text-2xl font-bold">{t.tmSlotFull}</p>
-        <p className="text-brand-400 font-bold text-lg">
-          {t.tmFinalScore}: {level - 1}
-        </p>
-        <button className="btn-primary px-10 py-3" onClick={restart}>
-          {t.tmRetry}
-        </button>
+        <p className="text-brand-400 font-bold text-lg">{t.tmFinalScore}: {level - 1}</p>
+        <button className="btn-primary px-10 py-3" onClick={restart}>{t.tmRetry}</button>
       </div>
     );
   }
@@ -166,29 +130,18 @@ function GooseGrabGame({
     <div className="space-y-3">
       {/* HUD */}
       <div className="flex items-center justify-between text-xs font-semibold">
-        <span className="text-gray-400">
-          {t.tmLevel} {level} · {itemsLeft} 剩
-        </span>
+        <span className="text-gray-400">{t.tmLevel} {level} · {itemsLeft} 剩</span>
         <button
           onClick={handleShake}
-          disabled={shakesLeft <= 0}
-          className={
-            shakesLeft > 0
-              ? "flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold bg-gradient-to-br from-orange-500 to-red-600 text-white hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/40 transition-all"
-              : "flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold bg-gray-700 text-gray-500 cursor-not-allowed"
-          }
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold bg-gradient-to-br from-orange-500 to-red-600 text-white hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/40 transition-all"
         >
-          🤚 {t.ggShakeBtn} ({shakesLeft})
+          🤚 {t.ggShakeBtn}
         </button>
-        <span className="text-orange-400">
-          槽 {bagCount} / {bagCapacity}
-        </span>
+        <span className="text-orange-400">槽 {bagTypes.length} / {bagCapacity}</span>
       </div>
 
-      {/* 3D scene */}
-      <div
-        className="rounded-2xl overflow-hidden border-2 border-orange-900/50 shadow-xl shadow-orange-900/30 aspect-video bg-gray-900"
-      >
+      {/* 3D scene — fixed tall height so it's big enough */}
+      <div className="rounded-2xl overflow-hidden border-2 border-orange-900/50 shadow-xl shadow-orange-900/30 h-[540px] bg-gray-900">
         <GooseGrabScene
           key={runKey}
           totalItems={totalItems}
@@ -196,9 +149,18 @@ function GooseGrabGame({
           onWin={handleWin}
           onLose={handleLose}
           onItemsLeftChange={setItemsLeft}
-          onBagItemsChange={setBagCount}
+          onBagItemsChange={setBagTypes}
           shakeKey={shakeKey}
+          instantSpawn={isHell}
         />
+      </div>
+
+      {/* 3D Bag HUD — actual model thumbnails */}
+      <div className="space-y-1">
+        <p className="text-xs text-gray-500 text-center">
+          Storage ({bagTypes.length}/{bagCapacity})
+        </p>
+        <GooseBagDisplay types={bagTypes} capacity={bagCapacity} />
       </div>
 
       <p className="text-center text-xs text-gray-600">

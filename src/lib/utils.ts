@@ -153,6 +153,15 @@ export const GAMES = [
     lowerIsBetter: false,
     category: "casual" as const,
   },
+  {
+    id: "sheep",
+    titleKey: "sheepTitle" as const,
+    descKey: "sheepDesc" as const,
+    icon: "🐰",
+    color: "from-pink-400 to-rose-500",
+    lowerIsBetter: false,
+    category: "casual" as const,
+  },
 ] as const;
 
 export type GameId = (typeof GAMES)[number]["id"];

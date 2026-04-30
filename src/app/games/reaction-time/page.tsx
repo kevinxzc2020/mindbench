@@ -231,7 +231,7 @@ function ReactionGame({
 
       <button
         onClick={handleClick}
-        className={`w-full h-72 rounded-2xl font-bold text-white text-3xl transition-colors duration-75 focus:outline-none select-none ${bgColor}`}
+        className={`w-full h-[28rem] rounded-2xl font-bold text-white text-3xl transition-colors duration-75 focus:outline-none select-none ${bgColor}`}
       >
         <div>{message}</div>
         {subMessage && (

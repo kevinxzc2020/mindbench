@@ -168,11 +168,11 @@ function NumberMemoryGame({
 
   if (phase === "showing") {
     return (
-      <div className="card p-10 text-center space-y-4">
+      <div className="card p-14 text-center space-y-6">
         <p className="text-sm text-gray-400">
           {t.level} {level} — {t.nmShowing}
         </p>
-        <div className="text-6xl font-mono font-black tracking-widest text-white animate-fade-in">
+        <div className="text-7xl font-mono font-black tracking-widest text-white animate-fade-in py-6">
           {target}
         </div>
         <div className="text-xs text-gray-500">

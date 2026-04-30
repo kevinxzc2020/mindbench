@@ -72,9 +72,27 @@ function BlackHoleGame({ onComplete }: { onComplete: (score: number) => void }) 
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [mass, setMass] = useState(cfg.startMass);
-  const [timeLeft, setTimeLeft] = useState(cfg.durationSec);
+  const [timeLeft, setTimeLeft] = useState<number>(cfg.durationSec);
   const [runKey, setRunKey] = useState(0);
   const finalMassRef = useRef(cfg.startMass);
+
+  // Hooks MUST be declared before any conditional returns (Rules of Hooks).
+  const startGame = useCallback(() => {
+    setMass(cfg.startMass);
+    setTimeLeft(cfg.durationSec);
+    finalMassRef.current = cfg.startMass;
+    setRunKey((k) => k + 1);
+    setPhase("running");
+  }, [cfg.startMass, cfg.durationSec]);
+
+  const handleGameEnd = useCallback(
+    (final: number) => {
+      finalMassRef.current = final;
+      setPhase("done");
+      onComplete(final);
+    },
+    [onComplete]
+  );
 
   // ── Godot 模式：iframe 替代整个游戏 ──────────────────────────────────────
   if (renderer === "checking") {
@@ -99,23 +117,6 @@ function BlackHoleGame({ onComplete }: { onComplete: (score: number) => void }) 
       </div>
     );
   }
-
-  const startGame = useCallback(() => {
-    setMass(cfg.startMass);
-    setTimeLeft(cfg.durationSec);
-    finalMassRef.current = cfg.startMass;
-    setRunKey((k) => k + 1);
-    setPhase("running");
-  }, [cfg.startMass, cfg.durationSec]);
-
-  const handleGameEnd = useCallback(
-    (final: number) => {
-      finalMassRef.current = final;
-      setPhase("done");
-      onComplete(final);
-    },
-    [onComplete]
-  );
 
   // ── Idle / Tutorial ────────────────────────────────────────────────────
   if (phase === "idle") {
@@ -203,7 +204,7 @@ function BlackHoleGame({ onComplete }: { onComplete: (score: number) => void }) 
       </div>
 
       {/* 3D scene */}
-      <div className="rounded-2xl overflow-hidden border-2 border-purple-900/50 shadow-xl shadow-purple-900/30 aspect-video">
+      <div className="rounded-2xl overflow-hidden border-2 border-purple-900/50 shadow-xl shadow-purple-900/30 h-[540px]">
         <BlackHoleScene
           key={runKey}
           initialMass={cfg.startMass}

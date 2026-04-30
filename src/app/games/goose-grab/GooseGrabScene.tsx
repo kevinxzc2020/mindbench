@@ -47,9 +47,12 @@ interface SceneProps {
   onWin: () => void;
   onLose: () => void;
   onItemsLeftChange: (n: number) => void;
-  onBagItemsChange: (n: number) => void;
+  // passes full array of type-indices so parent can render 2-D bag HUD
+  onBagItemsChange: (types: number[]) => void;
   // 让外部触发"摇一摇"
   shakeKey: number;
+  // whether to skip spawn-stagger (hell mode: all appear at once)
+  instantSpawn?: boolean;
 }
 
 // ─── Container —— 木质展示柜（底 + 4 面玻璃墙） ───────────────────────────
@@ -175,10 +178,7 @@ interface ItemProps {
   delay: number;
   modelScene: THREE.Group | null;
   shakeKey: number; // 摇一摇信号：每次 +1 都触发一次冲量
-  onPick: (
-    item: BagSlotItem,
-    startPos: THREE.Vector3
-  ) => THREE.Vector3 | null;
+  onPick: (item: BagSlotItem, startPos: THREE.Vector3) => void;
 }
 
 function Item({ id, type, position, delay, modelScene, shakeKey, onPick }: ItemProps) {
@@ -190,7 +190,8 @@ function Item({ id, type, position, delay, modelScene, shakeKey, onPick }: ItemP
   const groupRef = useRef<THREE.Group>(null);
   const animRef = useRef<THREE.Group>(null);
   const startPosRef = useRef(new THREE.Vector3());
-  const targetRef = useRef(new THREE.Vector3(0, -10, 0));
+  // All picked items fly to the same off-screen sink — bag is rendered as 2D HUD
+  const targetRef = useRef(new THREE.Vector3(0, -12, 0));
   const tweenRef = useRef<gsap.core.Tween | null>(null);
   const originalMaterialRef = useRef<THREE.Material | null>(null);
 
@@ -281,17 +282,8 @@ function Item({ id, type, position, delay, modelScene, shakeKey, onPick }: ItemP
 
   if (!visible) return null;
 
-  if (picked) {
-    return (
-      <group
-        ref={animRef}
-        scale={0.6}
-        position={[startPosRef.current.x, startPosRef.current.y, startPosRef.current.z]}
-      >
-        {model ? <primitive object={model} /> : null}
-      </group>
-    );
-  }
+  // Once picked, remove from 3D scene entirely — the 2D HUD shows bag contents
+  if (picked) return null;
 
   return (
     <RigidBody position={position} colliders="hull" ref={bodyRef}>
@@ -310,15 +302,12 @@ function Item({ id, type, position, delay, modelScene, shakeKey, onPick }: ItemP
           if (t) {
             startPosRef.current.set(t.x, t.y, t.z);
           }
-          const next = onPick(
+          onPick(
             { id, type, meshRef: animRef as React.RefObject<THREE.Object3D | null> },
             startPosRef.current
           );
-          if (next) {
-            targetRef.current.copy(next);
-            setPicked(true);
-          }
-          // 如果 next === null（槽满），onPick 已经触发 lose
+          // onPick handles lose/win internally; item always flies off
+          setPicked(true);
         }}
       >
         {model ? <primitive object={model} scale={0.6} /> : null}
@@ -329,15 +318,6 @@ function Item({ id, type, position, delay, modelScene, shakeKey, onPick }: ItemP
 
 // ─── 主场景内容 ──────────────────────────────────────────────────────────────
 
-const SLOT_POSITIONS = [
-  new THREE.Vector3(-2.7, 0.2, 3),
-  new THREE.Vector3(-1.62, 0.2, 3),
-  new THREE.Vector3(-0.54, 0.2, 3),
-  new THREE.Vector3(0.54, 0.2, 3),
-  new THREE.Vector3(1.62, 0.2, 3),
-  new THREE.Vector3(2.7, 0.2, 3),
-] as const;
-
 function SceneContent({
   totalItems,
   bagCapacity,
@@ -346,6 +326,7 @@ function SceneContent({
   onLose,
   onItemsLeftChange,
   onBagItemsChange,
+  instantSpawn,
 }: SceneProps) {
   // 加载所有模型
   const models = useMemo(
@@ -362,7 +343,7 @@ function SceneContent({
   // 初始报告状态给外部
   useEffect(() => {
     onItemsLeftChange(itemsLeftRef.current);
-    onBagItemsChange(0);
+    onBagItemsChange([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -380,40 +361,31 @@ function SceneContent({
 
     let full = false;
     if (toRemove.length > 0) {
-      // 隐藏被消除的 mesh
-      toRemove.forEach((i) => {
-        const m = bag[i].meshRef.current;
-        if (m) m.visible = false;
-      });
       bagItemsRef.current = bag.filter((_, i) => !toRemove.includes(i));
-      onBagItemsChange(bagItemsRef.current.length);
+      onBagItemsChange(bagItemsRef.current.map((i) => i.type));
     } else if (bag.length >= bagCapacity) {
       full = true;
     }
     return !full;
   };
 
-  // 拾取一个 item，决定它要去哪个槽位
-  const handlePick = (
-    item: BagSlotItem,
-    _startPos: THREE.Vector3
-  ): THREE.Vector3 | null => {
-    if (endedRef.current) return null;
+  // 拾取一个 item — bag 存满了就触发 lose，否则入袋并做 3-match 检查
+  const handlePick = (item: BagSlotItem, _startPos: THREE.Vector3): void => {
+    if (endedRef.current) return;
     const bag = bagItemsRef.current;
     if (bag.length >= bagCapacity) {
       endedRef.current = true;
       onLose();
-      return null;
+      return;
     }
-    // 把 item 插到同 type 的最后位置（让同类相邻便于消除）
+    // 插入同类相邻
     const sameTypeLast = bag.findIndex((i) => i.type === item.type);
     const newIdx = sameTypeLast !== -1 ? sameTypeLast + 1 : bag.length;
-    const targetPos = SLOT_POSITIONS[newIdx] ?? SLOT_POSITIONS[SLOT_POSITIONS.length - 1];
     bagItemsRef.current = [...bag.slice(0, newIdx), item, ...bag.slice(newIdx)];
     itemsLeftRef.current -= 1;
 
-    // 报告外部
-    onBagItemsChange(bagItemsRef.current.length);
+    // 报告外部（传完整 type 数组给 2D HUD）
+    onBagItemsChange(bagItemsRef.current.map((i) => i.type));
     onItemsLeftChange(itemsLeftRef.current);
 
     // 下一帧检查 3-match
@@ -427,28 +399,29 @@ function SceneContent({
         onWin();
       }
     }, 50);
-    return targetPos;
   };
 
   // 生成 items：N 件食物，初始位置在容器内随机偏移
+  // instantSpawn=true (hell) → 0 delay so all appear together, no "raining" effect
   const items = useMemo(
     () =>
       Array.from({ length: totalItems }, (_, i) => ({
         id: i,
         type: i % MODEL_FILES.length,
         pos: [
-          ((i % 10) - 5) * 0.3,
-          Math.floor(i / 10) * 0.6 + 1,
-          (Math.floor(i / 50) - 0.5) * 0.3,
+          ((i % 10) - 4.5) * 0.35,
+          Math.floor(i / 10) * 0.55 + 0.8,
+          (Math.floor(i / 50) - 0.5) * 0.35,
         ] as [number, number, number],
-        delay: (i / 90) * 1000,
+        delay: instantSpawn ? 0 : (i / 90) * 1000,
       })),
-    [totalItems]
+    [totalItems, instantSpawn]
   );
 
   return (
     <>
-      <RigidBody type="fixed" colliders="cuboid">
+      {/* trimesh gives accurate concave collision so items stay inside the tray */}
+      <RigidBody type="fixed" colliders="trimesh">
         <Container />
       </RigidBody>
 
@@ -491,20 +464,20 @@ export default function GooseGrabScene({
   onLose,
   onItemsLeftChange,
   onBagItemsChange,
+  instantSpawn,
 }: SceneProps) {
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 7, 7], fov: 50 }}
+      camera={{ position: [0, 8, 8], fov: 48 }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       dpr={[1, 2]}
-      // 暖色渐变背景（模拟店内灯光环境）
       style={{
         background:
           "radial-gradient(circle at 50% 30%, #fde68a 0%, #d97706 35%, #7c2d12 75%, #451a03 100%)",
       }}
     >
-      <Physics gravity={[0, -3, 0]} timeStep="vary">
+      <Physics gravity={[0, -4, 0]} timeStep="vary">
         <SceneContent
           totalItems={totalItems}
           bagCapacity={bagCapacity}
@@ -513,6 +486,7 @@ export default function GooseGrabScene({
           onLose={onLose}
           onItemsLeftChange={onItemsLeftChange}
           onBagItemsChange={onBagItemsChange}
+          instantSpawn={instantSpawn}
         />
       </Physics>
     </Canvas>

@@ -227,8 +227,8 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
           "w-full rounded-2xl font-extrabold text-white select-none focus:outline-none transition-all duration-75",
           "active:scale-[0.97]",
           phase === "idle"
-            ? "h-64 bg-rose-600 hover:bg-rose-500 text-2xl shadow-lg shadow-rose-600/30"
-            : `h-64 bg-gradient-to-br from-rose-500 to-pink-600 text-3xl shadow-2xl ${buttonGlow}`
+            ? "h-[28rem] bg-rose-600 hover:bg-rose-500 text-2xl shadow-lg shadow-rose-600/30"
+            : `h-[28rem] bg-gradient-to-br from-rose-500 to-pink-600 text-3xl shadow-2xl ${buttonGlow}`
         )}
       >
         <div className="flex flex-col items-center gap-3 pointer-events-none">

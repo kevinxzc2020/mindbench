@@ -110,10 +110,10 @@ function VisualMemoryGame({
   };
 
   const maxWidth =
-    gridCols === 3 ? "max-w-xs"
-    : gridCols === 4 ? "max-w-sm"
-    : gridCols === 5 ? "max-w-md"
-    : "max-w-lg";
+    gridCols === 3 ? "max-w-sm"
+    : gridCols === 4 ? "max-w-lg"
+    : gridCols === 5 ? "max-w-xl"
+    : "max-w-2xl";
 
   if (phase === "idle") {
     return (

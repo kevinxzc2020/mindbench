@@ -154,10 +154,10 @@ function SequenceMemoryGame({
   // Grid width class depends on size
   const maxWidth =
     cfg.gridSize === 3
-      ? "max-w-xs"
-      : cfg.gridSize === 4
       ? "max-w-sm"
-      : "max-w-md";
+      : cfg.gridSize === 4
+      ? "max-w-md"
+      : "max-w-xl";
 
   return (
     <div className="space-y-6">

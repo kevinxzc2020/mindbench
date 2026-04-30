@@ -22,5 +22,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "goose-catch", "Hole.io"]
+  "exclude": ["node_modules", "goose-catch", "Hole.io", "sheep", "4gd-hole-io-(4.4)"]
 }

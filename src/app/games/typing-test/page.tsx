@@ -257,7 +257,7 @@ function TypingGame({
 
       {/* Passage display */}
       <div
-        className="card p-5 font-mono text-base leading-relaxed cursor-text select-none"
+        className="card p-6 font-mono text-lg leading-loose cursor-text select-none min-h-[10rem]"
         onClick={() => {
           if (phase === "running") inputRef.current?.focus();
         }}
@@ -295,7 +295,7 @@ function TypingGame({
             "w-full rounded-xl p-4 font-mono text-base bg-gray-800 border border-gray-700 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all",
             phase === "idle" ? "opacity-60 cursor-not-allowed" : ""
           )}
-          rows={3}
+          rows={5}
           placeholder={
             phase === "idle" ? t.typeClickToStart : t.typeInstruction
           }
