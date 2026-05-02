@@ -1,0 +1,644 @@
+"use client";
+
+// 3D 抓大鹅场景 —— 基于 goose-catch 开源 sample 改写：
+// - R3F + Rapier 物理引擎让食物模型自然堆叠
+// - 8 种 GLB 食物模型（来自 Sketchfab 免费 Low Poly Food Pack）
+// - 点击 → GSAP 弹到底部卡槽 → 3 同自动消除
+
+import { Canvas } from "@react-three/fiber";
+import {
+  Physics,
+  RigidBody,
+  CuboidCollider,
+  type RapierRigidBody,
+} from "@react-three/rapier";
+import { useGLTF } from "@react-three/drei";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import * as THREE from "three";
+import gsap from "gsap";
+
+// ─── 模型 URL（运行时从 public/models/goose-grab/ 加载） ────────────────────
+
+const MODEL_FILES = [
+  "ice-cream.glb",
+  "coockie-man.glb",
+  "cheese.glb",
+  "hotdog.glb",
+  "sandwich.glb",
+  "sandwich-toast.glb",
+  "pancake-big.glb",
+  "toast.glb",
+] as const;
+
+// 预加载（drei 会在客户端缓存）
+MODEL_FILES.forEach((f) => useGLTF.preload(`/models/goose-grab/${f}`));
+
+// ─── 类型 ────────────────────────────────────────────────────────────────────
+
+interface BagSlotItem {
+  id: number;
+  type: number;
+  meshRef: React.RefObject<THREE.Object3D | null>;
+}
+
+// 容器能舒适放下的物理物体上限。超出这个数量的物品进入"天降队列"，
+// 每捡走一个就从上方补充一个新的落进来。
+const CONTAINER_CAPACITY = 48;
+
+interface SceneProps {
+  totalItems: number;
+  /** 用多少种类型（必须 ≤ 8，因为只有 8 个 GLB） */
+  typeCount: number;
+  bagCapacity: number;
+  onWin: () => void;
+  onLose: () => void;
+  onItemsLeftChange: (n: number) => void;
+  // passes full array of type-indices so parent can render 2-D bag HUD
+  onBagItemsChange: (types: number[]) => void;
+  // 让外部触发"摇一摇"
+  shakeKey: number;
+}
+
+// ─── Container —— 木质展示柜（视觉装饰） ────────────────────────────────────
+//
+// 注意：Container 现在 ONLY 渲染视觉 mesh，不带任何物理碰撞。物理碰撞由
+// SceneContent 用显式 <CuboidCollider> 单独构建，这样：
+//   1) 不会被 trimesh "全 mesh 都当碰撞表面" 拖累
+//   2) 墙能精确对齐可见 6×6 木盘内框
+//   3) 厚度足够、且形状是真正的 box（不是薄壳），物品撞不穿
+
+const TRAY_INNER_HALF = 2.95; // 可见木框内沿到中心的距离（visible inner half-width）
+const FLOOR_Y = 0;             // 物理地板的上表面 y 坐标
+const WALL_HEIGHT = 6;         // 物理墙高度（含顶盖）
+const WALL_THICK = 0.3;        // 物理墙半厚度（足够厚不穿模）
+
+function Container() {
+  // 木质底 + 边框（visible decorative）
+  const woodMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#7c2d12",
+        roughness: 0.85,
+        metalness: 0.05,
+      }),
+    []
+  );
+  const woodAccentMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#451a03",
+        roughness: 0.7,
+      }),
+    []
+  );
+  // 玻璃墙（半透明）—— 纯视觉，物理由 CuboidCollider 做
+  // 之前用 MeshPhysicalMaterial + transmission 巨慢（每帧要采样场景作为透射纹理），
+  // 改成普通 MeshStandardMaterial 半透明，视觉差异极小但性能省一大截
+  const glassMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#fef3c7",
+        transparent: true,
+        opacity: 0.06,
+        roughness: 0.15,
+        metalness: 0.1,
+      }),
+    []
+  );
+
+  return (
+    <group>
+      {/* 视觉装饰：木质底盘 */}
+      <mesh position={[0, -0.15, 0]} material={woodMat} receiveShadow>
+        <boxGeometry args={[6, 0.3, 6]} />
+      </mesh>
+      {/* 木边框 4 条 */}
+      <mesh position={[0, 0.05, -3.05]} material={woodAccentMat} castShadow>
+        <boxGeometry args={[6, 0.4, 0.2]} />
+      </mesh>
+      <mesh position={[0, 0.05, 3.05]} material={woodAccentMat} castShadow>
+        <boxGeometry args={[6, 0.4, 0.2]} />
+      </mesh>
+      <mesh position={[3.05, 0.05, 0]} material={woodAccentMat} castShadow>
+        <boxGeometry args={[0.2, 0.4, 6]} />
+      </mesh>
+      <mesh position={[-3.05, 0.05, 0]} material={woodAccentMat} castShadow>
+        <boxGeometry args={[0.2, 0.4, 6]} />
+      </mesh>
+      {/* 4 面半透明玻璃墙（视觉）—— 顶部已开口，方便救援空投视觉 */}
+      <mesh position={[0, 2.2, -3.0]} material={glassMat}>
+        <boxGeometry args={[6, 4.4, 0.04]} />
+      </mesh>
+      <mesh position={[0, 2.2, 3.0]} material={glassMat}>
+        <boxGeometry args={[6, 4.4, 0.04]} />
+      </mesh>
+      <mesh position={[-3.0, 2.2, 0]} material={glassMat}>
+        <boxGeometry args={[0.04, 4.4, 6]} />
+      </mesh>
+      <mesh position={[3.0, 2.2, 0]} material={glassMat}>
+        <boxGeometry args={[0.04, 4.4, 6]} />
+      </mesh>
+      {/* 注意：故意不画玻璃顶 —— 上面是开口，物品掉出去时可以从天上重新空投回来 */}
+    </group>
+  );
+}
+
+/**
+ * TrayPhysics —— 显式 cuboid colliders 围成的物理盒。
+ * 内部 inner half-extent = TRAY_INNER_HALF（即 6×6 内框对齐可见木盘）。
+ * 包含：底板 + 4 面墙。**没有顶盖**，因为：
+ *   1) shake 冲量已调小，物品不会飞这么高
+ *   2) 救援空投需要从天上掉下来，要开口的容器
+ */
+function TrayPhysics() {
+  const halfH = WALL_HEIGHT / 2;
+  const wallCenterY = FLOOR_Y + halfH;
+  return (
+    <RigidBody type="fixed" colliders={false}>
+      {/* 地板：6 × 0.4 × 6，上表面在 y=0 */}
+      <CuboidCollider args={[3, 0.2, 3]} position={[0, FLOOR_Y - 0.2, 0]} />
+      {/* 后墙 (z=−) */}
+      <CuboidCollider
+        args={[TRAY_INNER_HALF + WALL_THICK, halfH, WALL_THICK]}
+        position={[0, wallCenterY, -(TRAY_INNER_HALF + WALL_THICK)]}
+      />
+      {/* 前墙 (z=+) */}
+      <CuboidCollider
+        args={[TRAY_INNER_HALF + WALL_THICK, halfH, WALL_THICK]}
+        position={[0, wallCenterY, TRAY_INNER_HALF + WALL_THICK]}
+      />
+      {/* 左墙 (x=−) */}
+      <CuboidCollider
+        args={[WALL_THICK, halfH, TRAY_INNER_HALF + WALL_THICK]}
+        position={[-(TRAY_INNER_HALF + WALL_THICK), wallCenterY, 0]}
+      />
+      {/* 右墙 (x=+) */}
+      <CuboidCollider
+        args={[WALL_THICK, halfH, TRAY_INNER_HALF + WALL_THICK]}
+        position={[TRAY_INNER_HALF + WALL_THICK, wallCenterY, 0]}
+      />
+    </RigidBody>
+  );
+}
+
+// ─── 单个食物 Item ──────────────────────────────────────────────────────────
+
+const SELECTED_MAT = new THREE.MeshStandardMaterial({
+  color: "gold",
+  side: THREE.BackSide,
+  depthTest: false,
+  transparent: true,
+});
+
+interface ItemProps {
+  id: number;
+  type: number;
+  position: [number, number, number];
+  delay: number;
+  modelScene: THREE.Group | null;
+  shakeKey: number; // 摇一摇信号：每次 +1 都触发一次冲量
+  onPick: (item: BagSlotItem, startPos: THREE.Vector3) => void;
+  /** 注册 / 注销 body 给 SceneContent 用作集中救援检查 */
+  onBodyRegister: (id: number, body: RapierRigidBody | null) => void;
+  /**
+   * 如果传了这个，说明这个 item 是"天降队列"里的：初始不可见，
+   * 调用方把 spawnFn 存起来，需要时调用 spawnFn() 让 item 从高处落下。
+   */
+  onQueueRegister?: (spawnFn: () => void) => void;
+}
+
+// React.memo 包一层 —— 配合上面 useCallback 的 onPick / onBodyRegister，
+// 父级重渲染时（每次点击都会触发）Item 不会全员 re-render，只有 props 真变了
+// 才重渲染。48 个 Item × 每次 click 重渲染 = 卡顿主因。
+const Item = memo(function Item({ id, type, position, delay, modelScene, shakeKey, onPick, onBodyRegister, onQueueRegister }: ItemProps) {
+  const isQueued = !!onQueueRegister;
+  const [visible, setVisible] = useState(false);
+  const [picked, setPicked] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  // 天降物品的实际出生坐标（触发前不重要；触发时设为容器上方随机点）
+  const [activePos, setActivePos] = useState(position);
+
+  const bodyRef = useRef<RapierRigidBody>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const animRef = useRef<THREE.Group>(null);
+  const startPosRef = useRef(new THREE.Vector3());
+  // All picked items fly to the same off-screen sink — bag is rendered as 2D HUD
+  const targetRef = useRef(new THREE.Vector3(0, -12, 0));
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
+  const originalMaterialRef = useRef<THREE.Material | null>(null);
+
+  // 克隆模型
+  const model = useMemo(() => modelScene?.clone(true), [modelScene]);
+
+  // 普通物品：延迟出生（spawn 错开避免同时刷出来卡顿）
+  useEffect(() => {
+    if (isQueued) return; // 队列物品不走这里
+    const t = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(t);
+  }, [delay, isQueued]);
+
+  // 队列物品：注册天降回调，等待触发
+  useEffect(() => {
+    if (!isQueued || !onQueueRegister) return;
+    onQueueRegister(() => {
+      // 在容器正上方随机落点（x/z 在 [-1.5, 1.5]，y 高于视觉容器顶）
+      setActivePos([
+        (Math.random() - 0.5) * 3,
+        7 + Math.random() * 2,
+        (Math.random() - 0.5) * 3,
+      ]);
+      setVisible(true);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // hover 高亮
+  useEffect(() => {
+    if (!groupRef.current) return;
+    groupRef.current.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        const m = mesh.material as THREE.Material;
+        if (hovered) {
+          if (!originalMaterialRef.current) originalMaterialRef.current = m;
+          mesh.material = SELECTED_MAT;
+        } else if (originalMaterialRef.current) {
+          mesh.material = originalMaterialRef.current;
+        }
+      }
+    });
+  }, [hovered]);
+
+  // 飞向卡槽动画
+  useEffect(() => {
+    if (!picked || !animRef.current) return;
+    tweenRef.current?.kill();
+    tweenRef.current = gsap.to(animRef.current.position, {
+      x: targetRef.current.x,
+      y: targetRef.current.y,
+      z: targetRef.current.z,
+      duration: 0.25,
+      ease: "power3.inOut",
+    });
+    // 还原材质
+    if (model && originalMaterialRef.current) {
+      model.traverse((c) => {
+        if ((c as THREE.Mesh).isMesh) {
+          (c as THREE.Mesh).material = originalMaterialRef.current!;
+        }
+      });
+    }
+    return () => {
+      tweenRef.current?.kill();
+    };
+  }, [picked, model]);
+
+  // 卸载清理
+  useEffect(() => {
+    return () => {
+      tweenRef.current?.kill();
+      originalMaterialRef.current = null;
+    };
+  }, []);
+
+  // 摇一摇：shakeKey 变化时给 RigidBody 施加随机冲量 + 扭矩
+  // 调小冲量（之前太大，能把物品炸出墙顶）
+  useEffect(() => {
+    if (shakeKey === 0) return; // 初次 mount 不摇
+    if (picked) return; // 已被拾取的不摇
+    const body = bodyRef.current;
+    if (!body) return;
+    // 向上冲量（让物体跳起来）+ 横向小推力（错开）
+    body.applyImpulse(
+      {
+        x: (Math.random() - 0.5) * 1.5,
+        y: 1.5 + Math.random() * 1.5, // 之前 4 + random*4 → 现在 1.5 + random*1.5
+        z: (Math.random() - 0.5) * 1.5,
+      },
+      true
+    );
+    // 扭矩让物体翻滚
+    body.applyTorqueImpulse(
+      {
+        x: (Math.random() - 0.5) * 0.3,
+        y: (Math.random() - 0.5) * 0.3,
+        z: (Math.random() - 0.5) * 0.3,
+      },
+      true
+    );
+  }, [shakeKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 注册 body 给 SceneContent —— 集中做"掉出去就拉回来"兜底，
+  // 不再每个 Item 自己跑 useFrame（99 个 useFrame 会卡死）。
+  const registerCb = useRef(onBodyRegister);
+  registerCb.current = onBodyRegister;
+  useEffect(() => {
+    if (!visible || picked) {
+      registerCb.current(id, null);
+      return;
+    }
+    // 等 RigidBody 把 ref 填进来之后再注册（mount 后下一帧）
+    const handle = requestAnimationFrame(() => {
+      if (bodyRef.current) registerCb.current(id, bodyRef.current);
+    });
+    return () => {
+      cancelAnimationFrame(handle);
+      registerCb.current(id, null);
+    };
+  }, [id, visible, picked]);
+
+  if (!visible) return null;
+
+  // Once picked, remove from 3D scene entirely — the 2D HUD shows bag contents
+  if (picked) return null;
+
+  return (
+    <RigidBody
+      position={activePos}
+      colliders="hull"
+      ref={bodyRef}
+    >
+      <group
+        ref={groupRef}
+        onPointerEnter={(e) => {
+          e.stopPropagation();
+          setHovered(true);
+        }}
+        onPointerOut={() => setHovered(false)}
+        onPointerUp={(e) => {
+          e.stopPropagation();
+          if (picked) return;
+          // 记录拾取瞬间的世界位置
+          const t = bodyRef.current?.translation();
+          if (t) {
+            startPosRef.current.set(t.x, t.y, t.z);
+          }
+          onPick(
+            { id, type, meshRef: animRef as React.RefObject<THREE.Object3D | null> },
+            startPosRef.current
+          );
+          // onPick handles lose/win internally; item always flies off
+          setPicked(true);
+        }}
+      >
+        {model ? <primitive object={model} scale={0.6} /> : null}
+      </group>
+    </RigidBody>
+  );
+});
+
+// ─── 主场景内容 ──────────────────────────────────────────────────────────────
+
+function SceneContent({
+  totalItems,
+  typeCount,
+  bagCapacity,
+  shakeKey,
+  onWin,
+  onLose,
+  onItemsLeftChange,
+  onBagItemsChange,
+}: SceneProps) {
+  // 实际可用类型数（不能超过 GLB 模型数）
+  const effectiveTypeCount = Math.min(typeCount, MODEL_FILES.length);
+  // 加载所有模型
+  const models = useMemo(
+    () => MODEL_FILES.map((f) => `/models/goose-grab/${f}`),
+    []
+  );
+  const gltfList = models.map((url) => useGLTF(url));
+
+  // bag 状态（refs 避免每次都 re-render 整个场景）
+  const bagItemsRef = useRef<BagSlotItem[]>([]);
+  const itemsLeftRef = useRef(totalItems);
+  const endedRef = useRef(false);
+  // bagCapacity 用 ref 同步，防止 handlePick useCallback stale closure
+  const bagCapacityRef = useRef(bagCapacity);
+  useEffect(() => { bagCapacityRef.current = bagCapacity; }, [bagCapacity]);
+
+  // 天降队列：超出容器容量的物品注册在这里，捡一个补一个
+  const spawnQueueRef = useRef<Array<() => void>>([]);
+  const handleQueueRegister = useCallback((spawnFn: () => void) => {
+    spawnQueueRef.current.push(spawnFn);
+  }, []);
+
+  // 所有活动 item 的 body ref —— 用于集中做掉出去救援
+  const itemBodiesRef = useRef<Map<number, RapierRigidBody>>(new Map());
+  // useCallback 稳定引用 —— 否则每次 SceneContent 重渲染都会让 48 个 Item
+  // 看到 onBodyRegister prop 变化、被迫 reconcile（点击会卡顿的元凶之一）
+  const handleBodyRegister = useCallback((id: number, body: RapierRigidBody | null) => {
+    if (body) itemBodiesRef.current.set(id, body);
+    else itemBodiesRef.current.delete(id);
+  }, []);
+
+  // 救援 tick —— 每 100ms 扫一次所有 body，掉到 y < -1 的"从天上空投回来"。
+  // 用 setInterval 而不是 useFrame：避免占用渲染线程，且对救援足够及时。
+  //
+  // 空投策略：y=3（刚好在视野内、视觉上像从顶上掉进容器）+ 向下初速度 -3 m/s
+  // → 0.3 秒落到地面，玩家几乎察觉不到"消失"那一瞬间。
+  // 之前 y=8 + 自由落体 ≈1.3 秒太久，玩家看到空盘子会以为 bug。
+  useEffect(() => {
+    const tick = setInterval(() => {
+      itemBodiesRef.current.forEach((body) => {
+        const t = body.translation();
+        if (t.y < -1) {
+          body.setTranslation(
+            {
+              x: (Math.random() - 0.5) * 4, // 随机 x 在 [-2, 2]
+              y: 3,                          // 刚好高于视觉容器顶
+              z: (Math.random() - 0.5) * 4,
+            },
+            true
+          );
+          // 给一个向下初速度，落得快
+          body.setLinvel({ x: 0, y: -3, z: 0 }, true);
+          // 加点小角速度让它落下时翻滚，看起来更自然
+          body.setAngvel(
+            {
+              x: (Math.random() - 0.5) * 2,
+              y: (Math.random() - 0.5) * 2,
+              z: (Math.random() - 0.5) * 2,
+            },
+            true
+          );
+        }
+      });
+    }, 100);
+    return () => clearInterval(tick);
+  }, []);
+
+  // 初始报告状态给外部
+  useEffect(() => {
+    onItemsLeftChange(itemsLeftRef.current);
+    onBagItemsChange([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 拾取一个 item — bag 存满了就触发 lose，否则入袋并做 3-match 检查
+  // useCallback 稳定引用 —— 同 handleBodyRegister 的理由（防止 48 个 Item
+  // 因为 onPick prop 变化全部重渲染）
+  const handlePick = useCallback(
+    (item: BagSlotItem, _startPos: THREE.Vector3): void => {
+      if (endedRef.current) return;
+      const bag = bagItemsRef.current;
+      if (bag.length >= bagCapacityRef.current) {
+        endedRef.current = true;
+        onLose();
+        return;
+      }
+      // 插入同类相邻
+      const sameTypeLast = bag.findIndex((i) => i.type === item.type);
+      const newIdx = sameTypeLast !== -1 ? sameTypeLast + 1 : bag.length;
+      bagItemsRef.current = [...bag.slice(0, newIdx), item, ...bag.slice(newIdx)];
+      itemsLeftRef.current -= 1;
+
+      // 报告外部（传完整 type 数组给 2D HUD）
+      onBagItemsChange(bagItemsRef.current.map((i) => i.type));
+      onItemsLeftChange(itemsLeftRef.current);
+
+      // 天降：捡走一个就从队列里补一个（如果有的话）
+      const nextSpawn = spawnQueueRef.current.shift();
+      if (nextSpawn) nextSpawn();
+
+      // 下一帧检查 3-match —— inline 写法避免依赖外层 checkAndRemoveTriples
+      setTimeout(() => {
+        const bagNow = bagItemsRef.current;
+        const buckets: Record<number, number[]> = {};
+        bagNow.forEach((it, idx) => {
+          (buckets[it.type] ??= []).push(idx);
+        });
+        const toRemove: number[] = [];
+        Object.values(buckets).forEach((idxs) => {
+          if (idxs.length >= 3) toRemove.push(...idxs.slice(0, 3));
+        });
+        let full = false;
+        if (toRemove.length > 0) {
+          bagItemsRef.current = bagNow.filter((_, i) => !toRemove.includes(i));
+          onBagItemsChange(bagItemsRef.current.map((i) => i.type));
+        } else if (bagNow.length >= bagCapacityRef.current) {
+          full = true;
+        }
+        if (full && !endedRef.current) {
+          endedRef.current = true;
+          onLose();
+        } else if (itemsLeftRef.current <= 0 && !endedRef.current) {
+          endedRef.current = true;
+          onWin();
+        }
+      }, 50);
+    },
+    [onBagItemsChange, onItemsLeftChange, onLose, onWin]
+  );
+
+  // 生成 items：
+  //   id < CONTAINER_CAPACITY  → 正常 spawn，带 300ms 内随机错开的 delay
+  //   id >= CONTAINER_CAPACITY → 天降队列，初始不可见，捡走一个补一个
+  const items = useMemo(
+    () =>
+      Array.from({ length: totalItems }, (_, i) => {
+        const inContainer = i < CONTAINER_CAPACITY;
+        const initCount = Math.min(totalItems, CONTAINER_CAPACITY);
+        return {
+          id: i,
+          type: i % effectiveTypeCount,
+          // 容器内物品：网格分布；队列物品：位置无所谓（不可见）
+          pos: inContainer
+            ? ([
+                ((i % 10) - 4.5) * 0.35,
+                Math.floor(i / 10) * 0.55 + 0.8,
+                (Math.floor(i / 50) - 0.5) * 0.35,
+              ] as [number, number, number])
+            : ([0, -20, 0] as [number, number, number]),
+          delay: inContainer ? (i / Math.max(1, initCount)) * 300 : 0,
+          queued: !inContainer,
+        };
+      }),
+    [totalItems, effectiveTypeCount]
+  );
+
+  return (
+    <>
+      {/* 视觉容器（无物理）*/}
+      <Container />
+      {/* 物理容器（无视觉）*/}
+      <TrayPhysics />
+
+      {items.map((it) => (
+        <Item
+          key={it.id}
+          id={it.id}
+          type={it.type}
+          position={it.pos}
+          delay={it.delay}
+          modelScene={(gltfList[it.type % gltfList.length]?.scene as THREE.Group) ?? null}
+          shakeKey={shakeKey}
+          onPick={handlePick}
+          onBodyRegister={handleBodyRegister}
+          onQueueRegister={it.queued ? handleQueueRegister : undefined}
+        />
+      ))}
+
+      {/* 灯光：暖色顶光（像店里的射灯）+ 蓝色冷光填充
+          shadow-map 从 1024 降到 512 —— 阴影质量略降，但每帧的 shadow pass
+          要画的像素是原来的 1/4，省一大截。两个填充灯不需要投影 */}
+      <ambientLight intensity={0.6} color="#fef3c7" />
+      <directionalLight
+        position={[-5, 10, 5]}
+        intensity={1.4}
+        color="#fef3c7"
+        castShadow
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
+      />
+      <directionalLight position={[5, 8, -3]} intensity={0.6} color="#cbd5e1" />
+      <pointLight position={[0, 5, 0]} intensity={0.5} color="#fcd34d" />
+    </>
+  );
+}
+
+// ─── 顶层 Canvas ─────────────────────────────────────────────────────────────
+
+export default function GooseGrabScene({
+  totalItems,
+  typeCount,
+  bagCapacity,
+  shakeKey,
+  onWin,
+  onLose,
+  onItemsLeftChange,
+  onBagItemsChange,
+}: SceneProps) {
+  return (
+    <Canvas
+      shadows={{ type: THREE.PCFShadowMap }}
+      camera={{ position: [0, 8, 8], fov: 48 }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
+      // DPR cap 1.5（之前 2 在 retina 上要画 4 倍像素，太重）
+      dpr={[1, 1.5]}
+      style={{
+        background:
+          "radial-gradient(circle at 50% 30%, #fde68a 0%, #d97706 35%, #7c2d12 75%, #451a03 100%)",
+      }}
+    >
+      {/* 真实重力 (-9.81) —— 之前 -4 太弱，物品轻飘飘还容易飞出去 */}
+      <Physics gravity={[0, -9.81, 0]} timeStep="vary">
+        <SceneContent
+          totalItems={totalItems}
+          typeCount={typeCount}
+          bagCapacity={bagCapacity}
+          shakeKey={shakeKey}
+          onWin={onWin}
+          onLose={onLose}
+          onItemsLeftChange={onItemsLeftChange}
+          onBagItemsChange={onBagItemsChange}
+        />
+      </Physics>
+    </Canvas>
+  );
+}

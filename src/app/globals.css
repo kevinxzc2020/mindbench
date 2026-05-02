@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-[#070914] text-gray-100 antialiased;
+  }
+
+  * {
+    @apply border-gray-800;
+  }
+
+  /* —— 选中文字配色 ————————————————————————————————————— */
+  ::selection {
+    background: #4f46e5; /* brand-600 */
+    color: #fff;
+  }
+
+  /* —— scrollbar：暗色 + 品牌细滑块 ——————————————————————— */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.25); /* brand-500 / 25% */
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  /* Firefox */
+  html {
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-[#070914] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-white/[0.06] text-gray-300 hover:text-white font-medium px-4 py-2 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-400/60 focus:ring-offset-0;
+  }
+
+  .card {
+    @apply bg-gray-900/70 backdrop-blur-sm border border-white/[0.06] rounded-2xl;
+  }
+
+  .input {
+    @apply bg-gray-800/80 border border-gray-700 rounded-lg px-4 py-2.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-150 w-full;
+  }
+}
+
+/* ═══════════════ Aurora 背景动画 ═══════════════ */
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.aurora-1 {
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(circle at 30% 30%, #6366f1 0%, transparent 60%);
+  top: -15vw;
+  left: -10vw;
+  animation: aurora-drift-a 22s ease-in-out infinite alternate;
+}
+
+.aurora-2 {
+  width: 45vw;
+  height: 45vw;
+  background: radial-gradient(circle at 50% 50%, #a855f7 0%, transparent 60%);
+  top: 20vh;
+  right: -10vw;
+  animation: aurora-drift-b 28s ease-in-out infinite alternate;
+}
+
+.aurora-3 {
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle at 50% 50%, #ec4899 0%, transparent 60%);
+  bottom: -10vw;
+  left: 25vw;
+  opacity: 0.35;
+  animation: aurora-drift-c 35s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift-a {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(8vw, 6vh, 0) scale(1.1); }
+}
+@keyframes aurora-drift-b {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-6vw, 8vh, 0) scale(1.15); }
+}
+@keyframes aurora-drift-c {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(5vw, -10vh, 0) scale(0.95); }
+}
+
+/* ═══════════════ 流动渐变 hero 标题 ═══════════════ */
+
+.hero-gradient-text {
+  background: linear-gradient(
+    110deg,
+    #818cf8 0%,
+    #c084fc 25%,
+    #f472b6 50%,
+    #c084fc 75%,
+    #818cf8 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-gradient-flow 8s ease-in-out infinite;
+}
+
+@keyframes hero-gradient-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* ═══════════════ 磁吸卡片 ═══════════════ */
+
+.magnetic-card {
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+  transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 200ms ease, border-color 200ms, box-shadow 200ms;
+  will-change: transform;
+}
+
+/* 鼠标位置高光 —— 通过 ::before 实现一个跟随鼠标的径向光斑 */
+.magnetic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    400px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(129, 140, 248, 0.18),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.magnetic-card:hover::before {
+  opacity: 1;
+}
+
+.magnetic-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ═══════════════ 滚动渐入 ═══════════════ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════ 微脉冲（live indicator） ═══════════════ */
+
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: live-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  60%  { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ═══════════════ Reduced motion ═══════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob,
+  .hero-gradient-text,
+  .live-dot {
+    animation: none !important;
+  }
+  .magnetic-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

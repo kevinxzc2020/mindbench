@@ -1,0 +1,14 @@
+{
+  "tier_0": [],
+  "tier_1": [],
+  "tier_2": [
+    {
+      "file": "tier_2/uploaded-01.glb",
+      "name": "Uploaded #1",
+      "mass": 90,
+      "scaleHint": 1.0,
+      "yOffset": 0
+    }
+  ],
+  "tier_3": []
+}
