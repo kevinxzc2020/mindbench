@@ -6,6 +6,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * 把页面滚动到当前游戏的 3D / 主操作区。
+ *
+ * GameWrapper 在选难度 / 换难度时会自动调用（通过 ref + useEffect），
+ * 但如果某个游戏内部有 "重新开始" / "下一关" 按钮想触发滚动，
+ * 直接 import 这个函数调用即可：
+ *
+ *   import { scrollToGameArea } from "@/lib/utils";
+ *   <button onClick={() => { restart(); scrollToGameArea(); }} />
+ *
+ * 锚点：GameWrapper 渲染游戏区的 div 上有 id="mb-game-area"。
+ */
+export function scrollToGameArea(): void {
+  if (typeof document === "undefined") return;
+  const el = document.getElementById("mb-game-area");
+  if (!el) return;
+  // block: "center" 让游戏区居中对齐到视口中央
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 // 游戏分类。首页/排行榜/stats 都按这个分组展示。
 export type GameCategory = "cognitive" | "moba" | "casual";
 

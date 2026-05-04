@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
 import { Bird, PartyPopper, CircleX, Hand, Tv2, Plus } from "lucide-react";
+import { scrollToGameArea } from "@/lib/utils";
 
 // R3F 场景动态加载（避免 SSR）
 const GooseGrabScene = dynamic(() => import("./GooseGrabScene"), {
@@ -162,12 +163,14 @@ function GooseGrabGame({ onComplete }: { onComplete: (score: number) => void }) 
     const next = level + 1;
     setLevel(next);
     startLevel(next);
+    scrollToGameArea();
   };
 
   const restart = () => {
     setLevel(1);
     setExtraSlots(0);
     setPhase("idle");
+    scrollToGameArea();
   };
 
   // 广告看完后 +1 槽

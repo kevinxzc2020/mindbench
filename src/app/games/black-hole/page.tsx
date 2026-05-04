@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
 import { BLACK_HOLE_CONFIG } from "@/lib/difficulty";
-import { cn } from "@/lib/utils";
+import { cn, scrollToGameArea } from "@/lib/utils";
 import { Aperture, Loader2, Sparkles } from "lucide-react";
 
 // R3F scene 客户端动态加载，避免 SSR 报错
@@ -216,7 +216,10 @@ function BlackHoleGame({ onComplete }: { onComplete: (score: number) => void }) 
           <p className="text-sm text-gray-500">{t.bhMassUnit}</p>
           <button
             className="btn-primary w-full py-3"
-            onClick={() => setPhase("idle")}
+            onClick={() => {
+              setPhase("idle");
+              scrollToGameArea();
+            }}
           >
             {t.restart}
           </button>

@@ -15,6 +15,18 @@
     @apply border-gray-800;
   }
 
+  /* —— scrollIntoView 锚点偏移 ————————————————————————
+     页面顶栏（Header）是 sticky h-16 (64px)，会盖住任何被滚到顶部的元素。
+     给 #mb-game-area 设 scroll-margin-top，浏览器在滚到它时会预留这部分空间，
+     游戏标题不会被顶栏盖住。同时给 html 加 scroll-padding-top 兜底（处理
+     scrollIntoView 之外的 hash 跳转、focus scroll 等场景）。*/
+  html {
+    scroll-padding-top: 80px;
+  }
+  #mb-game-area {
+    scroll-margin-top: 80px;
+  }
+
   /* —— 选中文字配色 ————————————————————————————————————— */
   ::selection {
     background: #4f46e5; /* brand-600 */

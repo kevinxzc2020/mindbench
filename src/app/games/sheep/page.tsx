@@ -1,11 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { useLang } from "@/lib/language-context";
 import { Rabbit } from "lucide-react";
 
 export default function SheepPage() {
   const { t } = useLang();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // iframe 加载完后自动滚到游戏中央。第三方 Vue bundle 大约 1-2s 才 ready，
+  // 此时 onLoad 触发，把 iframe 容器 scroll 到顶部，保证整个 640px 游戏框在视野里。
+  // 同时聚焦 iframe，让玩家点击 Start / Restart 时不需要先点一下 iframe 才能交互。
+  const handleIframeLoad = () => {
+    const el = iframeRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // contentWindow.focus() 让 iframe 拿到焦点（同源，安全）
+    setTimeout(() => el.contentWindow?.focus(), 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -32,14 +45,19 @@ export default function SheepPage() {
         </div>
 
         {/* Game iframe */}
-        <div className="rounded-2xl overflow-hidden border-2 border-pink-900/50 shadow-xl shadow-pink-900/20 bg-black"
-             style={{ height: "640px" }}>
+        <div
+          className="rounded-2xl overflow-hidden border-2 border-pink-900/50 shadow-xl shadow-pink-900/20 bg-black"
+          style={{ height: "640px" }}
+          onClick={() => iframeRef.current?.contentWindow?.focus()}
+        >
           <iframe
+            ref={iframeRef}
             src="/sheep-game/index.html"
             className="w-full h-full block"
             style={{ border: "none" }}
             allow="fullscreen"
             title="兔了个兔"
+            onLoad={handleIframeLoad}
           />
         </div>
 

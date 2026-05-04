@@ -5,6 +5,7 @@ import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
 import type { Difficulty } from "@/lib/difficulty";
 import { Flame } from "lucide-react";
+import { cn, scrollToGameArea } from "@/lib/utils";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const DODGE_CONFIG: Record<
@@ -114,6 +115,8 @@ function SkillshotDodgeGame({
     cancelAnimationFrame(state.rafId);
     setScore(0);
     setPhase("playing");
+    // 玩家在 dead 屏点 restart 时也滚回游戏区
+    scrollToGameArea();
   }, []);
 
   // ── Keyboard ──────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import {
@@ -87,6 +87,20 @@ export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrap
     setError("");
     setRunKey((k) => k + 1);
   };
+
+  // Auto-scroll：选难度（= 点 START）或换难度时，滚动到游戏区
+  // - runKey === 0 不滚（初始打开页面时别打扰）
+  // - 等 80ms 让新的游戏 DOM 先渲染，再滚才稳
+  // - block: "center" → 把游戏区**居中**对齐到视口中央，而不是顶部对齐
+  const gameAreaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (runKey === 0) return;
+    if (!difficulty) return;
+    const t = setTimeout(() => {
+      gameAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [runKey, difficulty]);
 
   // Difficulty labels/descriptions
   const diffLabel: Record<Difficulty, string> = {
@@ -183,9 +197,12 @@ export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrap
         </div>
       )}
 
-      {/* Game area (only after difficulty picked) */}
+      {/* Game area (only after difficulty picked)
+          id="mb-game-area" 是给 scrollToGameArea() 工具用的全局锚点 */}
       {difficulty && (
-        <div key={runKey}>{children(handleComplete, difficulty)}</div>
+        <div id="mb-game-area" ref={gameAreaRef} key={runKey}>
+          {children(handleComplete, difficulty)}
+        </div>
       )}
 
       {/* Score feedback */}
