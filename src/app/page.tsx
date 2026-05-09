@@ -15,7 +15,7 @@ import { BrainMark } from "@/components/BrainMark";
 import { MagneticCard } from "@/components/MagneticCard";
 import { GAME_ICONS, CATEGORY_ICONS, MystIcons } from "@/lib/icons";
 
-const CATEGORY_ORDER: GameCategory[] = ["cognitive", "moba", "casual"];
+const CATEGORY_ORDER: GameCategory[] = ["cognitive", "puzzle", "moba", "casual"];
 const DIFFICULTY_TIERS = 4;
 const SUPPORTED_LANGS = 3;
 

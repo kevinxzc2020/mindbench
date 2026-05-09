@@ -10,6 +10,7 @@
 import {
   Zap, Hash, Layers, Eye, MousePointerClick, Target, Keyboard,
   Flame, Bird, Aperture, Rabbit, BookOpen,
+  Grid3X3, Sigma, Link2, Puzzle,
   Brain, Swords, Gamepad2, Moon, Users, Sparkles,
   Sprout, Activity, Skull,
   Trophy, Medal, Award,
@@ -34,6 +35,10 @@ export const GAME_ICONS: Record<GameId, LucideIcon> = {
   "aim-trainer":     Target,
   "typing-test":     Keyboard,
   "verbal-memory":   BookOpen,
+  // 益智
+  "make-seven":   Grid3X3,
+  "beat-number":  Sigma,
+  "number-chain": Link2,
   // 休闲
   "goose-grab":      Bird,
   "black-hole":      Aperture,
@@ -46,6 +51,7 @@ export const CATEGORY_ICONS: Record<GameCategory, LucideIcon> = {
   cognitive: Brain,
   moba:      Swords,
   casual:    Gamepad2,
+  puzzle:    Puzzle,
 };
 
 // ─── 难度图标 ───────────────────────────────────────────────────────────────
@@ -66,7 +72,7 @@ export const MystIcons = {
 // ─── 排行榜奖牌 ─────────────────────────────────────────────────────────────
 /** 给定排名（1/2/3），返回奖牌图标和金/银/铜 Tailwind 渐变 */
 export function rankMedal(rank: number): {
-  Icon: LucideIcon | null;
+  Icon: LucideIcon;
   gradient: string;
   text: string;
 } | null {

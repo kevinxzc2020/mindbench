@@ -314,6 +314,7 @@ export const translations = {
     categoryCognitive: "认知测试",
     categoryMoba: "MOBA 衍生",
     categoryCasual: "休闲小游戏",
+    categoryPuzzle: "益智解谜",
 
     // Tile Match (三消)
     tmTitle: "三消脑力关",
@@ -366,6 +367,13 @@ export const translations = {
     verbalMemoryTitle: "词语记忆",
     verbalMemoryDesc: "判断这个词之前是否出现过 —— 测试你的词语记忆力",
     verbalMemoryWords: "词",
+    // Puzzle games
+    makeSevenTitle: "合成 7",
+    makeSevenDesc: "滑动方块合并相同数字，目标合成出 7",
+    beatNumberTitle: "超越数字",
+    beatNumberDesc: "拖选相邻格子，总和超过目标值即可消除得分",
+    numberChainTitle: "数字连线",
+    numberChainDesc: "拖动连接递增数字链，链条越长得分越高",
   },
 
   en: {
@@ -669,6 +677,7 @@ export const translations = {
     categoryCognitive: "Cognitive Tests",
     categoryMoba: "MOBA Skills",
     categoryCasual: "Casual Mini-Games",
+    categoryPuzzle: "Puzzle Games",
 
     // Tile Match
     tmTitle: "Tile Match",
@@ -721,6 +730,13 @@ export const translations = {
     verbalMemoryTitle: "Verbal Memory",
     verbalMemoryDesc: "Identify whether you've seen each word before — test your verbal recall",
     verbalMemoryWords: "words",
+    // Puzzle games
+    makeSevenTitle: "Make Seven",
+    makeSevenDesc: "Slide tiles to merge identical numbers — reach 7 to win",
+    beatNumberTitle: "Beat the Number",
+    beatNumberDesc: "Drag to select adjacent cells whose sum exceeds the target",
+    numberChainTitle: "Number Chain",
+    numberChainDesc: "Drag through ascending consecutive numbers — longer chains score more",
   },
 
   es: {
@@ -1024,6 +1040,7 @@ export const translations = {
     categoryCognitive: "Tests Cognitivos",
     categoryMoba: "Skills de MOBA",
     categoryCasual: "Mini-Juegos Casuales",
+    categoryPuzzle: "Juegos de Lógica",
 
     // Tile Match
     tmTitle: "Tile Match",
@@ -1076,6 +1093,13 @@ export const translations = {
     verbalMemoryTitle: "Memoria Verbal",
     verbalMemoryDesc: "Identifica si has visto cada palabra antes — pon a prueba tu memoria verbal",
     verbalMemoryWords: "palabras",
+    // Puzzle games
+    makeSevenTitle: "Hacer Siete",
+    makeSevenDesc: "Desliza fichas para fusionar números iguales — llega al 7",
+    beatNumberTitle: "Superar el Número",
+    beatNumberDesc: "Arrastra celdas adyacentes cuya suma supere el objetivo",
+    numberChainTitle: "Cadena de Números",
+    numberChainDesc: "Arrastra por números consecutivos ascendentes — cadenas más largas dan más puntos",
   },
 } as const;
 

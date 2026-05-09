@@ -251,12 +251,15 @@ export default function StatsPage() {
             <div className="divide-y divide-gray-800">
               {data.recent.map((r, i) => {
                 const g = GAMES.find((x) => x.id === r.game)!;
+                const GIcon = GAME_ICONS[r.game as keyof typeof GAME_ICONS];
                 return (
                   <div
                     key={i}
                     className="flex items-center gap-3 px-5 py-2.5 text-sm"
                   >
-                    <span className="text-lg w-6 text-center">{g.icon}</span>
+                    <span className="text-lg w-6 text-center flex items-center justify-center">
+                      {GIcon ? <GIcon size={16} /> : null}
+                    </span>
                     <span className="flex-1 truncate">{t[g.titleKey]}</span>
                     <span
                       className={cn(

@@ -69,6 +69,7 @@ const ALL_GAME_IDS: GameId[] = [
   "reaction-time", "number-memory", "sequence-memory", "visual-memory",
   "cps-test", "aim-trainer", "typing-test",
   "verbal-memory",
+  "make-seven", "beat-number", "number-chain",
   "goose-grab", "black-hole",
   "sheep", "skillshot-dodge",
 ] as const;
@@ -150,6 +151,10 @@ const GAME_MODELS: Record<GameId, GameScoreModel> = {
   "aim-trainer":     { lowerIsBetter: false, worst: 18,   best: 58,   hasDifficulty: true,  round: "int" },
   "typing-test":     { lowerIsBetter: false, worst: 32,   best: 118,  hasDifficulty: true,  round: "int" },
   "verbal-memory":   { lowerIsBetter: false, worst: 10,   best: 120,  hasDifficulty: true,  round: "int" },
+  // ── 益智 ──
+  "make-seven":      { lowerIsBetter: false, worst: 10,   best: 200,  hasDifficulty: true,  round: "int" },
+  "beat-number":     { lowerIsBetter: false, worst: 30,   best: 350,  hasDifficulty: true,  round: "int" },
+  "number-chain":    { lowerIsBetter: false, worst: 20,   best: 280,  hasDifficulty: true,  round: "int" },
   // ── 休闲 ──
   "goose-grab":      { lowerIsBetter: false, worst: 1,    best: 9,    hasDifficulty: false, round: "int" },
   "black-hole":      { lowerIsBetter: false, worst: 80,   best: 480,  hasDifficulty: false, round: "int" },

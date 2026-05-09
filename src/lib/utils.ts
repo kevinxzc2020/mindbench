@@ -27,7 +27,7 @@ export function scrollToGameArea(): void {
 }
 
 // 游戏分类。首页/排行榜/stats 都按这个分组展示。
-export type GameCategory = "cognitive" | "moba" | "casual";
+export type GameCategory = "cognitive" | "moba" | "casual" | "puzzle";
 
 export const CATEGORY_INFO: Record<
   GameCategory,
@@ -45,6 +45,10 @@ export const CATEGORY_INFO: Record<
     titleKey: "categoryCasual",
     gradient: "from-pink-500 to-rose-600",
   },
+  puzzle: {
+    titleKey: "categoryPuzzle",
+    gradient: "from-emerald-500 to-teal-600",
+  },
 };
 
 /**
@@ -54,6 +58,7 @@ export const CATEGORY_INFO: Record<
 export function categoryCta(cat: GameCategory): keyof Translations {
   if (cat === "moba") return "ctaTrain";
   if (cat === "casual") return "ctaPlay";
+  if (cat === "puzzle") return "ctaPlay";
   return "ctaTakeTest";
 }
 
@@ -127,6 +132,32 @@ export const GAMES = [
     category: "cognitive" as const,
   },
 
+  // ═══════════ 益智解谜 ═══════════
+  {
+    id: "make-seven",
+    titleKey: "makeSevenTitle" as const,
+    descKey: "makeSevenDesc" as const,
+    color: "from-red-400 to-orange-500",
+    lowerIsBetter: false,
+    category: "puzzle" as const,
+  },
+  {
+    id: "beat-number",
+    titleKey: "beatNumberTitle" as const,
+    descKey: "beatNumberDesc" as const,
+    color: "from-green-400 to-emerald-600",
+    lowerIsBetter: false,
+    category: "puzzle" as const,
+  },
+  {
+    id: "number-chain",
+    titleKey: "numberChainTitle" as const,
+    descKey: "numberChainDesc" as const,
+    color: "from-sky-400 to-cyan-600",
+    lowerIsBetter: false,
+    category: "puzzle" as const,
+  },
+
   // ═══════════ 休闲小游戏 ═══════════
   {
     id: "goose-grab",
@@ -173,6 +204,7 @@ export function getGamesByCategory(): Record<
     cognitive: [],
     moba: [],
     casual: [],
+    puzzle: [],
   };
   for (const g of GAMES) {
     groups[g.category].push(g);
@@ -190,5 +222,8 @@ export function formatScore(gameId: GameId, value: number, t: Translations): str
   if (gameId === "black-hole") return `${Math.round(value)} ${t.bhMassUnit}`;
   if (gameId === "skillshot-dodge") return `${Math.round(value)}s`;
   if (gameId === "verbal-memory") return `${Math.round(value)} ${t.verbalMemoryWords}`;
+  if (gameId === "make-seven")   return `${Math.round(value)} pts`;
+  if (gameId === "beat-number")  return `${Math.round(value)} pts`;
+  if (gameId === "number-chain") return `${Math.round(value)} pts`;
   return `${t.level} ${Math.round(value)}`;
 }
