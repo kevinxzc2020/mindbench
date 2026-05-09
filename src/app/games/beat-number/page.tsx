@@ -7,21 +7,18 @@ import type { Difficulty } from "@/lib/difficulty";
 import { Sigma } from "lucide-react";
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// maxCells: max number of cells you can select per drag
-// Numbers are larger → harder to casually hit target with many small cells
-const CFG: Record<Difficulty, { target: number; timeMs: number; maxVal: number; maxCells: number }> = {
-  easy:   { target: 11, timeMs: 120_000, maxVal: 5, maxCells: 5 },
-  medium: { target: 14, timeMs:  90_000, maxVal: 7, maxCells: 4 },
-  hard:   { target: 18, timeMs:  60_000, maxVal: 8, maxCells: 3 },
-  hell:   { target: 15, timeMs:  45_000, maxVal: 9, maxCells: 2 },
+// maxCells: max cells per drag  target: sum needed to clear  rows/cols: grid size
+// Difficulty is felt through: fewer cells + higher target + smaller grid = harder
+const CFG: Record<Difficulty, { target: number; timeMs: number; maxVal: number; maxCells: number; rows: number; cols: number }> = {
+  easy:   { target: 10, timeMs: 120_000, maxVal: 5, maxCells: 5, rows: 6, cols: 5 },
+  medium: { target: 15, timeMs:  90_000, maxVal: 7, maxCells: 3, rows: 5, cols: 5 },
+  hard:   { target: 16, timeMs:  60_000, maxVal: 9, maxCells: 2, rows: 5, cols: 5 },
+  hell:   { target: 17, timeMs:  45_000, maxVal: 9, maxCells: 2, rows: 4, cols: 4 },
 };
 
-const ROWS = 6;
-const COLS = 5;
-
-function makeGrid(maxVal: number): number[][] {
-  return Array.from({ length: ROWS }, () =>
-    Array.from({ length: COLS }, () => 1 + Math.floor(Math.random() * maxVal))
+function makeGrid(maxVal: number, rows: number, cols: number): number[][] {
+  return Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => 1 + Math.floor(Math.random() * maxVal))
   );
 }
 
@@ -41,14 +38,14 @@ function clearCells(
   path: Array<[number, number]>,
   maxVal: number
 ): number[][] {
+  const rows = grid.length;
+  const cols = grid[0].length;
   const ng = grid.map((row) => [...row]);
-  // Mark as 0
   for (const [r, c] of path) ng[r][c] = 0;
-  // Gravity per column: compact non-zero to bottom
-  for (let c = 0; c < COLS; c++) {
+  for (let c = 0; c < cols; c++) {
     const col = ng.map((row) => row[c]).filter((v) => v !== 0);
-    while (col.length < ROWS) col.unshift(1 + Math.floor(Math.random() * maxVal));
-    for (let r = 0; r < ROWS; r++) ng[r][c] = col[r];
+    while (col.length < rows) col.unshift(1 + Math.floor(Math.random() * maxVal));
+    for (let r = 0; r < rows; r++) ng[r][c] = col[r];
   }
   return ng;
 }
@@ -75,16 +72,14 @@ function BeatNumberGame({
   const { t } = useLang();
   const cfg = CFG[difficulty];
 
-  const [grid, setGrid] = useState<number[][]>(() => makeGrid(cfg.maxVal));
+  const [grid, setGrid] = useState<number[][]>(() => makeGrid(cfg.maxVal, cfg.rows, cfg.cols));
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(cfg.timeMs);
-  const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState<"idle" | "playing" | "done">("idle");
 
   // Path = ordered list of selected [r,c]
   const [path, setPath] = useState<Array<[number, number]>>([]);
   const isDraggingRef = useRef(false);
-  const flashRef = useRef(false); // brief "success" flash
   const [flash, setFlash] = useState(false);
 
   const pathSum = path.reduce((s, [r, c]) => s + grid[r][c], 0);
@@ -98,7 +93,6 @@ function BeatNumberGame({
         if (t <= 100) {
           clearInterval(id);
           setPhase("done");
-          setRunning(false);
           return 0;
         }
         return t - 100;
@@ -112,12 +106,11 @@ function BeatNumberGame({
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = () => {
-    setGrid(makeGrid(cfg.maxVal));
+    setGrid(makeGrid(cfg.maxVal, cfg.rows, cfg.cols));
     setScore(0);
     setTimeLeft(cfg.timeMs);
     setPath([]);
     setPhase("playing");
-    setRunning(true);
   };
 
   // ── Drag handlers ────────────────────────────────────────────────────────

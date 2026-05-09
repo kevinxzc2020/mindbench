@@ -230,6 +230,17 @@
   animation: tile-merge 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ═══════════════ Make-7 slide animations ═══════════════ */
+@keyframes slide-from-right { from { transform: translateX(10px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes slide-from-left  { from { transform: translateX(-10px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes slide-from-below { from { transform: translateY(10px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes slide-from-above { from { transform: translateY(-10px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+
+.slide-left  .grid-tile { animation: slide-from-right 0.1s ease-out; }
+.slide-right .grid-tile { animation: slide-from-left  0.1s ease-out; }
+.slide-up    .grid-tile { animation: slide-from-below 0.1s ease-out; }
+.slide-down  .grid-tile { animation: slide-from-above 0.1s ease-out; }
+
 /* ═══════════════ Reduced motion ═══════════════ */
 
 @media (prefers-reduced-motion: reduce) {

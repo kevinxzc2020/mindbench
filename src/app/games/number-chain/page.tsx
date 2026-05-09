@@ -21,8 +21,9 @@ function makeGrid(rows: number, cols: number, maxVal: number): number[][] {
   );
 }
 
+// Supports 8-directional adjacency (orthogonal + diagonal)
 function isAdjacent(ar: number, ac: number, br: number, bc: number) {
-  return Math.abs(ar - br) + Math.abs(ac - bc) === 1;
+  return Math.max(Math.abs(ar - br), Math.abs(ac - bc)) === 1;
 }
 
 /**
@@ -51,7 +52,7 @@ function applyChain(grid: number[][], chain: Array<[number, number]>, spawnMax: 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function NumberChainPage() {
   return (
-    <GameWrapper gameId="number-chain">
+    <GameWrapper gameId="number-chain" noSave>
       {(onComplete, difficulty) => (
         <NumberChainGame onComplete={onComplete} difficulty={difficulty} />
       )}
@@ -169,7 +170,7 @@ function NumberChainGame({
         <div className="space-y-3 max-w-md mx-auto text-sm text-gray-300">
           {[
             "拖动连接递增的连续数字：1→2→3→4…",
-            "每一步必须相邻，且恰好加 1。",
+            "每一步可斜向或正向相邻，且恰好加 1。",
             "松手后：链条前 n-1 格消失，最后一格 +1，上方新数字落下。",
             `连线越长得分越高！限时 ${cfg.timeMs / 1000} 秒。`,
           ].map((s, i) => (
@@ -262,7 +263,7 @@ function NumberChainGame({
         </div>
       </div>
 
-      <p className="text-center text-xs text-gray-600">拖动连接递增数字，松手得分</p>
+      <p className="text-center text-xs text-gray-600">拖动连接递增数字（含斜向），松手得分</p>
     </div>
   );
 }

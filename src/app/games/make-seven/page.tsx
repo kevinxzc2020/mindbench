@@ -164,6 +164,9 @@ function MakeSevenGame({
   // Track which cells just merged for pop animation
   const [mergedSet, setMergedSet] = useState<Set<string>>(new Set());
   const mergeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track slide direction for animation
+  const [slideDir, setSlideDir] = useState<Dir | null>(null);
+  const slideDirTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Always-fresh ref so the keyboard listener never goes stale
   const handleDirRef = useRef<(dir: Dir) => void>(() => {});
@@ -177,6 +180,11 @@ function MakeSevenGame({
       const newScore = score + delta;
       setBest((b) => Math.max(b, newScore));
       setScore(newScore);
+
+      // Trigger slide direction animation
+      if (slideDirTimerRef.current) clearTimeout(slideDirTimerRef.current);
+      setSlideDir(dir);
+      slideDirTimerRef.current = setTimeout(() => setSlideDir(null), 120);
 
       // Trigger merge animation
       if (mergedPos.length > 0) {
@@ -252,7 +260,7 @@ function MakeSevenGame({
 
       {/* Grid */}
       <div
-        className="card p-3 select-none cursor-default"
+        className={`card p-3 select-none cursor-default${slideDir ? ` slide-${slideDir}` : ""}`}
         onTouchStart={(e) => {
           const t = e.touches[0];
           touchStart.current = { x: t.clientX, y: t.clientY };
@@ -273,7 +281,7 @@ function MakeSevenGame({
               {row.map((val, c) => (
                 <div
                   key={c}
-                  className={`${cellBase} rounded-xl border-2 flex items-center justify-center font-bold ${tileStyle(val)} ${mergedSet.has(`${r},${c}`) ? "tile-merge" : ""}`}
+                  className={`grid-tile ${cellBase} rounded-xl border-2 flex items-center justify-center font-bold ${tileStyle(val)} ${mergedSet.has(`${r},${c}`) ? "tile-merge" : ""}`}
                 >
                   {val > 0 ? val : ""}
                 </div>

@@ -15,19 +15,16 @@ import { cn } from "@/lib/utils";
 
 interface GameWrapperProps {
   gameId: GameId;
-  // Children is rendered only after the user picks a difficulty.
-  // Games read `difficulty` from the second arg to configure themselves.
   children: (
     onComplete: (score: number) => void,
     difficulty: Difficulty,
   ) => React.ReactNode;
-  // If true, skip the difficulty picker and run the game directly with
-  // difficulty = "medium". Used for games that don't have difficulty tiers
-  // (e.g., cps-test is a pure speed test).
   noDifficulty?: boolean;
+  // If true, gameplay score is shown locally but NOT submitted to leaderboard.
+  noSave?: boolean;
 }
 
-export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrapperProps) {
+export function GameWrapper({ gameId, children, noDifficulty = false, noSave = false }: GameWrapperProps) {
   const { data: session } = useSession();
   const { t } = useLang();
   const game = GAMES.find((g) => g.id === gameId)!;
@@ -48,7 +45,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false }: GameWrap
     setSaved(false);
     setError("");
 
-    if (!session || !difficulty) return;
+    if (!session || !difficulty || noSave) return;
 
     setSaving(true);
     try {
