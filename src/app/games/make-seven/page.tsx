@@ -7,11 +7,15 @@ import type { Difficulty } from "@/lib/difficulty";
 import { Grid3X3 } from "lucide-react";
 
 // ── Config ────────────────────────────────────────────────────────────────────
+// Difficulty logic:
+// easy/medium: 5×5 grid, easy breathing room
+// hard: 4×4, 2s appear so you still get shortcuts
+// hell: 4×4, ONLY 1s — need to chain 1→2→3→4→5→6→7 (6 full merge steps) in a tight space
 const CFG: Record<Difficulty, { size: number; newVals: number[] }> = {
   easy:   { size: 5, newVals: [1] },
   medium: { size: 5, newVals: [1, 1, 2] },
   hard:   { size: 4, newVals: [1, 2] },
-  hell:   { size: 4, newVals: [1, 2, 3] },
+  hell:   { size: 4, newVals: [1] },
 };
 
 // ── Grid helpers ──────────────────────────────────────────────────────────────
@@ -193,8 +197,8 @@ function MakeSevenGame({
         mergeTimerRef.current = setTimeout(() => setMergedSet(new Set()), 230);
       }
 
-      // Win: any tile reached 7
-      if (ng.some((row) => row.some((v) => v >= 7))) {
+      // Win: a newly merged tile just reached 7 (not just any 7 already on board)
+      if (mergedPos.some(([r, c]) => ng[r][c] >= 7)) {
         setGrid(ng);
         setPhase("won");
         return;
