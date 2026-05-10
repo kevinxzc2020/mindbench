@@ -174,6 +174,7 @@ export const GAMES = [
     color: "from-slate-700 to-black",
     lowerIsBetter: false,
     category: "casual" as const,
+    hidden: true as const,
   },
   {
     id: "sheep",
@@ -207,6 +208,7 @@ export function getGamesByCategory(): Record<
     puzzle: [],
   };
   for (const g of GAMES) {
+    if ("hidden" in g && g.hidden) continue;
     groups[g.category].push(g);
   }
   return groups;

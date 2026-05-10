@@ -136,7 +136,7 @@ export default function StatsPage() {
 
           {/* Per-game cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {GAMES.map((g) => {
+            {GAMES.filter((g) => !("hidden" in g && g.hidden)).map((g) => {
               const gStats = data.byGame.find((x) => x.game === g.id)!;
               const played = gStats.totalAttempts > 0;
               const Icon = GAME_ICONS[g.id];

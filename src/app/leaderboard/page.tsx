@@ -67,7 +67,7 @@ export default function LeaderboardPage() {
 
       {/* Game tabs */}
       <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-        {GAMES.map((g) => {
+        {GAMES.filter((g) => !("hidden" in g && g.hidden)).map((g) => {
           const Icon = GAME_ICONS[g.id];
           return (
             <button
