@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
+import { BarChart3, ChevronDown, Globe2, Menu, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import type { Lang } from "@/lib/translations";
@@ -17,44 +19,56 @@ const LANGS: { code: Lang; label: string; aria: string }[] = [
 export function Header() {
   const { data: session } = useSession();
   const { t, lang, setLang } = useLang();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  const navItems = [
+    { href: "/", label: t.home, icon: null },
+    { href: "/leaderboard", label: t.leaderboard, icon: Trophy },
+    ...(session ? [{ href: "/stats", label: t.statsTitle, icon: BarChart3 }] : []),
+  ];
+
+  function closeMenus() {
+    setMenuOpen(false);
+    setAccountOpen(false);
+  }
 
   return (
-    <header className="sticky top-0 z-50 bg-[#070914]/70 backdrop-blur-xl border-b border-white/[0.06]">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
+    <header className="site-header">
+      <div className="header-inner">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-bold text-xl tracking-tight group"
+          className="brand-lockup"
           aria-label="MindBench home"
+          onClick={closeMenus}
         >
-          <span className="text-brand-400 transition-transform group-hover:scale-110">
-            <BrainMark size={26} />
-          </span>
-          <span className="text-white">
-            Mind<span className="text-brand-400">Bench</span>
+          <span className="brand-mark"><BrainMark size={30} /></span>
+          <span className="brand-wordmark">
+            Mind<span>Bench</span>
           </span>
         </Link>
 
-        {/* Nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          <Link href="/" className="btn-ghost text-sm">{t.home}</Link>
-          <Link href="/leaderboard" className="btn-ghost text-sm">{t.leaderboard}</Link>
-          {session && (
-            <>
-              <Link href="/stats" className="btn-ghost text-sm">{t.statsTitle}</Link>
-              <Link href="/profile" className="btn-ghost text-sm">{t.myRecords}</Link>
-            </>
-          )}
+        <nav className="desktop-nav" aria-label="Primary navigation">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn("nav-link", active && "nav-link-active")}
+                aria-current={active ? "page" : undefined}
+              >
+                {Icon && <Icon size={15} strokeWidth={2.2} />}
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          {/* Language switcher */}
-          <div
-            className="flex items-center gap-0.5 bg-white/[0.06] rounded-lg p-0.5"
-            role="radiogroup"
-            aria-label="Language"
-          >
+        <div className="header-actions">
+          <div className="language-switcher" role="radiogroup" aria-label="Language">
+            <Globe2 size={14} className="language-globe" aria-hidden="true" />
             {LANGS.map(({ code, label, aria }) => (
               <button
                 key={code}
@@ -62,63 +76,77 @@ export function Header() {
                 role="radio"
                 aria-checked={lang === code}
                 aria-label={`Switch to ${aria}`}
-                className={cn(
-                  "px-2.5 py-1 rounded-md text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-400/60",
-                  lang === code
-                    ? "bg-brand-600 text-white"
-                    : "text-gray-400 hover:text-white"
-                )}
+                className={cn("language-button", lang === code && "language-button-active")}
               >
                 {label}
               </button>
             ))}
           </div>
 
-          {/* Auth */}
           {session ? (
-            <div className="relative">
+            <div className="account-wrap">
               <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 btn-ghost text-sm"
+                onClick={() => setAccountOpen((open) => !open)}
+                className="account-button"
+                aria-expanded={accountOpen}
               >
-                <span className="w-7 h-7 bg-brand-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                <span className="account-avatar">
                   {session.user?.name?.[0]?.toUpperCase() ?? "U"}
                 </span>
-                <span className="hidden md:block">{session.user?.name}</span>
+                <span className="account-name">{session.user?.name}</span>
+                <ChevronDown size={14} />
               </button>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 card shadow-xl py-1">
-                  <Link
-                    href="/stats"
-                    className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    📊 {t.statsTitle}
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {t.myRecords}
-                  </Link>
-                  <button
-                    onClick={() => { signOut({ callbackUrl: "/" }); setMenuOpen(false); }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-800 transition-colors"
-                  >
+              {accountOpen && (
+                <div className="account-menu">
+                  <Link href="/stats" onClick={closeMenus}>{t.statsTitle}</Link>
+                  <Link href="/profile" onClick={closeMenus}>{t.myRecords}</Link>
+                  <button onClick={() => { signOut({ callbackUrl: "/" }); closeMenus(); }}>
                     {t.logout}
                   </button>
                 </div>
               )}
             </div>
           ) : (
-            <>
-              <Link href="/login" className="btn-ghost text-sm">{t.login}</Link>
-              <Link href="/register" className="btn-primary text-sm">{t.register}</Link>
-            </>
+            <div className="auth-actions">
+              <Link href="/login" className="nav-link auth-login">{t.login}</Link>
+              <Link href="/register" className="header-signup">{t.register}</Link>
+            </div>
           )}
+
+          <button
+            className="mobile-menu-button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <nav className="mobile-nav" aria-label="Mobile navigation">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={closeMenus}
+                className={cn("mobile-nav-link", active && "mobile-nav-link-active")}
+              >
+                {Icon && <Icon size={17} />}
+                {label}
+              </Link>
+            );
+          })}
+          {session && (
+            <Link href="/profile" onClick={closeMenus} className="mobile-nav-link">
+              {t.myRecords}
+            </Link>
+          )}
+        </nav>
+      )}
     </header>
   );
 }

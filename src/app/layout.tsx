@@ -1,29 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { AuroraBackground } from "@/components/AuroraBackground";
 
-// 编译期 subset + 自托管 —— 不再走 Google CDN @import
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "MindBench — Test Your Brain's Limits",
+  title: "MindBench — Cognitive training for curious minds",
   description:
-    "Cognitive tests for reaction time, memory, and visual perception. Challenge your brain and compare with players worldwide.",
+    "Short cognitive drills, memory games, precision tests, and a little room for mystery.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -35,7 +22,6 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans">
         <AuroraBackground />

@@ -17,7 +17,7 @@ export function AuroraBackground() {
       className="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
     >
       {/* 底色，不是纯黑 —— 偏蓝紫的"夜空" */}
-      <div className="absolute inset-0 bg-[#070914]" />
+      <div className="absolute inset-0 bg-black" />
 
       {/* 三团光雾 */}
       <div className="aurora-blob aurora-1" />

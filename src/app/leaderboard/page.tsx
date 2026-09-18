@@ -142,6 +142,7 @@ export default function LeaderboardPage() {
           <div className="divide-y divide-white/[0.06]">
             {data.map((entry) => {
               const medal = rankMedal(entry.rank);
+              const MedalIcon = medal?.Icon;
               return (
                 <div
                   key={entry.userId}
@@ -152,14 +153,14 @@ export default function LeaderboardPage() {
                       : "hover:bg-white/[0.03]"
                   )}
                 >
-                  {medal ? (
+                  {medal && MedalIcon ? (
                     <div
                       className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center mr-3 shrink-0 shadow bg-gradient-to-br",
                         medal.gradient
                       )}
                     >
-                      <medal.Icon
+                      <MedalIcon
                         size={18}
                         strokeWidth={2.4}
                         className={medal.text}
