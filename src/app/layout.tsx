@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Short cognitive drills, memory games, precision tests, and a little room for mystery.",
   icons: {
-    icon: "/icon.svg",
+    icon: { url: "/brand/mindbench-logo.png", type: "image/png" },
   },
 };
 
