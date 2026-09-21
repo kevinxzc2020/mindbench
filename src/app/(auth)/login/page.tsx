@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthOAuthSection } from "@/components/AuthOAuthSection";
+import { AuthPrivacyNotice } from "@/components/AuthPrivacyNotice";
 import { useLang } from "@/lib/language-context";
 import { BrainMark } from "@/components/BrainMark";
 
@@ -48,6 +49,7 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-6">
+          <AuthPrivacyNotice />
           <AuthOAuthSection />
 
         <form onSubmit={handleSubmit} className="space-y-4">

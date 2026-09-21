@@ -375,7 +375,7 @@ function ProgressChart({
   // Difficulty → dot color (CSS-friendly; matching our gradient themes)
   const dotColor: Record<Difficulty, string> = {
     easy: "#10b981",   // emerald
-    medium: "#3b82f6", // blue
+    medium: "#aaa18c", // warm neutral
     hard: "#f97316",   // orange
     hell: "#ef4444",   // red
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
@@ -8,7 +9,6 @@ import { BarChart3, ChevronDown, Globe2, Menu, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import type { Lang } from "@/lib/translations";
-import { BrainMark } from "@/components/BrainMark";
 
 const LANGS: { code: Lang; label: string; aria: string }[] = [
   { code: "en", label: "EN", aria: "English" },
@@ -43,10 +43,7 @@ export function Header() {
           aria-label="MindBench home"
           onClick={closeMenus}
         >
-          <span className="brand-mark"><BrainMark size={30} /></span>
-          <span className="brand-wordmark">
-            Mind<span>Bench</span>
-          </span>
+          <Image src="/brand/mindbench-wordmark-v2.png" width={240} height={80} priority alt="MindBench" className="brand-logo" />
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
@@ -145,6 +142,13 @@ export function Header() {
               {t.myRecords}
             </Link>
           )}
+          {!session && (
+            <>
+              <Link href="/login" onClick={closeMenus} className="mobile-nav-link">{t.login}</Link>
+              <Link href="/register" onClick={closeMenus} className="mobile-nav-link">{t.register}</Link>
+            </>
+          )}
+          {session && <button onClick={() => { signOut({ callbackUrl: "/" }); closeMenus(); }} className="mobile-nav-link">{t.logout}</button>}
         </nav>
       )}
     </header>

@@ -18,6 +18,10 @@ const LanguageContext = createContext<LanguageContextValue>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
 
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+  }, [lang]);
+
   // Persist language choice
   useEffect(() => {
     const stored = localStorage.getItem("mb-lang") as Lang | null;

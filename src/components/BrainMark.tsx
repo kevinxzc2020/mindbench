@@ -11,13 +11,12 @@ export function BrainMark({
 }) {
   return (
     <Image
-      src="/brand/mindbench-logo.png"
-      width={size}
+      src="/brand/mindbench-wordmark-v2.png"
+      width={size * 4}
       height={size}
-      sizes={`${size}px`}
+      sizes={`${size * 4}px`}
       className={className}
-      alt=""
-      aria-hidden="true"
+      alt="MindBench"
       style={{ objectFit: "contain", flexShrink: 0 }}
     />
   );

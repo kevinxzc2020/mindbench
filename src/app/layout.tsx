@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./editorial.css";
+import "./motion.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
-import { AuroraBackground } from "@/components/AuroraBackground";
+import { SiteFooter } from "@/components/SiteFooter";
+import { getAdSenseConfig } from "@/lib/adsense";
+
+const { clientId: adSenseClientId } = getAdSenseConfig();
 
 export const metadata: Metadata = {
   title: "MindBench — Cognitive training for curious minds",
   description:
     "Short cognitive drills, memory games, precision tests, and a little room for mystery.",
   icons: {
-    icon: { url: "/brand/mindbench-logo.png", type: "image/png" },
+    icon: { url: "/brand/mindbench-wordmark-v2.png", type: "image/png" },
   },
+  ...(adSenseClientId ? { other: { "google-adsense-account": adSenseClientId } } : {}),
 };
 
 export default function RootLayout({
@@ -24,14 +30,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans">
-        <AuroraBackground />
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <Providers>
           <div className="min-h-screen flex flex-col">
             <Header />
-            <main className="flex-1">{children}</main>
-            <footer className="border-t border-white/[0.06] py-6 text-center text-sm text-gray-500">
-              © {new Date().getFullYear()} MindBench — 测试你的大脑极限
-            </footer>
+            <main id="main-content" className="flex-1">{children}</main>
+            <SiteFooter year={new Date().getFullYear()} />
           </div>
         </Providers>
       </body>

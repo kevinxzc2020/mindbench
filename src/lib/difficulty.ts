@@ -10,7 +10,7 @@ export const DEFAULT_DIFFICULTY: Difficulty = "medium";
 // Tailwind gradient colors for each difficulty pill.
 export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   easy:   "from-green-500 to-emerald-600",
-  medium: "from-blue-500 to-indigo-600",
+  medium: "from-stone-500 to-stone-700",
   hard:   "from-orange-500 to-red-600",
   hell:   "from-red-600 to-rose-900",
 };

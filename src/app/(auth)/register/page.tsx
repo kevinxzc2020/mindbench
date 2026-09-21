@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthOAuthSection } from "@/components/AuthOAuthSection";
+import { AuthPrivacyNotice } from "@/components/AuthPrivacyNotice";
 import { useLang } from "@/lib/language-context";
 import { BrainMark } from "@/components/BrainMark";
 
@@ -57,12 +58,15 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-6">
+          <AuthPrivacyNotice />
           <AuthOAuthSection />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.username}</label>
+            <label htmlFor="register-name" className="block text-sm font-medium text-gray-300 mb-1.5">{t.username}</label>
             <input
+              id="register-name"
+              autoComplete="nickname"
               type="text"
               className="input"
               placeholder={t.usernamePlaceholder}
@@ -72,8 +76,10 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.email}</label>
+            <label htmlFor="register-email" className="block text-sm font-medium text-gray-300 mb-1.5">{t.email}</label>
             <input
+              id="register-email"
+              autoComplete="email"
               type="email"
               className="input"
               placeholder="you@example.com"
@@ -83,8 +89,10 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">{t.passwordHint}</label>
+            <label htmlFor="register-password" className="block text-sm font-medium text-gray-300 mb-1.5">{t.passwordHint}</label>
             <input
+              id="register-password"
+              autoComplete="new-password"
               type="password"
               className="input"
               placeholder="••••••••"

@@ -1,45 +1,52 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight, Brain, Gamepad2, Play, Sparkles, Trophy } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Brain, RotateCcw, Trophy } from "lucide-react";
 import { GAMES, CATEGORY_INFO, getGamesByCategory, type GameCategory } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
-import { GAME_ICONS, CATEGORY_ICONS, MystIcons } from "@/lib/icons";
+import { MystIcons } from "@/lib/icons";
+import { AdSenseBanner } from "@/components/AdSenseBanner";
+import { GameCover } from "@/components/GameCover";
+import { HomeMotion, ScrambleText } from "@/components/HomeMotion";
 
 const CATEGORIES: GameCategory[] = ["cognitive", "puzzle", "moba", "casual"];
 const VISIBLE_GAMES = GAMES.filter((game) => !("hidden" in game && game.hidden));
 const GROUPS = getGamesByCategory();
 const COPY = {
   en: {
-    eyebrow: "THE MINDBENCH ARCADE",
-    title: "Pick a game. Challenge yourself.",
-    intro: "Reaction, memory, puzzles & more. Choose a card and jump in.",
-    all: "All games", play: "Play now", available: "games to play",
-    filter: "Filter games", extra: "Something different?",
-    extraDesc: "Explore how you think, feel, and see the world.",
+    eyebrow: "A PLAYGROUND FOR YOUR MIND", title: ["PLAY.", "OUTTHINK.", "REPEAT."], replay: "Replay effect", motionOn: "Enable effects", motionOff: "Disable effects",
+    intro: "Test your reflexes. Trust your memory. Make your next move.",
+    start: "Test your reaction", browse: "Explore games", all: "All games", play: "Play", available: "games",
+    filter: "Filter games", collection: "THE GAME COLLECTION", extra: "Follow your curiosity.",
+    extraDesc: "A different side of MindBench. Step outside the score.",
     iq: "IQ Test", iqDesc: "Explore five dimensions of your thinking.",
-    explore: "Explore", noAccount: "Play first. Log in to save your scores.",
+    explore: "Explore", noAccount: "No sign-up needed to play. Log in to save your scores.",
+    free: "PICK A GAME. MAKE IT YOURS.", cognitive: "Reflexes, recall, precision. Find your edge.",
+    puzzle: "One move at a time. Think it through.", casual: "A little less serious. Just as hard to put down.", moba: "Practice your next move.",
   },
   zh: {
-    eyebrow: "MINDBENCH · 游戏大厅",
-    title: "选一个游戏，挑战一下自己。",
-    intro: "反应、记忆、解谜与休闲小游戏，点开就能玩。",
-    all: "全部游戏", play: "开始玩", available: "款游戏可玩",
-    filter: "筛选游戏", extra: "想试点不一样的？",
-    extraDesc: "探索你的思维、性格与好奇心。",
+    eyebrow: "给大脑一个游乐场", title: ["开玩。", "突破。", "再来。"], replay: "重播特效", motionOn: "开启动效", motionOff: "关闭动效",
+    intro: "测一测反应，相信你的记忆，走出下一步。",
+    start: "测测反应速度", browse: "探索全部游戏", all: "全部游戏", play: "开玩", available: "款游戏",
+    filter: "筛选游戏", collection: "游戏合集", extra: "跟着好奇心走。",
+    extraDesc: "分数之外，还有另一面的 MindBench。",
     iq: "IQ 测试", iqDesc: "从五个维度探索你的思维方式。",
-    explore: "去探索", noAccount: "直接开玩，登录后可保存成绩。",
+    explore: "去探索", noAccount: "无需注册，直接开玩。登录后可保存成绩。",
+    free: "选一个游戏，挑战一下自己。", cognitive: "反应、记忆、精准度，找到你的强项。",
+    puzzle: "一步一步，想出答案。", casual: "轻松一点，也可以玩得很认真。", moba: "练好你的下一步。",
   },
   es: {
-    eyebrow: "LA SALA DE MINDBENCH",
-    title: "Elige un juego. Ponte a prueba.",
-    intro: "Reacción, memoria, lógica y más. Elige y empieza a jugar.",
-    all: "Todos", play: "Jugar", available: "juegos disponibles",
-    filter: "Filtrar juegos", extra: "¿Algo diferente?",
-    extraDesc: "Explora cómo piensas, sientes y ves el mundo.",
+    eyebrow: "UN PATIO DE JUEGOS PARA TU MENTE", title: ["JUEGA.", "SUPÉRATE.", "REPITE."], replay: "Repetir efecto", motionOn: "Activar efectos", motionOff: "Desactivar efectos",
+    intro: "Pon a prueba tus reflejos. Confía en tu memoria. Haz tu próxima jugada.",
+    start: "Prueba tus reflejos", browse: "Explorar juegos", all: "Todos", play: "Jugar", available: "juegos",
+    filter: "Filtrar juegos", collection: "LA COLECCIÓN", extra: "Sigue tu curiosidad.",
+    extraDesc: "Otro lado de MindBench. Más allá de la puntuación.",
     iq: "Test de IQ", iqDesc: "Explora cinco dimensiones de tu pensamiento.",
-    explore: "Explorar", noAccount: "Juega ahora. Inicia sesión para guardar tus resultados.",
+    explore: "Explorar", noAccount: "Juega sin registrarte. Inicia sesión para guardar tus resultados.",
+    free: "ELIGE UN JUEGO. HAZLO TUYO.", cognitive: "Reflejos, memoria, precisión. Descubre tu habilidad.",
+    puzzle: "Un movimiento a la vez. Piénsalo bien.", casual: "Menos serio. Igual de difícil de dejar.", moba: "Practica tu próxima jugada.",
   },
 };
 
@@ -47,91 +54,73 @@ export default function HomePage() {
   const { t, lang } = useLang();
   const copy = COPY[lang];
   const [category, setCategory] = useState<"all" | GameCategory>("all");
+  const [motionEnabled, setMotionEnabled] = useState(true);
   const games = VISIBLE_GAMES.filter((game) => category === "all" || game.category === category);
   const extras = [
-    { href: "/iq-test", title: copy.iq, description: copy.iqDesc, Icon: Brain },
-    { href: "/mbti", title: t.mbtiTitle, description: t.mbtiDesc, Icon: MystIcons.Mbti },
-    { href: "/tarot", title: t.tarotTitle, description: t.tarotDesc, Icon: MystIcons.Tarot },
+    { href: "/iq-test", title: copy.iq, description: copy.iqDesc, Icon: Brain, mark: "IQ" },
+    { href: "/mbti", title: t.mbtiTitle, description: t.mbtiDesc, Icon: MystIcons.Mbti, mark: "ME" },
+    { href: "/tarot", title: t.tarotTitle, description: t.tarotDesc, Icon: MystIcons.Tarot, mark: "?" },
   ];
-
   return (
-    <div className="arcade-shell">
-      <section className="arcade-intro" aria-labelledby="arcade-title">
-        <div>
-          <p className="arcade-eyebrow"><span />{copy.eyebrow}</p>
-          <h1 id="arcade-title">{copy.title}</h1>
-          <p className="arcade-description">{copy.intro}</p>
-        </div>
-        <Link href="/leaderboard" className="arcade-leaderboard">
-          <Trophy size={16} />{t.leaderboard}<ArrowUpRight size={15} />
-        </Link>
-      </section>
-
-      <section aria-label={copy.all}>
-        <div className="arcade-toolbar">
-          <div className="arcade-filters" role="group" aria-label={copy.filter}>
-            <button type="button" aria-pressed={category === "all"} onClick={() => setCategory("all")}>
-              <Gamepad2 size={16} />{copy.all}<span>{VISIBLE_GAMES.length}</span>
-            </button>
-            {CATEGORIES.filter((cat) => GROUPS[cat].length > 0).map((cat) => {
-              const Icon = CATEGORY_ICONS[cat];
-              return (
-                <button key={cat} type="button" aria-pressed={category === cat} onClick={() => setCategory(cat)}>
-                  <Icon size={16} />{t[CATEGORY_INFO[cat].titleKey]}<span>{GROUPS[cat].length}</span>
-                </button>
-              );
-            })}
+    <HomeMotion language={lang} category={category} enabled={motionEnabled}>
+      <section className="studio-hero" aria-labelledby="studio-title">
+        <Image src="/images/arcade-still-life-v2.png" alt="" fill priority sizes="100vw" className="studio-hero-image" />
+        <canvas className="studio-pixel-canvas" aria-hidden="true" />
+        <div className="studio-image-trail" aria-hidden="true" />
+        <div className="studio-hero-shade" />
+        <div className="studio-hero-content">
+          <p className="studio-eyebrow"><span />{copy.eyebrow}</p>
+          <h1 id="studio-title" data-motion-heading data-scramble-trigger>{copy.title.map((line) => <ScrambleText key={line} text={line} />)}</h1>
+          <p className="studio-intro">{copy.intro}</p>
+          <div className="studio-hero-actions">
+            <Link href="/games/reaction-time" className="studio-button">{copy.start}<ArrowUpRight size={18} /></Link>
+            <a href="#games" className="studio-text-link">{copy.browse}<ArrowDown size={15} /></a>
           </div>
-          <span className="arcade-count" role="status">{games.length} {copy.available}</span>
         </div>
-
-        {CATEGORIES.filter((cat) => GROUPS[cat].length > 0 && (category === "all" || category === cat)).map((cat) => {
-          const CategoryIcon = CATEGORY_ICONS[cat];
-          return (
-          <section key={cat} className={`arcade-group arcade-group-${cat}`} aria-labelledby={`category-${cat}`}>
-            <div className="arcade-group-heading">
-              <CategoryIcon size={19} aria-hidden="true" />
-              <h2 id={`category-${cat}`}>{t[CATEGORY_INFO[cat].titleKey]}</h2>
-              <span>{GROUPS[cat].length} {copy.available}</span>
+        <div className="studio-hero-caption" aria-hidden="true"><span>MINDBENCH — PLAY LAB</span><span>REACTION / MEMORY / PRECISION</span></div>
+        <div className="studio-motion-controls">
+          <button type="button" className="studio-replay" data-replay-motion><RotateCcw size={12} />{copy.replay}</button>
+          <button type="button" className="studio-motion-toggle" aria-pressed={motionEnabled} onClick={() => setMotionEnabled((enabled) => !enabled)}>{motionEnabled ? copy.motionOff : copy.motionOn}</button>
+        </div>
+      </section>
+      <div className="studio-ad-band"><AdSenseBanner /></div>
+      <section id="games" className="studio-catalogue" aria-label={copy.all}>
+        <div className="studio-collection-heading" data-motion-heading data-scramble-trigger><span><ScrambleText text={copy.collection} /></span><span>{copy.free}</span></div>
+        <div className="studio-toolbar">
+          <div className="studio-filters" role="group" aria-label={copy.filter}>
+            <button type="button" aria-pressed={category === "all"} onClick={() => setCategory("all")}>{copy.all}<sup>{VISIBLE_GAMES.length}</sup></button>
+            {CATEGORIES.filter((cat) => GROUPS[cat].length > 0).map((cat) => (
+              <button key={cat} type="button" aria-pressed={category === cat} onClick={() => setCategory(cat)}>{t[CATEGORY_INFO[cat].titleKey]}<sup>{GROUPS[cat].length}</sup></button>
+            ))}
+          </div>
+          <span className="studio-count" role="status" aria-live="polite">{String(games.length).padStart(2, "0")} {copy.available}</span>
+        </div>
+        {CATEGORIES.filter((cat) => GROUPS[cat].length > 0 && (category === "all" || category === cat)).map((cat) => (
+          <section key={cat} className="studio-group" aria-labelledby={`category-${cat}`}>
+            <div className="studio-group-heading" data-motion-heading data-scramble-trigger>
+              <div><span className="studio-section-index">/ {String(CATEGORIES.filter((key) => GROUPS[key].length > 0).indexOf(cat) + 1).padStart(2, "0")}</span><h2 id={`category-${cat}`}><ScrambleText text={t[CATEGORY_INFO[cat].titleKey]} /></h2></div>
+              <p>{copy[cat]}</p>
             </div>
-            <div className="arcade-grid">
-          {GROUPS[cat].map((game) => {
-            const Icon = GAME_ICONS[game.id];
-            return (
-              <Link key={game.id} href={`/games/${game.id}`} className={`arcade-card arcade-card-${game.category}`}>
-                <div className="arcade-card-top">
-                  <span className="arcade-game-icon"><Icon size={31} strokeWidth={1.7} /></span>
-                  <span className="arcade-category">{t[CATEGORY_INFO[game.category].titleKey]}</span>
-                </div>
-                <h3>{t[game.titleKey]}</h3>
-                <p>{t[game.descKey]}</p>
-                <span className="arcade-play"><Play size={12} fill="currentColor" />{copy.play}<ArrowUpRight size={15} /></span>
-              </Link>
-            );
-          })}
+            <div className="studio-grid">
+              {GROUPS[cat].map((game) => (
+                <Link key={game.id} href={`/games/${game.id}`} className="studio-game" data-motion-card>
+                  <div className="studio-game-visual"><GameCover id={game.id} /><span className="studio-pixel-curtain" aria-hidden="true">{Array.from({ length: 24 }, (_, index) => <i key={index} />)}</span><span className="studio-game-number">{String(VISIBLE_GAMES.indexOf(game) + 1).padStart(2, "0")}</span><span className="studio-game-open"><ArrowUpRight size={21} /></span></div>
+                  <div className="studio-game-info"><h3><ScrambleText text={t[game.titleKey]} /></h3><span>{copy.play}<ArrowUpRight size={14} /></span><p>{t[game.descKey]}</p></div>
+                </Link>
+              ))}
             </div>
           </section>
-          );
-        })}
-        <p className="arcade-account-note">{copy.noAccount}</p>
+        ))}
+        <div className="studio-account-note"><p>{copy.noAccount}</p><Link href="/leaderboard"><Trophy size={15} />{t.leaderboard}<ArrowUpRight size={15} /></Link></div>
       </section>
-
-      <section className="arcade-extras" aria-labelledby="extras-title">
-        <div className="arcade-extras-heading">
-          <Sparkles size={18} />
-          <h2 id="extras-title">{copy.extra}</h2>
-          <p>{copy.extraDesc}</p>
-        </div>
-        <div className="arcade-extras-grid">
-          {extras.map(({ href, title, description, Icon }) => (
-            <Link href={href} key={href} className="arcade-extra">
-              <Icon size={26} strokeWidth={1.6} />
-              <div><h3>{title}</h3><p>{description}</p></div>
-              <ArrowUpRight size={18} aria-label={copy.explore} />
-            </Link>
+      <section className="studio-extras" aria-labelledby="extras-title">
+        <div className="studio-extras-heading" data-motion-heading data-scramble-trigger><span className="studio-section-index">/ EXTRA</span><h2 id="extras-title"><ScrambleText text={copy.extra} /></h2><p>{copy.extraDesc}</p></div>
+        <div className="studio-extra-grid">
+          {extras.map(({ href, title, description, Icon, mark }) => (
+            <Link href={href} key={href} className="studio-extra"><span className="studio-extra-mark" aria-hidden="true">{mark}</span><Icon size={24} strokeWidth={1.5} /><div><h3>{title}</h3><p>{description}</p></div><ArrowUpRight size={22} aria-label={copy.explore} /></Link>
           ))}
         </div>
       </section>
-    </div>
+    </HomeMotion>
   );
 }

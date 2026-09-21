@@ -1,0 +1,7 @@
+.notice { padding: 16px; border: 1px solid var(--line); border-left: 2px solid var(--accent); background: #ffffff03; }
+.notice h2 { color: var(--paper); font-size: 12px; font-weight: 600; }
+.notice p { margin-top: 8px; color: #bdbbb1; font-size: 12px; line-height: 1.75; }
+.links { display: flex; flex-wrap: wrap; gap: 0 18px; margin-top: 3px; }
+.links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--paper); font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
+.links a:hover { color: var(--accent); }
+.notice .draft { margin-top: 2px; font-size: 11px; color: var(--muted); }

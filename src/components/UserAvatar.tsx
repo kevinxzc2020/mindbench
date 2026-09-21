@@ -48,11 +48,13 @@ export function UserAvatar({
   name,
   size = 36,
   className = "",
+  variant = "color",
 }: {
   userId: string;
   name: string;
   size?: number;
   className?: string;
+  variant?: "color" | "neutral";
 }) {
   const initials = initialsFor(name);
   const isCJK = initials.length === 1 && /[一-鿿぀-ヿ가-힯]/.test(initials);
@@ -62,7 +64,7 @@ export function UserAvatar({
       style={{
         width: size,
         height: size,
-        background: gradientFor(userId),
+        background: variant === "neutral" ? "#35352e" : gradientFor(userId),
         fontSize: isCJK ? size * 0.5 : size * 0.38,
         letterSpacing: isCJK ? 0 : "-0.02em",
       }}

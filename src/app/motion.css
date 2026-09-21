@@ -1,0 +1,74 @@
+/* Behaviour paired with the reference's pixel_canvas, data-scramble-text,
+   mouse gallery and blurred background. */
+.studio-hero-image, .studio-pixel-canvas {
+  pointer-events: none;
+  transform: translate3d(0, var(--hero-shift, 0px), 0) scale(var(--hero-zoom, 1));
+  filter: blur(var(--hero-blur, 0px));
+}
+.studio-pixel-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  opacity: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+.studio-image-trail { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.studio-hero-content { position: relative; z-index: 1; pointer-events: none; }
+.studio-hero-content a, .studio-hero-content [data-scramble-trigger] { pointer-events: auto; }
+.studio-trail-tile {
+  position: absolute;
+  display: block;
+  width: clamp(120px, 16vw, 240px);
+  aspect-ratio: 1.2;
+  opacity: 0;
+  border: 1px solid #ffffff30;
+  background-image: url("/images/arcade-still-life-v2.png");
+  background-size: 300% auto;
+  background-color: #24221d;
+  box-shadow: 0 14px 32px #0008;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.studio-trail-tile-0 { background-position: 62% 50%; }
+.studio-trail-tile-1 { background-position: 100% 90%; }
+.studio-trail-tile-2 { background-position: 100% 0%; }
+.studio-pixel-curtain { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); pointer-events: none; }
+.studio-pixel-curtain i { background: #373a30; opacity: 0; }
+.studio-pixel-curtain i:nth-child(3n) { background: #c8c7b7; }
+.studio-pixel-curtain i:nth-child(5n) { background: #827967; }
+.studio-motion-controls {
+  position: absolute;
+  bottom: 9px;
+  left: 40px;
+  z-index: 2;
+  display: flex;
+  gap: 20px;
+}
+.studio-replay, .studio-motion-toggle {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 0;
+  font: 9px var(--font-mono);
+  letter-spacing: .05em;
+  color: #cac8bc;
+}
+.studio-home[data-motion="active"] .studio-replay { display: inline-flex; }
+.studio-motion-toggle { display: inline-flex; }
+.studio-home[data-system-motion="reduced"] .studio-motion-controls { display: none; }
+.studio-replay:hover, .studio-motion-toggle:hover { color: var(--paper); }
+.scramble-label { display: inline-block; position: relative; }
+.scramble-measure { visibility: hidden; }
+.scramble-visual { position: absolute; inset: 0; overflow: hidden; }
+.studio-home[data-motion="active"] .studio-grid { perspective: 1200px; }
+@media (max-width: 540px) {
+  .studio-motion-controls { left: 20px; bottom: 3px; }
+  .studio-image-trail { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-pixel-canvas, .studio-image-trail, .studio-pixel-curtain, .studio-replay { display: none !important; }
+  .studio-hero-image { transform: none !important; filter: none !important; }
+}
