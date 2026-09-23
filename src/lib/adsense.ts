@@ -13,11 +13,15 @@ export function getAdSenseConfig() {
       : "off";
   const publisher = (process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? MINDBENCH_PUBLISHER).trim();
   const homeSlot = process.env.NEXT_PUBLIC_ADSENSE_HOME_SLOT?.trim() ?? "";
+  const rewardedUnitPath = process.env.NEXT_PUBLIC_AD_MANAGER_REWARDED_UNIT_PATH?.trim() ?? "";
 
   return {
     mode,
     clientId: /^ca-pub-\d{16}$/.test(publisher) ? publisher : null,
     homeSlotId: /^\d+$/.test(homeSlot) ? homeSlot : null,
+    rewardedUnitPath: /^\/\d+\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(rewardedUnitPath)
+      ? rewardedUnitPath
+      : null,
   };
 }
 

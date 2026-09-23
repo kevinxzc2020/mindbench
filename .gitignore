@@ -59,6 +59,13 @@ SETUP.md
 /lol-skillshot-dodger/
 /sheep/
 
+# Temporary public-repository checkout used during mini-game import
+/.external/
+
+# Imported source variants that overlap existing MindBench games
+/public/minigames/sheep-planet/
+/public/minigames/goose-3d/
+
 # Unity / game source projects (not part of web app)
 /Skillshot/
 /skillshot/

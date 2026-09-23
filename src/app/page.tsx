@@ -10,6 +10,8 @@ import { MystIcons } from "@/lib/icons";
 import { AdSenseBanner } from "@/components/AdSenseBanner";
 import { GameCover } from "@/components/GameCover";
 import { HomeMotion, ScrambleText } from "@/components/HomeMotion";
+import { MiniGamePreview } from "@/components/MiniGamePreview";
+import { MINI_GAMES } from "@/lib/mini-games";
 
 const CATEGORIES: GameCategory[] = ["cognitive", "puzzle", "moba", "casual"];
 const VISIBLE_GAMES = GAMES.filter((game) => !("hidden" in game && game.hidden));
@@ -25,6 +27,7 @@ const COPY = {
     explore: "Explore", noAccount: "No sign-up needed to play. Log in to save your scores.",
     free: "PICK A GAME. MAKE IT YOURS.", cognitive: "Reflexes, recall, precision. Find your edge.",
     puzzle: "One move at a time. Think it through.", casual: "A little less serious. Just as hard to put down.", moba: "Practice your next move.",
+    miniTitle: "A new game every day.", miniDesc: "Small experiments from an independent game-making streak.", miniPlay: "Play imported game",
   },
   zh: {
     eyebrow: "给大脑一个游乐场", title: ["开玩。", "突破。", "再来。"], replay: "重播特效", motionOn: "开启动效", motionOff: "关闭动效",
@@ -36,6 +39,7 @@ const COPY = {
     explore: "去探索", noAccount: "无需注册，直接开玩。登录后可保存成绩。",
     free: "选一个游戏，挑战一下自己。", cognitive: "反应、记忆、精准度，找到你的强项。",
     puzzle: "一步一步，想出答案。", casual: "轻松一点，也可以玩得很认真。", moba: "练好你的下一步。",
+    miniTitle: "每天一个小游戏。", miniDesc: "来自独立创作挑战的六个轻量实验。", miniPlay: "开始游玩",
   },
   es: {
     eyebrow: "UN PATIO DE JUEGOS PARA TU MENTE", title: ["JUEGA.", "SUPÉRATE.", "REPITE."], replay: "Repetir efecto", motionOn: "Activar efectos", motionOff: "Desactivar efectos",
@@ -47,6 +51,7 @@ const COPY = {
     explore: "Explorar", noAccount: "Juega sin registrarte. Inicia sesión para guardar tus resultados.",
     free: "ELIGE UN JUEGO. HAZLO TUYO.", cognitive: "Reflejos, memoria, precisión. Descubre tu habilidad.",
     puzzle: "Un movimiento a la vez. Piénsalo bien.", casual: "Menos serio. Igual de difícil de dejar.", moba: "Practica tu próxima jugada.",
+    miniTitle: "Un juego nuevo cada día.", miniDesc: "Seis pequeños experimentos de una racha de creación independiente.", miniPlay: "Jugar juego importado",
   },
 };
 
@@ -112,6 +117,22 @@ export default function HomePage() {
           </section>
         ))}
         <div className="studio-account-note"><p>{copy.noAccount}</p><Link href="/leaderboard"><Trophy size={15} />{t.leaderboard}<ArrowUpRight size={15} /></Link></div>
+      </section>
+      <section className="studio-mini-catalogue" aria-labelledby="mini-games-title">
+        <div className="studio-mini-heading" data-motion-heading data-scramble-trigger>
+          <span className="studio-section-index">/ DAILY MINI-GAMES</span>
+          <h2 id="mini-games-title"><ScrambleText text={copy.miniTitle} /></h2>
+          <p>{copy.miniDesc}</p>
+        </div>
+        <div className="studio-mini-grid">
+          {MINI_GAMES.map((miniGame, index) => (
+            <Link key={miniGame.id} href={`/games/minigames/${miniGame.slug}`} className="studio-mini-game" data-motion-card>
+              <MiniGamePreview id={miniGame.id} />
+              <div className="studio-mini-copy"><span className="studio-mini-index">{String(index + 1).padStart(2, "0")}</span><div><span className="studio-mini-tag">{miniGame.tag[lang]}</span><h3>{miniGame.title[lang]}</h3><p>{miniGame.description[lang]}</p></div></div>
+              <span className="studio-mini-action">{copy.miniPlay}<ArrowUpRight size={15} /></span>
+            </Link>
+          ))}
+        </div>
       </section>
       <section className="studio-extras" aria-labelledby="extras-title">
         <div className="studio-extras-heading" data-motion-heading data-scramble-trigger><span className="studio-section-index">/ EXTRA</span><h2 id="extras-title"><ScrambleText text={copy.extra} /></h2><p>{copy.extraDesc}</p></div>
