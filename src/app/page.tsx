@@ -62,9 +62,9 @@ export default function HomePage() {
   const [motionEnabled, setMotionEnabled] = useState(true);
   const games = VISIBLE_GAMES.filter((game) => category === "all" || game.category === category);
   const extras = [
-    { href: "/iq-test", title: copy.iq, description: copy.iqDesc, Icon: Brain, mark: "IQ" },
-    { href: "/mbti", title: t.mbtiTitle, description: t.mbtiDesc, Icon: MystIcons.Mbti, mark: "ME" },
-    { href: "/tarot", title: t.tarotTitle, description: t.tarotDesc, Icon: MystIcons.Tarot, mark: "?" },
+    { href: "/iq-test", title: copy.iq, description: copy.iqDesc, Icon: Brain, artwork: "iq" },
+    { href: "/mbti", title: t.mbtiTitle, description: t.mbtiDesc, Icon: MystIcons.Mbti, artwork: "mbti" },
+    { href: "/tarot", title: t.tarotTitle, description: t.tarotDesc, Icon: MystIcons.Tarot, artwork: "tarot" },
   ];
   return (
     <HomeMotion language={lang} category={category} enabled={motionEnabled}>
@@ -88,6 +88,10 @@ export default function HomePage() {
           <button type="button" className="studio-motion-toggle" aria-pressed={motionEnabled} onClick={() => setMotionEnabled((enabled) => !enabled)}>{motionEnabled ? copy.motionOff : copy.motionOn}</button>
         </div>
       </section>
+      <nav className="max-w-5xl mx-auto px-4 py-6 flex flex-wrap gap-6" aria-label={lang === "zh" ? "挑战和记录" : "Challenges and progress"}>
+        <Link href="/daily">{lang === "zh" ? "每日记忆挑战" : lang === "es" ? "Desafío diario" : "Daily memory challenge"} ↗</Link>
+        <Link href="/progress">{lang === "zh" ? "我的进步记录" : lang === "es" ? "Tu progreso" : "Your progress"} ↗</Link>
+      </nav>
       <div className="studio-ad-band"><AdSenseBanner /></div>
       <section id="games" className="studio-catalogue" aria-label={copy.all}>
         <div className="studio-collection-heading" data-motion-heading data-scramble-trigger><span><ScrambleText text={copy.collection} /></span><span>{copy.free}</span></div>
@@ -137,8 +141,8 @@ export default function HomePage() {
       <section className="studio-extras" aria-labelledby="extras-title">
         <div className="studio-extras-heading" data-motion-heading data-scramble-trigger><span className="studio-section-index">/ EXTRA</span><h2 id="extras-title"><ScrambleText text={copy.extra} /></h2><p>{copy.extraDesc}</p></div>
         <div className="studio-extra-grid">
-          {extras.map(({ href, title, description, Icon, mark }) => (
-            <Link href={href} key={href} className="studio-extra"><span className="studio-extra-mark" aria-hidden="true">{mark}</span><Icon size={24} strokeWidth={1.5} /><div><h3>{title}</h3><p>{description}</p></div><ArrowUpRight size={22} aria-label={copy.explore} /></Link>
+          {extras.map(({ href, title, description, Icon, artwork }) => (
+            <Link href={href} key={href} className="studio-extra"><span className="studio-extra-artwork" aria-hidden="true"><Image src={`/images/game-covers/${artwork}-v1.png`} alt="" fill sizes="(max-width: 540px) 100vw, 33vw" /></span><Icon size={24} strokeWidth={1.5} /><div><h3>{title}</h3><p>{description}</p></div><ArrowUpRight size={22} aria-label={copy.explore} /></Link>
           ))}
         </div>
       </section>

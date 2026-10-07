@@ -12,6 +12,7 @@ import {
 } from "@/lib/difficulty";
 import { GAME_ICONS, DIFFICULTY_LUCIDE_ICONS } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { ResultProgress, saveLocalResult } from "./ResultProgress";
 
 interface GameWrapperProps {
   gameId: GameId;
@@ -37,10 +38,15 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [resultKey, setResultKey] = useState(0);
+  const [localSaveFailed, setLocalSaveFailed] = useState(false);
   // bumping this key forces the child game to remount on restart/difficulty change
   const [runKey, setRunKey] = useState(0);
 
   const handleComplete = async (score: number) => {
+    if (!Number.isFinite(score) || score < 0) return;
+    if (difficulty && !noSave) setLocalSaveFailed(!saveLocalResult(gameId, difficulty, score));
+    setResultKey((key) => key + 1);
     setLatestScore(score);
     setSaved(false);
     setError("");
@@ -216,6 +222,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
           <p className="text-4xl font-extrabold text-brand-400">
             {formatScore(gameId, latestScore, t)}
           </p>
+          {!noSave && <ResultProgress key={resultKey} gameId={gameId} value={latestScore} difficulty={difficulty} storageFailed={localSaveFailed} onRetry={() => resetForNewRun(difficulty)} />}
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
             {saving && <span className="text-gray-400">{t.saving}</span>}
             {saved && (

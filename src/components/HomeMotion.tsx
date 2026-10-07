@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { MINI_GAME_COVERS } from "@/lib/game-covers";
 
 /** Stable accessible copy; only the decorative duplicate is scrambled. */
 export function ScrambleText({ text }: { text: string }) {
@@ -145,8 +146,10 @@ export function HomeMotion({ children, language, category, enabled }: { children
         if (now - lastTrail.time < 140 || Math.hypot(x - lastTrail.x, y - lastTrail.y) < 65) return;
         lastTrail = { x, y, time: now };
         const tile = document.createElement("span");
-        const index = trailIndex++ % 3;
-        tile.className = `studio-trail-tile studio-trail-tile-${index}`;
+        const covers = Object.values(MINI_GAME_COVERS);
+        const index = trailIndex++ % covers.length;
+        tile.className = "studio-trail-tile";
+        tile.style.backgroundImage = `url("${covers[index]}")`;
         tile.style.left = `${x}px`;
         tile.style.top = `${y}px`;
         trail.appendChild(tile);

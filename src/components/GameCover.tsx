@@ -1,9 +1,22 @@
 import { GAME_ICONS } from "@/lib/icons";
 import type { GameId } from "@/lib/utils";
+import Image from "next/image";
+import { GAME_COVERS } from "@/lib/game-covers";
 
 /** Decorative previews of mechanics, not screenshots or player results. */
 export function GameCover({ id }: { id: GameId }) {
   const Icon = GAME_ICONS[id];
+  const photo = GAME_COVERS[id];
+
+  if (photo) {
+    return (
+      <div className={`game-cover cover-${id} game-cover-photo`} aria-hidden="true">
+        <div className="cover-photo-scene">
+          <Image src={photo} alt="" fill sizes="(max-width: 820px) 50vw, 33vw" style={{ objectFit: "cover" }} />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`game-cover cover-${id}`} aria-hidden="true">
       <span className="cover-cross cover-cross-top">+</span>

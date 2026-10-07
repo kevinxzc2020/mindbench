@@ -22,19 +22,16 @@
   position: absolute;
   display: block;
   width: clamp(120px, 16vw, 240px);
-  aspect-ratio: 1.2;
+  aspect-ratio: 1.95;
   opacity: 0;
   border: 1px solid #ffffff30;
-  background-image: url("/images/arcade-still-life-v2.png");
-  background-size: 300% auto;
+  background-size: cover;
+  background-position: center;
   background-color: #24221d;
   box-shadow: 0 14px 32px #0008;
   pointer-events: none;
   will-change: transform, opacity;
 }
-.studio-trail-tile-0 { background-position: 62% 50%; }
-.studio-trail-tile-1 { background-position: 100% 90%; }
-.studio-trail-tile-2 { background-position: 100% 0%; }
 .studio-pixel-curtain { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); pointer-events: none; }
 .studio-pixel-curtain i { background: #373a30; opacity: 0; }
 .studio-pixel-curtain i:nth-child(3n) { background: #c8c7b7; }

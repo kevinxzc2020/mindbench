@@ -165,6 +165,13 @@ body { color: var(--paper); background: var(--ink); }
 .studio-extra-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); margin-top: 24px; }
 .studio-extra { min-width: 0; position: relative; overflow: hidden; min-height: 220px; padding: 25px; display: flex; flex-wrap: wrap; align-content: space-between; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #1b1b18; gap: 26px; }
 .studio-extra > div { width: calc(100% - 48px); z-index: 1; }
+.studio-extra-artwork { display: block; position: relative; width: 100%; flex: 0 0 100%; aspect-ratio: 1.95; overflow: hidden; background: #141310; }
+.studio-extra-artwork img { object-fit: cover; transition: transform 250ms ease; }
+.studio-extra:hover .studio-extra-artwork img { transform: scale(1.045); }
+@media (prefers-reduced-motion: reduce) {
+  .studio-extra-artwork img { transition: none; }
+  .studio-extra:hover .studio-extra-artwork img { transform: none; }
+}
 .studio-extra > svg:first-of-type { width: 100%; flex-shrink: 0; object-position: left; margin-right: auto; max-width: 25px; }
 .studio-extra > svg:last-of-type { margin-top: auto; z-index: 1; }
 .studio-extra h3 { font-size: 19px; font-weight: 600; }
@@ -176,6 +183,12 @@ body { color: var(--paper); background: var(--ink); }
 .game-cover { position: relative; display: grid; place-items: center; aspect-ratio: 1.95; overflow: hidden; background: #d6d2c5; color: #242521; isolation: isolate; }
 .game-cover > div { transition: transform 250ms ease; }
 .studio-game:hover .game-cover > div { transform: scale(1.055); }
+.game-cover-photo { background: #171614; }
+.cover-photo-scene { position: absolute; inset: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .game-cover-photo > div { transition: none; }
+  .studio-game:hover .game-cover-photo > div { transform: none; }
+}
 .cover-cross { position: absolute; font: 12px var(--font-mono); opacity: .35; }
 .cover-cross-top { top: 9px; right: 13px; }
 .cover-cross-bottom { bottom: 9px; left: 13px; }

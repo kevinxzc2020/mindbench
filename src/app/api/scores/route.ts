@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { GAMES, type GameId } from "@/lib/utils";
 import { DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty } from "@/lib/difficulty";
-import { generateFakeLeaderboard } from "@/lib/leaderboard-fixtures";
 
 // POST /api/scores — submit a new score
 export async function POST(req: NextRequest) {
@@ -26,7 +25,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (typeof value !== "number" || value < 0) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
       console.warn("[scores POST] invalid value:", value);
       return NextResponse.json(
         { error: `无效分数: ${value}` },
@@ -63,7 +62,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const game = searchParams.get("game") as GameId | null;
   const difficultyParam = searchParams.get("difficulty");
-  const limit = Math.min(Number(searchParams.get("limit") ?? 20), 100);
+  const requestedLimit = Number(searchParams.get("limit") ?? 20);
+  const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 100)) : 20;
 
   if (!game) {
     return NextResponse.json({ error: "缺少 game 参数" }, { status: 400 });
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     : DEFAULT_DIFFICULTY;
 
   // ── 1) 真实分数 ─────────────────────────────────────────────────────────
-  // 拉一批（每用户每难度最好成绩），下面去重。数据库挂掉时仍然给出合成榜单。
+  // Rank actual submitted personal bests only. Failure must never fabricate players.
   type Entry = {
     userId: string;
     userName: string;
@@ -90,11 +90,16 @@ export async function GET(req: NextRequest) {
   };
   let realEntries: Entry[] = [];
   try {
+    const bestScores = await prisma.score.groupBy({
+      by: ["userId"], where: { game, difficulty },
+      _min: { value: true }, _max: { value: true },
+      orderBy: gameInfo.lowerIsBetter ? { _min: { value: "asc" } } : { _max: { value: "desc" } },
+      take: limit,
+    });
     const realRaw = await prisma.score.findMany({
-      where: { game, difficulty },
       orderBy: { value: gameInfo.lowerIsBetter ? "asc" : "desc" },
       include: { user: { select: { id: true, name: true } } },
-      take: 500,
+      where: { game, difficulty, OR: bestScores.map((s) => ({ userId: s.userId, value: (gameInfo.lowerIsBetter ? s._min.value : s._max.value)! })) },
     });
     const seen = new Set<string>();
     realEntries = realRaw
@@ -112,13 +117,11 @@ export async function GET(req: NextRequest) {
       }));
   } catch (err) {
     console.error("[scores GET] DB error:", err);
+    return NextResponse.json({ error: "Leaderboard unavailable" }, { status: 503 });
   }
 
-  // ── 2) 合成分数 ─────────────────────────────────────────────────────────
-  const fake = generateFakeLeaderboard(game, difficulty);
-
-  // ── 3) 合并 + 排序 + 截断 ───────────────────────────────────────────────
-  const merged = [...realEntries, ...fake].sort((a, b) =>
+  // Sort and truncate real entries.
+  const merged = realEntries.sort((a, b) =>
     gameInfo.lowerIsBetter ? a.value - b.value : b.value - a.value
   );
 

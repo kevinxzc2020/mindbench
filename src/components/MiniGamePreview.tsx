@@ -1,16 +1,19 @@
 import type { MiniGameId } from "@/lib/mini-games";
+import Image from "next/image";
+import { MINI_GAME_COVERS } from "@/lib/game-covers";
 
 export function MiniGamePreview({ id }: { id: MiniGameId }) {
+  const artwork = MINI_GAME_COVERS[id as keyof typeof MINI_GAME_COVERS];
+  if (artwork) {
+    return (
+      <div className="studio-mini-preview" aria-hidden="true">
+        <Image src={artwork} alt="" fill sizes="(max-width: 820px) 50vw, 33vw" style={{ objectFit: "cover" }} />
+        <span className="studio-mini-preview-label">PLAY LAB / ARTWORK</span>
+      </div>
+    );
+  }
   return (
     <div className={`studio-mini-preview studio-mini-preview-${id}`} aria-hidden="true">
-      {id === "screw" && (
-        <div className="mini-preview-screw-board">
-          {Array.from({ length: 6 }, (_, index) => <i key={index} className={`mini-preview-screw-pin pin-${index + 1}`} />)}
-          <span className="mini-preview-screw-rail rail-one" />
-          <span className="mini-preview-screw-rail rail-two" />
-          <span className="mini-preview-screw-box" />
-        </div>
-      )}
       {id === "fruit" && (
         <div className="mini-preview-fruit-scene">
           <span className="mini-preview-cloud cloud-one" />
