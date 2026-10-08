@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { mbtiCharacterImage, mbtiCharacterAccent } from "@/lib/mbti-characters";
 import { useLang } from "@/lib/language-context";
 import { MBTI_TYPES } from "@/lib/mbti-data";
 import { SCENARIOS, calculateMbtiType } from "@/lib/mbti-scenarios";
 import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
-import { MBTI_ICONS } from "@/lib/icons";
 
 type Phase = "intro" | "questions" | "result";
 
@@ -97,6 +98,7 @@ export default function MbtiPage() {
           </button>
 
           <div className="pt-2">
+            <Link href="/mbti/characters" className="block mb-4 text-sm underline">{lang === "zh" ? "查看 16 位原创角色" : lang === "es" ? "Ver los 16 personajes" : "Explore the 16 characters"} ↗</Link>
             <Link href="/" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
               ← {t.home}
             </Link>
@@ -204,16 +206,9 @@ export default function MbtiPage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-10 space-y-5 animate-fade-in">
         {/* Type card */}
-        <div className={cn("card p-8 text-center space-y-4 bg-gradient-to-br", typeInfo.color, "border-0")}>
+        <div className="card p-8 text-center space-y-4" style={{ borderTop: `3px solid ${mbtiCharacterAccent(typeInfo.type)}` }}>
           <p className="text-sm font-semibold text-white/70 uppercase tracking-widest">{t.mbtiYourType}</p>
-          {(() => {
-            const TypeIcon = MBTI_ICONS[typeInfo.type] ?? Users;
-            return (
-              <div className="inline-flex w-20 h-20 mx-auto rounded-2xl bg-white/15 items-center justify-center text-white shadow-lg backdrop-blur-sm">
-                <TypeIcon size={42} strokeWidth={2} />
-              </div>
-            );
-          })()}
+          <Image src={mbtiCharacterImage(typeInfo.type)} alt={`${typeInfo.type} — ${typeInfo.nickname[lang]}`} width={1024} height={1536} className="mx-auto w-full max-w-sm h-96 object-contain" />
           <div>
             <p className="text-5xl font-black text-white tracking-wider">{typeInfo.type}</p>
             <p className="text-xl font-bold text-white/90 mt-1">{typeInfo.nickname[lang]}</p>
