@@ -10,9 +10,9 @@ import { getAdSenseConfig } from "@/lib/adsense";
 const { clientId: adSenseClientId } = getAdSenseConfig();
 
 export const metadata: Metadata = {
-  title: "MindBench — Cognitive training for curious minds",
+  title: "MindBench — Tests, tools & curious minds",
   description:
-    "Short cognitive drills, memory games, precision tests, and a little room for mystery.",
+    "Explore cognitive tests, personality activities, games and official device resources. Check your keyboard, mouse, screen, speakers and microphone in the device collection.",
   icons: {
     icon: { url: "/brand/mindbench-wordmark-v2.png", type: "image/png" },
   },

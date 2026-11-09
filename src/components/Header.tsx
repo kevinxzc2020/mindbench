@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { BarChart3, ChevronDown, Globe2, Menu, Trophy, X } from "lucide-react";
+import { BarChart3, ChevronDown, Globe2, Grid2X2, Menu, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import type { Lang } from "@/lib/translations";
@@ -25,6 +25,7 @@ export function Header() {
 
   const navItems = [
     { href: "/", label: t.home, icon: null },
+    { href: "/collections", label: lang === "zh" ? "全部合集" : lang === "es" ? "Colecciones" : "Collections", icon: Grid2X2 },
     { href: "/leaderboard", label: t.leaderboard, icon: Trophy },
     ...(session ? [{ href: "/stats", label: t.statsTitle, icon: BarChart3 }] : []),
   ];
@@ -48,7 +49,7 @@ export function Header() {
 
         <nav className="desktop-nav" aria-label="Primary navigation">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href) || (href === "/collections" && pathname.startsWith("/tools/"));
             return (
               <Link
                 key={href}
@@ -124,7 +125,7 @@ export function Header() {
       {menuOpen && (
         <nav className="mobile-nav" aria-label="Mobile navigation">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href) || (href === "/collections" && pathname.startsWith("/tools/"));
             return (
               <Link
                 key={href}

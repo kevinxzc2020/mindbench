@@ -15,19 +15,19 @@ const COPY = {
   en: {
     label: "Advertisement", preview: "LAYOUT PREVIEW",
     title: "Homepage banner placement",
-    description: "A responsive ad above the game catalogue.",
+    description: "A responsive ad above the collections.",
     format: "RESPONSIVE DISPLAY", note: "Preview only · No live ads",
   },
   zh: {
     label: "广告", preview: "广告位预览",
     title: "首页顶部广告位",
-    description: "自适应横幅，位于游戏列表上方。",
+    description: "自适应横幅，位于合集目录上方。",
     format: "自适应展示广告", note: "仅样板预览 · 未投放真实广告",
   },
   es: {
     label: "Publicidad", preview: "VISTA PREVIA",
     title: "Banner de la página principal",
-    description: "Un anuncio adaptable sobre el catálogo de juegos.",
+    description: "Un anuncio adaptable sobre las colecciones.",
     format: "ANUNCIO ADAPTABLE", note: "Solo vista previa · Sin anuncios reales",
   },
 };

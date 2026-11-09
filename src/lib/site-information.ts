@@ -9,7 +9,7 @@ export const INFORMATION_LINKS = [
   { key: "rights", href: "/privacy-rights" },
 ] as const;
 export type InformationKind = (typeof INFORMATION_LINKS)[number]["key"];
-export const POLICY_DRAFT_UPDATED = "2026-09-21";
+export const POLICY_DRAFT_UPDATED = "2026-11-09";
 
 export const INFORMATION_LABELS = {
   en: { about: "About", contact: "Contact", privacy: "Privacy policy", terms: "Terms of use", cookies: "Cookies", rights: "Privacy rights" },
@@ -26,10 +26,10 @@ interface InformationContent {
 export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, InformationContent>> = {
   en: {
     about: {
-      title: "A playground for your mind.",
-      intro: "Short challenges. Curious minds. One more try.",
+      title: "Tests, tools and curious minds.",
+      intro: "Choose a collection. Find your next experiment.",
       sections: [
-        { title: "What is MindBench?", paragraphs: ["MindBench brings reaction, memory, typing, aiming, puzzle and casual games together in your browser. Choose a game, try a difficulty and explore your own performance."] },
+        { title: "What is MindBench?", paragraphs: ["MindBench organizes cognitive challenges, personality activities, casual games and official device resources into collections. Choose a collection, then search or filter to find a specific activity or resource. Keyboard, mouse button, scroll wheel, screen, headphone/speaker and microphone checks are available. Other device checks and voice tools that cannot run yet are clearly labelled as planned."] },
         { title: "Play, then compare", paragraphs: ["You can play without an account. Logging in lets you submit scores and view saved results. Leaderboards separate games and difficulty levels; generated demo entries are labelled, not presented as real player records."] },
         { title: "Beyond the scoreboard", paragraphs: ["The site also includes IQ-style questions, an MBTI-style personality activity and tarot. These activities are for entertainment and personal exploration, not clinical diagnoses or certified assessments."] },
       ],
@@ -46,6 +46,7 @@ export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, Informati
       title: "Privacy policy.",
       intro: "How the current application handles account details, scores and browser storage.",
       sections: [
+        { title: "Device check sessions", paragraphs: ["Keyboard, mouse and scroll wheel tools process input locally while their test area is active. The screen tool generates patterns locally and stores manual marks, observation notes and browser animation timing in page memory. The audio tools generate test sounds locally. Microphone access starts only after your action and browser permission; recordings and input measurements remain in page memory and are not uploaded by these tools. Downloaded audio stays on your device. Stopping input or leaving the tool releases the microphone. These tools do not upload test inputs or observations and the screen tool does not access a camera or record your screen. Pausing preserves the session; clearing records or leaving the tool removes them. Reports are downloaded to your device only when you choose to export them."] },
         { title: "Account information", paragraphs: ["Email registration stores your display name, email address and a password hash, rather than the plain-text password. These support account creation and sign-in. These fields are required for email registration, but registration is not required to play. If enabled and selected, Google sign-in provides profile details such as your name, email and image; the authentication adapter can also store provider identifiers and tokens to manage the linked account."] },
         { title: "Scores & public rankings", paragraphs: ["Submitted results are associated with your account and include the game, difficulty, score and submission time. They support saved results, statistics and rankings. Your display name, user identifier and score details can be exposed through the leaderboard and its API; do not use sensitive information as a display name."] },
         { title: "Cookies & local storage", paragraphs: ["Authentication uses cookies for sign-in, security and redirects, including a persistent login cookie. The language preference is saved in local storage under mb-lang. The Cookies page lists the current application storage and its duration. Clearing browser storage may sign you out or reset preferences; it does not delete account records on the server."] },
@@ -92,10 +93,10 @@ export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, Informati
   },
   zh: {
     about: {
-      title: "给大脑一个游乐场。",
-      intro: "小小的挑战，好奇的你，再试一次。",
+      title: "给好奇心一套工具。",
+      intro: "先选一个合集，再找到适合你的功能。",
       sections: [
-        { title: "MindBench 是什么？", paragraphs: ["MindBench 把反应、记忆、打字、瞄准、益智和休闲游戏放进浏览器。选一个游戏，试一种难度，探索自己的表现。"] },
+        { title: "MindBench 是什么？", paragraphs: ["MindBench 将认知挑战、趣味测试、休闲游戏和设备官方资料整理成合集。进入合集后，可以搜索或筛选具体的活动与资料。键盘、鼠标按键、滚轮、屏幕、耳机音箱与麦克风检测已经开放；尚不能运行的其他设备检测与声音工具会明确标为规划中。"] },
         { title: "开玩，再比较", paragraphs: ["无需账号即可游玩。登录后可以提交成绩、查看保存的结果。排行榜按游戏和难度区分；系统生成的演示成绩会明确标注，不代表真实玩家记录。"] },
         { title: "分数之外", paragraphs: ["网站还包含 IQ 类题目、MBTI 风格的性格探索和塔罗活动。这些内容用于娱乐与自我探索，不是临床诊断或经认证的专业测评。"] },
       ],
@@ -112,6 +113,7 @@ export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, Informati
       title: "隐私政策。",
       intro: "说明当前应用如何处理账号资料、游戏成绩和浏览器存储。",
       sections: [
+        { title: "设备检测记录", paragraphs: ["键盘、鼠标和滚轮工具在检测区域启用时本地处理输入。屏幕工具在本地生成图案，将手动标记、观察备注与浏览器动画帧间隔保存在页面内存中。音频工具在本地生成测试音。麦克风只在你主动开启并授权后采集；录音和输入测量保存在页面内存中，不由这些工具上传。主动下载的录音保存在你的设备上。停止输入或离开工具会释放麦克风。这些工具不会上传检测输入或观察记录；屏幕工具不访问摄像头，也不录制屏幕。暂停保留本轮数据，清空记录或离开工具会移除记录；仅在你主动导出时，将报告下载到你的设备。"] },
         { title: "账号信息", paragraphs: ["通过邮箱注册时，应用保存昵称、邮箱和密码哈希，而非明文密码，用于创建账号和登录。这些是邮箱注册的必填信息，但游玩不要求注册。如果启用并选择 Google 登录，应用会接收姓名、邮箱、头像等个人资料；认证适配器还可能存储提供方标识和令牌，以管理关联账号。"] },
         { title: "成绩与公开排行榜", paragraphs: ["提交的成绩会关联到你的账号，包含游戏、难度、分数和提交时间，用于保存结果、统计和排名。昵称、用户标识和成绩信息可能通过排行榜及其接口公开；请不要将敏感信息设为昵称。"] },
         { title: "Cookie 与本地存储", paragraphs: ["认证功能使用 Cookie 完成登录、安全校验和跳转，其中登录 Cookie 会持久保存。语言偏好通过本地存储中的 mb-lang 保存。Cookie 说明页面列出了当前应用的存储项目和期限。清除浏览器数据可能导致退出登录或偏好重置，但不会删除服务器上的账号记录。"] },
@@ -158,10 +160,10 @@ export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, Informati
   },
   es: {
     about: {
-      title: "Un patio de juegos para tu mente.",
-      intro: "Retos cortos. Mentes curiosas. Un intento más.",
+      title: "Pruebas, herramientas y mentes curiosas.",
+      intro: "Elige una colección y encuentra tu próximo experimento.",
       sections: [
-        { title: "¿Qué es MindBench?", paragraphs: ["MindBench reúne juegos de reacción, memoria, escritura, puntería, puzles y juegos casuales en tu navegador. Elige un juego y una dificultad para explorar tu rendimiento."] },
+        { title: "¿Qué es MindBench?", paragraphs: ["MindBench organiza retos cognitivos, actividades de personalidad, juegos casuales y recursos oficiales de dispositivos en colecciones. Elige una colección y busca o filtra una actividad o recurso. Las pruebas de teclado, botones del ratón, rueda, pantalla, altavoces y micrófono están disponibles. Las demás pruebas y herramientas de voz aún no disponibles están identificadas como previstas."] },
         { title: "Juega y compara", paragraphs: ["Puedes jugar sin cuenta. Al iniciar sesión puedes enviar resultados y consultar los guardados. Las clasificaciones distinguen juegos y dificultades; los ejemplos generados se identifican como demo, no como resultados de jugadores reales."] },
         { title: "Más allá del marcador", paragraphs: ["También hay preguntas de tipo IQ, una actividad de personalidad de estilo MBTI y tarot. Son actividades de entretenimiento y exploración personal, no diagnósticos clínicos ni evaluaciones certificadas."] },
       ],
@@ -178,6 +180,7 @@ export const INFORMATION_CONTENT: Record<Lang, Record<InformationKind, Informati
       title: "Política de privacidad.",
       intro: "Cómo la aplicación actual trata los datos de cuenta, resultados y almacenamiento del navegador.",
       sections: [
+        { title: "Sesiones de pruebas de dispositivos", paragraphs: ["Las herramientas de teclado, ratón y rueda procesan entradas localmente mientras su área está activa. La herramienta de pantalla genera patrones localmente y guarda marcas manuales, notas e intervalos de animación en la memoria de la página. Las herramientas de audio generan sonidos localmente. El micrófono se activa solo tras tu acción y permiso; las grabaciones y mediciones permanecen en la memoria de la página y no se suben. El audio descargado queda en tu dispositivo. Detener la entrada o salir libera el micrófono. Estas herramientas no suben entradas ni observaciones; la prueba de pantalla no accede a la cámara ni graba la pantalla. Pausar conserva la sesión; borrar registros o salir los elimina. Los informes se descargan al dispositivo solo cuando eliges exportarlos."] },
         { title: "Datos de cuenta", paragraphs: ["El registro por correo guarda nombre visible, correo y un hash de la contraseña, no la contraseña en texto plano. Estos campos son necesarios para ese registro, pero no necesitas registrarte para jugar. Si se habilita y eliges Google, se reciben datos de perfil como nombre, correo e imagen; el adaptador de autenticación también puede guardar identificadores del proveedor y tokens para gestionar la cuenta vinculada."] },
         { title: "Resultados y clasificaciones públicas", paragraphs: ["Los resultados enviados se asocian a tu cuenta e incluyen juego, dificultad, puntuación y fecha. Se usan para resultados guardados, estadísticas y clasificaciones. El nombre visible, identificador de usuario y detalles del resultado pueden aparecer en la clasificación y su API. No uses información sensible como nombre."] },
         { title: "Cookies y almacenamiento local", paragraphs: ["La autenticación usa cookies para acceso, seguridad y redirecciones, incluida una cookie persistente de inicio de sesión. El idioma se guarda con la clave mb-lang. La página de Cookies describe el almacenamiento actual y sus plazos. Borrarlo puede cerrar la sesión o restablecer preferencias, pero no borra los registros del servidor."] },
