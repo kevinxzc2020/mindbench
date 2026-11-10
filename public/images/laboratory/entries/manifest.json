@@ -1,0 +1,246 @@
+{
+  "generatedOn": "2026-11-10",
+  "mode": "built-in ImageGen",
+  "notes": "Conceptual covers, not gameplay screenshots, diagnostic results or manufacturer product photos. Each entry has a unique original generated image. Existing IQ/MBTI/tarot covers remain in ../.",
+  "sharedPrompt": "Use case: product-mockup. Create ONE unique finished photographic concept cover for MindBench's LIGHT TOOL LABORATORY, not a website mockup. Landscape 3:2. Warm seamless ivory (#F6F5EE) studio tabletop/background, tactile matte cream plastic, ceramic, paper, brushed aluminum, charcoal detail, controlled vermilion orange-red (#D94D31) accents. Realistic high-key product photography, soft daylight from upper left, believable geometry, natural contact shadows, gentle depth. Quiet, clear, premium everyday lab aesthetic matching a collection of ivory device photographs. Central functional objects occupy the middle 75% width and 65% height with generous safe margin for wide cards. No dark background, no neon, no blue gaming glow, no branding, watermark, titles, statistics, or fake scores. No collage or split panels. No hands unless subject explicitly asks. All visuals are illustrative, not screenshots. Each subject must communicate the specific activity below. Keep background uncluttered: do not add pen cups, notebooks or plants unless requested by the subject.",
+  "initialBatchNote": "For the first eight entries, the final sentence about uncluttered backgrounds was not included.",
+  "assets": [
+    {
+      "id": "reaction-time",
+      "title": "反应时间",
+      "subject": "A single physical reaction timer: large vermilion pushbutton on a low ivory circular base, beside a small upright three-lamp indicator with only its bottom soft-green lamp lit, signalling click now. Compact and minimal composition. A blank analog timing dial sits slightly behind, no readable timing results. Three-quarter eye-level macro, crisp button and green signal; no keyboard or memory tiles.",
+      "file": "reaction-time-v1.jpg",
+      "original": "exec-a5dbf1d2-132f-4369-8a28-8df6306b125c.png"
+    },
+    {
+      "id": "number-memory",
+      "title": "数字记忆",
+      "subject": "A horizontal row of five thick ivory flip cards on a slim wooden holder, displaying exactly the digits 8 3 1 9 4, one digit per card in dark charcoal. A sixth card turned face-down behind the row suggests recall after hiding. Close elevated view, tiny orange card edge, no other letters or scores. Physical digit cards, no keyboard, no grid.",
+      "file": "number-memory-v1.jpg",
+      "original": "exec-d38b8ca4-e26e-43a8-8ca9-91fa5c5a7bf1.png"
+    },
+    {
+      "id": "sequence-memory",
+      "title": "顺序记忆",
+      "subject": "An ivory 3 by 3 raised square button pad for repeating a light sequence. Exactly three distinct positions are marked by tiny engraved numerals 1, 2 and 3 respectively, connected by a thin warm orange illuminated trace on the surface to communicate ORDER. Only the third button actively glows orange; two preceding positions have faint warm afterglow. Physical desktop memory instrument, oblique three-quarter composition. No button timer, no random checkerboard.",
+      "file": "sequence-memory-v1.jpg",
+      "original": "exec-94af299f-673c-4880-b2b6-8e6c825042bb.png"
+    },
+    {
+      "id": "visual-memory",
+      "title": "视觉记忆",
+      "subject": "A flat ivory 5 by 5 tile board viewed from directly overhead. Exactly seven scattered squares are orange-red, the remaining squares cream; orange cells form an irregular spatial pattern, no lines connecting them, no numbers. A translucent frosted sheet slightly overlaps one corner suggesting pattern being concealed for recall. Tactile embossed grid, calm orderly spatial-memory image, not sequential flashing or a 3 by 3 keypad.",
+      "file": "visual-memory-v1.jpg",
+      "original": "exec-1b8a7b4e-85fb-4197-adb7-8afae259591f.png"
+    },
+    {
+      "id": "cps-test",
+      "title": "点击速度",
+      "subject": "Close photographic side view of a natural adult RIGHT hand on a cream computer mouse with charcoal wheel on an ivory desk. Correct anatomy: INDEX FINGER on LEFT mouse button shows two translucent motion afterimages separated by a noticeable short UP/DOWN vertical arc, simulating rapid repeated clicking. MIDDLE FINGER rests sharply in focus and perfectly still on the RIGHT button. Thumb remains still against the left side. Mouse and other fingers razor sharp; only index motion blurred. Three-quarter front-left camera angle makes the index click visible. Restrained orange accent under left button, no extra fingers, no numbers, no broad hand blur.",
+      "file": "cps-test-v1.jpg",
+      "original": "exec-ce1ca43c-71d3-4e58-84dc-af5851331ae3.png"
+    },
+    {
+      "id": "aim-trainer",
+      "title": "瞄准练习",
+      "subject": "An ivory miniature 3D target practice range enclosed by three clean cream walls with subtle floor grid. Three small vermilion spherical targets float at distinct heights/depths on nearly invisible supports. A delicate charcoal circular reticle on a clear foreground acrylic panel is aligned to one sphere. Physical precision-training diorama, first-person aiming concept, no firearm required, no bullseye disk, no scores. Deep but softly lit scene, focal sphere crisp.",
+      "file": "aim-trainer-v1.jpg",
+      "original": "exec-d9068e5e-af3b-41ec-af5f-c8e698ea6681.png"
+    },
+    {
+      "id": "typing-test",
+      "title": "打字速度",
+      "subject": "A compact cream mechanical keyboard in a dynamic diagonal low close-up showing rows of realistic charcoal letter legends, distinctive long ivory spacebar and four small orange home-row key accents. A narrow strip of cream paper gently curling above the back edge carries only a few evenly spaced charcoal letter glyphs, suggesting text being typed. A subtle orange horizontal light trail follows the keys to convey typing rhythm. No hands, no magnifier, no speed numbers. Keyboard typing product still life.",
+      "file": "typing-test-v1.jpg",
+      "original": "exec-e8b26fe4-4cc0-46d6-bd91-279e60b97884.png"
+    },
+    {
+      "id": "verbal-memory",
+      "title": "词语记忆",
+      "subject": "A tabletop arrangement of thick ivory word flashcards, not numbers: foreground three clear cards read exactly MOON, TREE, MOON in elegant charcoal uppercase. Two MOON cards share a small orange corner marker, TREE has an unmarked cream corner, communicating recognizing seen words versus a new word. A short unlabelled deck behind. Physical paper texture, gentle three-quarter view, separated cards all fully visible. No brain model, no scores.",
+      "file": "verbal-memory-v1.jpg",
+      "original": "exec-849bdf6e-a3a0-4765-b2cf-07519457f287.png"
+    },
+    {
+      "id": "keyboard",
+      "title": "键盘检测",
+      "subject": "A compact ivory full keyboard viewed from directly above with a few specific scattered keycaps glowing softly orange to show tested keys. A detached ivory keycap and keycap puller sit neatly beside it, revealing one orange mechanical switch without suggesting damage. Clear rows, realistic spacebar, no loose letter paper, no hands, no magnifying lens, no motion trails. A clean static key-by-key inspection arrangement.",
+      "file": "keyboard-v1.jpg",
+      "original": "exec-a18435c3-1f9a-4e1b-9c28-3fef9dbba904.png"
+    },
+    {
+      "id": "mouse",
+      "title": "鼠标按键与拖拽",
+      "subject": "An ivory ergonomic mouse shown from elevated front-left, both top buttons clearly outlined, two side buttons visible. Thin orange tracing line leads from the mouse across a cream gridded mat along a smooth drag path ending at a small circular marker. A subtle orange dot on the left button indicates input. The scroll wheel is subdued, no repeated clicking hand or dramatic wheel closeup. Tangible checking buttons and drag continuity.",
+      "file": "mouse-v1.jpg",
+      "original": "exec-bcb6a4e4-3b12-48a0-b524-c98755ca5035.png"
+    },
+    {
+      "id": "wheel",
+      "title": "滚轮检测",
+      "subject": "Extreme macro of a computer mouse's large ridged graphite SCROLL WHEEL between two ivory button panels, wheel dominating center. A curved orange physical arrow marker on a thin clear acrylic arch follows the wheel's forward/back rotation arc. One sharp wheel plus faint circular rotational blur at its outer edge. Detail texture, generous ivory margin, no hand, no whole keyboard, no unrelated mouse button emphasis.",
+      "file": "wheel-v1.jpg",
+      "original": "exec-70198264-fdec-4f2d-b3f5-f0ca75fafe94.png"
+    },
+    {
+      "id": "trackpad",
+      "title": "触控板检测",
+      "subject": "A standalone large ivory glass trackpad with aluminum edge, photographed diagonally from above. On its glass surface, exactly two parallel orange dotted vertical swipe tracks end in two small orange contact circles, expressing two-finger scroll; a subtle charcoal curved drag path is separate. A corner of a closed slim laptop behind gives scale. No mouse, no keyboard keys, no full tablet display, no hands.",
+      "file": "trackpad-v1.jpg",
+      "original": "exec-1005742e-02eb-463b-ac6e-3ba4b3a3a1ab.png"
+    },
+    {
+      "id": "screen",
+      "title": "屏幕检查",
+      "subject": "A single cream slim desktop monitor front-on at a slight angle. Screen shows a simple diagnostic pattern: one broad smooth grayscale gradient and five restrained red green blue white charcoal color swatches along the bottom, no labels. A small handheld magnifying lens on a metal stand is in front of a screen corner, revealing a fine pixel mosaic, suggesting VISUAL inspection not automated repair. No broken glass, no detected fault results, no extra devices.",
+      "file": "screen-v1.jpg",
+      "original": "exec-e08a8933-17ab-4709-9aab-c139b50b6ba5.png"
+    },
+    {
+      "id": "motion",
+      "title": "拖影与流畅度",
+      "subject": "A cream monitor isolated on ivory desk showing a light-gray grid with one orange ball moving horizontally; a short trail of four increasingly translucent ball silhouettes appears behind it and a sharp leading ball at right. Screen scene is abstract, communicates display ghosting and smooth motion. An unmarked thin timing strip below pattern, no numbers/FPS claims, no rainbow chart or magnifier. Three-quarter product view.",
+      "file": "motion-v1.jpg",
+      "original": "exec-3790a522-739c-487c-8836-0b461261081a.png"
+    },
+    {
+      "id": "speakers",
+      "title": "耳机与音箱",
+      "subject": "Two compact ivory speakers with charcoal circular drivers, symmetric left and right, with cream over-ear headphones resting between them. Left speaker has a restrained orange active indicator and three short orange sound-wave arcs on a clear acrylic stand in front; right speaker is still. Tiny L and R letters only on respective speakers allowed. Communicates stereo channel listening, warm product photography, no microphone or recorder.",
+      "file": "speakers-v1.jpg",
+      "original": "exec-9f2a0f04-f52d-46e3-a694-7c9a8f277898.png"
+    },
+    {
+      "id": "microphone",
+      "title": "麦克风检测",
+      "subject": "A single upright ivory desk microphone with detailed charcoal grille and a small orange input indicator. Beside its base is a narrow vertical cream level meter with a few orange illuminated segments and one modest waveform strip on frosted acrylic, no numbers. Close frontal still life emphasizes receiving INPUT level, no headphones, no cassette or record playback controls.",
+      "file": "microphone-v1.jpg",
+      "original": "exec-395a0616-b292-4b7e-9f76-3469130c85cd.png"
+    },
+    {
+      "id": "webcam",
+      "title": "摄像头检测",
+      "subject": "An elegant small ivory webcam with central realistic glass lens sits on a slim monitor edge. Behind it a large cream focusing calibration card shows concentric focus marks, gray patches and a small orange square, no text, no person. A tiny orange camera status light, macro product photography. Clearly a webcam/video sharpness inspection rather than a photo camera or surveillance scene.",
+      "file": "webcam-v1.jpg",
+      "original": "exec-6608033f-d954-4021-aa3a-53ae7170948e.png"
+    },
+    {
+      "id": "gamepad",
+      "title": "手柄检测",
+      "subject": "One realistic ivory game controller angled to show dual charcoal analog sticks, directional pad, four circular face buttons and shoulder triggers. Orange concentric calibration rings on a transparent overlay around the two stick centers, one face button subtly orange. No console branding, no letters or numbered results. Controller on ivory desk, focus on centering and button travel, no hands.",
+      "file": "gamepad-v1.jpg",
+      "original": "exec-fae9d5b4-faf0-473a-b58e-99b9c5932b18.png"
+    },
+    {
+      "id": "touch",
+      "title": "触摸屏检测",
+      "subject": "A thin ivory tablet lying at a shallow angle, screen warm cream with exactly five distinct orange fingertip contact circles and fine looping touch paths connecting their own trails. No hand, just visible browser-style MULTI-TOUCH trace concept on tablet. A subtle dotted border around screen demonstrates edge coverage. No stylus, no keyboard, no words or charts. Tactile realistic device.",
+      "file": "touch-v1.jpg",
+      "original": "exec-d14ec07c-7fc1-45cd-b87d-5f1ddbc357d0.png"
+    },
+    {
+      "id": "pen",
+      "title": "触控笔检测",
+      "subject": "A cream drawing tablet with an ivory stylus resting diagonally across one edge. Its light screen contains exactly three elegant orange ink strokes progressing from hairline to broad pressure-sensitive strokes, plus a tapering charcoal line. Stylus tip near the starting point, no hand, no touch circles, no text. Fine material texture, purpose clearly pressure and stroke continuity.",
+      "file": "pen-v1.jpg",
+      "original": "exec-f0004d0b-e07d-4715-94f5-0f2a5ca95044.png"
+    },
+    {
+      "id": "environment",
+      "title": "浏览器检测环境",
+      "subject": "An open small cream laptop displays a minimal browser-window outline containing three simple device capability pictograms: keyboard, microphone, webcam, with neutral outlined indicator circles next to each (no pass/fail checkmarks). A small ivory USB connector on the table suggests device interfaces. Clean front three-quarter view, compatibility inspection concept; no security shield, malware or invented metrics, no text.",
+      "file": "environment-v1.jpg",
+      "original": "exec-ce927668-32eb-49c5-8b57-a482486b8181.png"
+    },
+    {
+      "id": "device-reports",
+      "title": "自检记录",
+      "subject": "A tidy ivory clipboard with a few cream checkup report sheets fanned beneath. Top sheet contains small precise line-drawing pictograms of keyboard, mouse and screen in separate rows, empty observation boxes and a modest orange comparison line connecting two dots. A small warm-gray calendar card with only blank grid cells and an orange pencil beside it suggests saved records over time. Physical paper, no fake pass results, no words or scores, no electronics required.",
+      "file": "device-reports-v1.jpg",
+      "original": "exec-b24bee8c-ba0a-47c5-a83e-6209c819d2a5.png"
+    },
+    {
+      "id": "voice-recorder",
+      "title": "录音与回放",
+      "subject": "A small horizontal cream portable audio recorder on ivory desk, charcoal display with a single orange audio waveform, a prominent orange circular record button and clear unlabelled triangle play and square stop buttons. A rolled cream audio strip with abstract waveform loops behind it and a neatly coiled headphone cable beside. This is RECORD AND PLAYBACK, not a microphone level test; no standalone microphone, no headphones arch, no text or times.",
+      "file": "voice-recorder-v1.jpg",
+      "original": "exec-6dfb42a8-4257-4015-a357-bebd35c854b8.png"
+    },
+    {
+      "id": "make-seven",
+      "title": "合成 7",
+      "subject": "A physical number-merging puzzle on a small ivory 4 by 4 tray. Several raised ceramic number tiles, especially two adjacent tiles both labelled 6 sliding toward a single prominent orange tile labelled 7, their faint short motion trails suggesting merge same numbers to increment by one. Other tiles show only 1 2 3. NO arithmetic plus/equality signs (this game's rule is not addition); no 2048. Slight overhead angle, all on warm ivory table, tactile puzzle photography.",
+      "file": "make-seven-v1.jpg",
+      "original": "exec-2217f47f-ea51-48fc-b2bd-cb88f84db92a.png"
+    },
+    {
+      "id": "beat-number",
+      "title": "超越数字",
+      "subject": "A cream grid board filled with small ceramic numeric tiles. Three orthogonally adjacent highlighted orange tiles display 4, 5, 3 and are linked by one thin orange selection path. A separate upright cream target marker displays 10. Illustrates selecting adjacent numbers whose sum exceeds a target, no plus/equal signs or score. Distinct square-grid puzzle, overhead photographic still life, spare surrounding table, no merging-motion tiles.",
+      "file": "beat-number-v1.jpg",
+      "original": "exec-8dd94448-73cc-4c9a-880b-9a3a37c31dfb.png"
+    },
+    {
+      "id": "number-chain",
+      "title": "数字连线",
+      "subject": "An ivory physical grid containing round numbered tokens, with exactly four orange tokens labelled 1 2 3 4 linked in ascending order by a curved thin vermilion cord across adjacent positions, some diagonal. Other unconnected neutral tokens show 1 2 3. No arithmetic target marker or merging tiles. Clearly connecting increasing number chain, top-down photograph, clean warm plastic and paper textures.",
+      "file": "number-chain-v1.jpg",
+      "original": "exec-45f7be8c-e731-49bd-8c1d-7937e97e95b4.png"
+    },
+    {
+      "id": "goose-grab",
+      "title": "抓大鹅",
+      "subject": "A shallow cream tray holds a cheerful pile of small tactile toy FOOD objects: toast slices, cheese wedges, ice cream cones, sandwiches and gingerbread shapes. In front is a separate ivory three-slot holding strip with exactly THREE MATCHING small toast pieces lined up, communicating picking identical 3D objects to clear. One tiny simple goose ornament at the edge references the title but food matching dominates. Warm natural food-like colors restrained to ochre, terracotta and cream; not photoreal edible mess, no catching real birds. Elevated product diorama.",
+      "file": "goose-grab-v1.jpg",
+      "original": "exec-de5fc7b3-d589-4edc-b14a-aa438cda95d8.png"
+    },
+    {
+      "id": "sheep",
+      "title": "兔了个兔",
+      "subject": "An ivory tray of overlapping stacked square Mahjong-like matching tiles decorated with simple carrot, leaf and rabbit motifs. A seven-recess holding strip in front contains exactly three matching orange CARROT tiles grouped together and four empty slots. A small cream rabbit figurine sits beside the stack. Shows uncovering layered cards and collecting triples, not 3D food objects. Tactile paper and ceramic game pieces in cream, muted sage and orange, angled close still life.",
+      "file": "sheep-v1.jpg",
+      "original": "exec-fd887eb9-e05d-4359-9dd0-40657e550bf4.png"
+    },
+    {
+      "id": "skillshot-dodge",
+      "title": "技能闪避",
+      "subject": "A miniature cream square arena with subtle floor grid. One small original fluffy ivory creature token at center, a soft round body with two tiny ears and no branded character likeness. Three orange spherical projectiles with translucent orange comet tails approach from different edges, leaving a clear winding escape route around the central token, represented by a charcoal curved trace. Dynamic tabletop diorama expresses DODGING not shooting, no weapon, no target reticle, no explosions, no text.",
+      "file": "skillshot-dodge-v1.jpg",
+      "original": "exec-b14f502b-5ff2-499d-93c1-fe2eeb57dad4.png"
+    },
+    {
+      "id": "screw",
+      "title": "打个螺丝",
+      "subject": "Overlapping pale wood strips fastened with exposed colorful metal screw heads, orange, muted green, ochre and charcoal. Beside the strips four small matching-color sorting bins each have three circular screw recesses; two orange screws already sit in orange bin. A separate five-hole cream buffer tray remains partly empty. Close angled physical screw-sort puzzle, sharp Phillips cross details, believable wood and metal textures. No screwdriver in use, no repair damage, no lettering.",
+      "file": "screw-v1.jpg",
+      "original": "exec-0acbf0de-b9fc-4303-81d5-6b180a80af2a.png"
+    },
+    {
+      "id": "fruit",
+      "title": "消个水果",
+      "subject": "A small upright clear acrylic funnel apparatus on an ivory base, visibly containing colorful tiny toy fruit pieces (orange citrus, red cherry pairs, green apples) poised to travel down a narrowing channel. At bottom exactly three matching orange fruits line up in a collection channel while other fruit wait above. Cream, terracotta and muted leaf-green palette, transparent funnel edges readable. Playful sorting/matching product diorama, no pouring liquid, no smoothie blender, no food collage, no labels.",
+      "file": "fruit-v1.jpg",
+      "original": "exec-6e341472-50fb-4702-812f-3a3debc0e6f4.png"
+    },
+    {
+      "id": "arrow",
+      "title": "一箭又一箭",
+      "subject": "A flat ivory grid board holding several short raised charcoal path pieces with clear orange arrowheads. Paths bend at right angles; an open orange arrow path leads off the board edge, while other arrows are visibly blocked by adjacent paths. One arrow is slightly lifted at the edge to imply escaping. Overhead tangible directional logic puzzle, no number tiles, no maze walls, no road signs, no text.",
+      "file": "arrow-v1.jpg",
+      "original": "exec-aa5cd552-7f88-414f-ac89-8c4c0312111c.png"
+    },
+    {
+      "id": "beads",
+      "title": "快乐拼拼豆",
+      "subject": "A cream perforated pegboard partially filled with small cylindrical craft beads, forming a recognizable orange flower with muted green leaves. One connected flower-petal cluster of orange beads sits in a small holding tray beside the matching empty area on the board, about to be returned. Delicate realistic plastic beads with center holes, close overhead tabletop craft puzzle. No loose fruits or numbers, no tweezers required, clean restrained colors, no writing.",
+      "file": "beads-v1.jpg",
+      "original": "exec-f1caa42b-774b-4c2b-b58b-1109c058fa25.png"
+    }
+  ],
+  "edits": {
+    "cps-test": {
+      "input": "exec-f1736281-a790-42c4-9582-0675d71120f3.png",
+      "prompt": "Precise local edit to this existing photograph. Correct the rapid-click depiction. The finger nearest the visible thumb, the large currently SHARP finger in the center-right resting on the WHITE mouse button, is the INDEX FINGER. Give ONLY THAT center-right finger a noticeable UP/DOWN tapping-motion blur and 2 translucent vertically lifted afterimages, about 1-2 fingertip heights above its resting position. The OTHER finger at upper-left, currently blurred on the ORANGE mouse button, is the MIDDLE FINGER: make it entirely sharp, motionless and natural, with one single crisp fingertip resting on its button. Swap the orange accent from the far button to the near button under the index if helpful, so the index is clearly on left mouse button (thumb side). Preserve the hand pose, mouse, visible thumb, wrist, warm ivory desk, lighting, photography, landscape framing. NO blur on thumb, mouse, middle finger or background. NO extra fingers. The near index moves vertically; the far middle remains clear."
+    }
+  }
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useCallback, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { GameWrapper } from "@/components/GameWrapper";
@@ -129,6 +131,7 @@ function GooseGrabGame({ onComplete }: { onComplete: (score: number) => void }) 
   const { t } = useLang();
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [level, setLevel] = useState(1);
   const [itemsLeft, setItemsLeft] = useState(0);
   const [bagTypes, setBagTypes] = useState<number[]>([]);
@@ -148,6 +151,7 @@ function GooseGrabGame({ onComplete }: { onComplete: (score: number) => void }) 
     setBagTypes([]);
     setRunKey((k) => k + 1);
     setPhase("playing");
+    scrollToGameArea();
   }, []);
 
   const handleWin = useCallback(() => setPhase("won"), []);
@@ -249,13 +253,13 @@ function GooseGrabGame({ onComplete }: { onComplete: (score: number) => void }) 
     <>
       {showAd && <AdModal onClose={handleAdClose} />}
 
-      <div className="space-y-3">
+      <div className="goose-workspace space-y-3">
         {/* HUD */}
         <div className="flex items-center justify-between text-xs font-semibold">
           <span className="text-gray-400">{t.tmLevel} {level} · {itemsLeft} 剩</span>
           <button
             onClick={handleShake}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold bg-gradient-to-br from-orange-500 to-red-600 text-white hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/40 transition-all"
+            className="btn-primary min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs"
           >
             <Hand size={14} strokeWidth={2.4} />
             {t.ggShakeBtn}
@@ -264,7 +268,7 @@ function GooseGrabGame({ onComplete }: { onComplete: (score: number) => void }) 
         </div>
 
         {/* 3D scene */}
-        <div className="rounded-2xl overflow-hidden border-2 border-orange-900/50 shadow-xl shadow-orange-900/30 h-[620px] bg-gray-900">
+        <div data-activity-stage className="rounded-2xl overflow-hidden h-[clamp(320px,58svh,620px)] bg-gray-900">
           <GooseGrabScene
             key={runKey}
             totalItems={totalItems}

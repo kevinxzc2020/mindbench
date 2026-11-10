@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
@@ -33,6 +35,7 @@ function TypingGame({
   const passagePool = TYPING_PASSAGES[cfg.passageTier][lang];
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   // Start at a random passage so different attempts feel fresh
   const [passage, setPassage] = useState(() =>
     Math.floor(Math.random() * passagePool.length)

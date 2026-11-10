@@ -26,6 +26,11 @@ export class Main {
     this.touchHandler = new TouchHandler(this.canvas, this);
 
     this.lastTime = 0;
+    // Resize the canvas, not the game state, when the host frame changes size.
+    window.addEventListener('resize', () => {
+      this._setupCanvas();
+      this.renderer.calculateLayout();
+    });
 
     // 开始游戏
     this.gameState.init();

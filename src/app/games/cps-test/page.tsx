@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,7 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
   const { t } = useLang();
   const [duration, setDuration] = useState<Duration>(10);
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [clicks, setClicks] = useState(0);
   const [timeLeft, setTimeLeft] = useState<number>(duration);
   const [peakCps, setPeakCps] = useState(0);
@@ -175,7 +178,7 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
                 className={cn(
                   "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
                   duration === d
-                    ? "bg-rose-600 text-white"
+                    ? "lab-solid bg-rose-600 text-white"
                     : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
                 )}
               >
@@ -225,7 +228,7 @@ function CpsGame({ onComplete }: { onComplete: (score: number) => void }) {
       <button
         onClick={handleClick}
         className={cn(
-          "w-full rounded-2xl font-extrabold text-white select-none focus:outline-none transition-all duration-75",
+          "cps-pad lab-solid w-full rounded-2xl font-extrabold text-white select-none focus:outline-none transition-all duration-75",
           "active:scale-[0.97]",
           phase === "idle"
             ? "h-[28rem] bg-rose-600 hover:bg-rose-500 text-2xl shadow-lg shadow-rose-600/30"

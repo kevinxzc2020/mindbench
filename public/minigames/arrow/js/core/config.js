@@ -50,8 +50,8 @@ export const ARROW_COLORS = [
 ];
 
 // Visual
-export const BG_COLOR = '#f5f0e8';
-export const DOT_COLOR = 0xcccccc;
+export const BG_COLOR = '#f4f0e5';
+export const DOT_COLOR = 0xc4cbb8;
 export const GRID_LINE_ALPHA = 0.15;
 export const ARROWHEAD_SIZE = 10;
 

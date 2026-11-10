@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -75,6 +77,7 @@ function NumberChainGame({
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(cfg.timeMs);
   const [phase, setPhase] = useState<"idle" | "playing" | "done">("idle");
+  useGameRunPhase(phase);
   const [chain, setChain] = useState<Array<[number, number]>>([]);
   const [flash, setFlash] = useState(false);
 
@@ -215,14 +218,20 @@ function NumberChainGame({
 
       {/* Grid */}
       <div
-        className={`card p-3 transition-all duration-150 ${flash ? "border-sky-400/60 bg-sky-950/20" : "border-white/10"}`}
+        className={`lab-number-board card p-3 transition-all duration-150 ${flash ? "border-sky-400/60 bg-sky-950/20" : "border-white/10"}`}
         style={{ touchAction: "none", userSelect: "none" }}
+        onPointerDown={(event) => event.currentTarget.setPointerCapture(event.pointerId)}
+        onPointerMove={(event) => {
+          const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-grid-row]");
+          if (cell && event.currentTarget.contains(cell)) extendDrag(Number(cell.dataset.gridRow), Number(cell.dataset.gridCol));
+        }}
+        onPointerCancel={endDrag}
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
       >
         <div className="flex flex-col gap-2">
           {grid.map((row, r) => (
-            <div key={r} className="flex gap-2">
+            <div key={r} className="lab-number-row">
               {row.map((val, c) => {
                 const inChain = chainSet.has(`${r},${c}`);
                 const isHead = chain.length > 0 && chain[chain.length - 1][0] === r && chain[chain.length - 1][1] === c;
@@ -238,16 +247,9 @@ function NumberChainGame({
                     key={c}
                     onPointerDown={(e) => { e.preventDefault(); startDrag(r, c); }}
                     onPointerEnter={() => extendDrag(r, c)}
-                    className={`w-[52px] h-[52px] sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center
-                      text-lg font-black cursor-pointer relative transition-all duration-75 ${
-                        isHead
-                          ? "bg-sky-400 border-sky-200 text-white scale-110 shadow-lg shadow-sky-400/40"
-                          : inChain
-                          ? "bg-sky-600/80 border-sky-400 text-white scale-105"
-                          : canExtend
-                          ? "bg-sky-900/40 border-sky-400/50 text-sky-300 ring-1 ring-sky-400/50"
-                          : "bg-slate-700 border-white/10 text-white hover:border-white/30"
-                      }`}
+                    data-grid-row={r} data-grid-col={c}
+                    data-selected={inChain} data-next={canExtend}
+                    className="lab-number-tile flex items-center justify-center text-lg font-bold relative cursor-pointer"
                   >
                     {val}
                     {inChain && chainIdx >= 0 && (

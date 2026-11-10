@@ -52,3 +52,5 @@
   .section h2 { font-size: 17px; }
   .contact { padding: 20px 16px; }
 }
+/* Information pages share the light reading surface. */
+.page { max-width:1160px; padding-top:38px; }.header h1 { font-size:clamp(34px,4.5vw,54px); line-height:1.15; }.intro,.section p,.notice p,.resources a { color:#6e7962; }.contact { background:#edf1e3; border:1px solid #dbe5cd; border-radius:12px; }.notice { border-radius:8px; }.section h2 { color:#465d34; }.navigation a { color:#7b8c68; }

@@ -14,7 +14,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { useGLTF, OrthographicCamera } from "@react-three/drei";
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
 const MODEL_FILES = [
@@ -131,12 +131,23 @@ export default function GooseBagDisplay({
   types: number[];
   capacity: number;
 }) {
+  const holderRef = useRef<HTMLDivElement>(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
+  useEffect(() => {
+    const node = holderRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(([entry]) => setAvailableWidth(entry.contentRect.width));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   // Canvas 总宽度（覆盖整个槽位排）
   const totalWidth = capacity * SLOT_PX + (capacity - 1) * GAP_PX;
 
+  const scale = availableWidth ? Math.min(1, availableWidth / totalWidth) : 1;
   return (
     <div className="rounded-xl bg-gray-900/80 border border-orange-900/40 p-2">
-      <div className="relative mx-auto" style={{ width: totalWidth, height: SLOT_PX }}>
+      <div ref={holderRef} style={{ width: "100%", height: SLOT_PX * scale, overflow: "hidden" }}>
+      <div className="relative mx-auto" style={{ width: totalWidth, height: SLOT_PX, transform: `scale(${scale})`, transformOrigin: "top left", marginLeft: availableWidth > totalWidth ? (availableWidth - totalWidth) / 2 : 0 }}>
         {/* DOM 槽位边框（背景层） */}
         <div className="absolute inset-0 flex gap-[6px]">
           {Array.from({ length: capacity }, (_, i) => {
@@ -146,7 +157,7 @@ export default function GooseBagDisplay({
                 key={i}
                 className={`rounded-lg border transition-all flex-shrink-0 ${
                   filled
-                    ? "border-orange-600/60 bg-gray-900/90"
+                    ? "border-orange-600/60 bg-gray-800"
                     : "border-gray-700/40 bg-gray-800/30"
                 }`}
                 style={{ width: SLOT_PX, height: SLOT_PX }}
@@ -184,6 +195,7 @@ export default function GooseBagDisplay({
             </Suspense>
           </Canvas>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -23,8 +23,8 @@ function getViewport() {
 const vp = getViewport();
 export const DPR = Number(vp.dpr.toFixed(1));
 // 微信小游戏环境：canvas 大小由平台决定，Phaser 内部以 css 像素绘制更稳
-export const WIDTH = Math.round(vp.width);
-export const HEIGHT = Math.round(vp.height);
+export const WIDTH = 390;
+export const HEIGHT = 844;
 
 export class Main {
   constructor() {
@@ -33,7 +33,8 @@ export class Main {
       parent: 'phaser-example',
       scene: [GameScene],
       scale: {
-        mode: Phaser.Scale.NONE,
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         width: WIDTH,
         height: HEIGHT,
       },
@@ -41,7 +42,7 @@ export class Main {
         pixelArt: false,
         roundPixels: true,
       },
-      backgroundColor: '#2d3142',
+      backgroundColor: '#f4f0e5',
       fps: {
         target: 60,
         forceSetTimeOut: true,

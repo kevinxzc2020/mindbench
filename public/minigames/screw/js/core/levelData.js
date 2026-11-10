@@ -109,7 +109,8 @@ export function generateLevel(seed) {
 
     boards.push({
       id: `b${i}`,
-      x: cx,
+      // Keep the entire plank, including its edge screws, inside the canvas.
+      x: Math.max(shape.w / 2 + 12, Math.min(LEVEL_LOGICAL_W - shape.w / 2 - 12, cx)),
       y: cy,
       w: shape.w,
       h: shape.h,

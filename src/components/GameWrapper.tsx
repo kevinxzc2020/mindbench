@@ -2,16 +2,15 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { GameRunContext } from "./GameRunContext";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import {
   DIFFICULTIES,
-  DIFFICULTY_COLORS,
   type Difficulty,
 } from "@/lib/difficulty";
 import { GAME_ICONS, DIFFICULTY_LUCIDE_ICONS } from "@/lib/icons";
-import { cn } from "@/lib/utils";
 import { ResultProgress, saveLocalResult } from "./ResultProgress";
 
 interface GameWrapperProps {
@@ -42,6 +41,11 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
   const [localSaveFailed, setLocalSaveFailed] = useState(false);
   // bumping this key forces the child game to remount on restart/difficulty change
   const [runKey, setRunKey] = useState(0);
+  const clearRunResult = useCallback(() => {
+    setLatestScore(null);
+    setSaved(false);
+    setError("");
+  }, []);
 
   const handleComplete = async (score: number) => {
     if (!Number.isFinite(score) || score < 0) return;
@@ -91,16 +95,13 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
     setRunKey((k) => k + 1);
   };
 
-  // Auto-scroll：选难度（= 点 START）或换难度时，滚动到游戏区
-  // - runKey === 0 不滚（初始打开页面时别打扰）
-  // - 等 80ms 让新的游戏 DOM 先渲染，再滚才稳
-  // - block: "center" → 把游戏区**居中**对齐到视口中央，而不是顶部对齐
+  // Keep the start of the active board below the sticky header, including on mobile.
   const gameAreaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (runKey === 0) return;
     if (!difficulty) return;
     const t = setTimeout(() => {
-      gameAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      gameAreaRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     }, 80);
     return () => clearTimeout(t);
   }, [runKey, difficulty]);
@@ -120,18 +121,18 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className="game-workspace max-w-5xl mx-auto px-4 py-12">
       {/* Title */}
-      <div className="mb-8 flex items-center gap-4">
+      <div className="game-heading mb-8 flex gap-4">
         <div
-          className={`w-12 h-12 rounded-xl bg-gradient-to-br ${game.color} flex items-center justify-center text-white shadow`}
+          className="game-heading-icon"
         >
           {(() => {
             const Icon = GAME_ICONS[game.id];
             return <Icon size={24} strokeWidth={2.4} />;
           })()}
         </div>
-        <div className="flex-1">
+        <div className="game-heading-copy">
           <h1 className="text-2xl font-bold">{t[game.titleKey]}</h1>
           <p className="text-gray-400 text-sm">{t[game.descKey]}</p>
         </div>
@@ -139,12 +140,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
         {difficulty && !noDifficulty && (
           <button
             onClick={() => resetForNewRun(null)}
-            className={cn(
-              "text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 text-white inline-flex items-center gap-1.5",
-              "bg-gradient-to-br",
-              DIFFICULTY_COLORS[difficulty],
-              "hover:opacity-80 transition-opacity"
-            )}
+            className="game-difficulty-badge"
             title={t.difficultyChoose}
           >
             {(() => {
@@ -169,30 +165,20 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
               </span>
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="game-difficulty">
             {DIFFICULTIES.map((d) => {
               const DI = DIFFICULTY_LUCIDE_ICONS[d];
               return (
                 <button
                   key={d}
                   onClick={() => resetForNewRun(d)}
-                  className={cn(
-                    "group relative rounded-xl p-5 text-left overflow-hidden border border-white/10 transition-all",
-                    "bg-gradient-to-br hover:scale-[1.02] hover:shadow-lg",
-                    DIFFICULTY_COLORS[d]
-                  )}
+                  className="game-difficulty-option"
                 >
-                  <div className="relative z-10 text-white">
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <DI size={22} strokeWidth={2.4} />
-                      <span className="text-lg font-black tracking-wider uppercase">
-                        {diffLabel[d]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-white/80 leading-snug">
-                      {diffDesc[d]}
-                    </p>
+                  <div>
+                    <DI size={22} strokeWidth={2.4} aria-hidden="true" />
+                    <span>{diffLabel[d]}</span>
                   </div>
+                  <p>{diffDesc[d]}</p>
                 </button>
               );
             })}
@@ -203,14 +189,16 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
       {/* Game area (only after difficulty picked)
           id="mb-game-area" 是给 scrollToGameArea() 工具用的全局锚点 */}
       {difficulty && (
-        <div id="mb-game-area" ref={gameAreaRef} key={runKey}>
-          {children(handleComplete, difficulty)}
+        <div id="mb-game-area" className="game-stage" ref={gameAreaRef} key={runKey}>
+          <GameRunContext.Provider value={clearRunResult}>
+            {children(handleComplete, difficulty)}
+          </GameRunContext.Provider>
         </div>
       )}
 
       {/* Score feedback */}
       {latestScore !== null && difficulty && (
-        <div className="mt-8 card p-6 text-center animate-fade-in">
+        <div className="game-result mt-8 card p-6 text-center animate-fade-in">
           <p className="text-gray-400 text-sm mb-2">
             {t.thisScore}
             {!noDifficulty && (

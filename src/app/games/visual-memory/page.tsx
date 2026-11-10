@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { cn } from "@/lib/utils";
@@ -51,6 +53,7 @@ function VisualMemoryGame({
   const MAX_MISTAKES = cfg.maxLives;
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [level, setLevel] = useState(1);
   const [targetCells, setTargetCells] = useState<Set<number>>(new Set());
   const [selectedCells, setSelectedCells] = useState<Set<number>>(new Set());
@@ -191,7 +194,7 @@ function VisualMemoryGame({
 
       <div className={`${maxWidth} mx-auto`}>
         <div
-          className="grid gap-2"
+          className="memory-grid grid"
           style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}
         >
           {Array.from({ length: totalCells }, (_, i) => {
@@ -199,30 +202,14 @@ function VisualMemoryGame({
             const isSelected = selectedCells.has(i);
             const isCorrectSelected = isSelected && isTarget;
             const isWrongSelected = isSelected && !isTarget;
-            let cellStyle =
-              "bg-gray-800 border-gray-700 hover:bg-gray-700 cursor-pointer";
-            if (phase === "showing") {
-              cellStyle = isTarget
-                ? "bg-white border-white scale-105 shadow-lg shadow-white/30"
-                : "bg-gray-800 border-gray-700";
-            } else if (phase === "input") {
-              if (isCorrectSelected)
-                cellStyle = "bg-green-500 border-green-400 cursor-default";
-              else if (isWrongSelected)
-                cellStyle = "bg-red-500 border-red-400 cursor-default";
-              else
-                cellStyle =
-                  "bg-gray-800 border-gray-700 hover:bg-gray-700 cursor-pointer";
-            }
             return (
               <button
                 key={i}
                 onClick={() => handleCellClick(i)}
                 disabled={phase !== "input" || isSelected}
-                className={cn(
-                  "aspect-square rounded-lg border-2 transition-all duration-150 focus:outline-none",
-                  cellStyle
-                )}
+                aria-label={`${t.vmTitle} · ${i + 1}`}
+                data-state={phase === "showing" && isTarget ? "active" : isCorrectSelected ? "correct" : isWrongSelected ? "wrong" : "idle"}
+                className="memory-cell"
               />
             );
           })}

@@ -323,7 +323,7 @@ export class GameScene extends Phaser.Scene {
 
     // Slider handle
     const handleX = sliderLeft + ((this.currentZoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * sliderWidth;
-    this.sliderHandle = this.add.circle(handleX, sliderY, 10, 0x4ecdc4, 1);
+    this.sliderHandle = this.add.circle(handleX, sliderY, 10, 0xd94d31, 1);
     this.sliderHandle.setStrokeStyle(2, 0x333333);
     this.sliderHandle.setInteractive({ draggable: true, useHandCursor: true });
     this.zoomContainer.add(this.sliderHandle);
@@ -1031,13 +1031,13 @@ export class GameScene extends Phaser.Scene {
   showGameOverUI(isWin) {
     if (this.status === 'playing') return;
     this.clearGameOverUI();
-    const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x000000, 0.7);
+    const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0xfffdf4, 0.96);
     overlay.setDepth(300);
 
     const title = isWin ? gameText('arrowWin', '🎉 恭喜通关！') : gameText('arrowLose', '💔 游戏结束');
     const titleText = this.add.text(WIDTH / 2, HEIGHT / 2 - 60, title, {
       fontSize: '32px',
-      color: '#ffffff',
+      color: '#343d2c',
       fontFamily: 'Arial',
     }).setOrigin(0.5).setDepth(301);
 
@@ -1047,16 +1047,16 @@ export class GameScene extends Phaser.Scene {
 
     const statsText = this.add.text(WIDTH / 2, HEIGHT / 2 - 10, statsStr, {
       fontSize: '18px',
-      color: '#cccccc',
+      color: '#647057',
     }).setOrigin(0.5).setDepth(301);
 
-    const btnBg = this.add.rectangle(WIDTH / 2, HEIGHT / 2 + 60, 160, 50, 0x4ecdc4, 1);
+    const btnBg = this.add.rectangle(WIDTH / 2, HEIGHT / 2 + 60, 160, 50, 0xd94d31, 1);
     btnBg.setDepth(301);
     btnBg.setInteractive({ useHandCursor: true });
 
     const buttonText = this.add.text(WIDTH / 2, HEIGHT / 2 + 60, gameText('arrowReplay', '再来一局'), {
       fontSize: '22px',
-      color: '#1a1a2e',
+      color: '#ffffff',
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(302);
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -46,11 +48,12 @@ function SkillshotDodgeGame({
   onComplete: (score: number) => void;
   difficulty: Difficulty;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const cfg = DODGE_CONFIG[difficulty];
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [phase, setPhase]   = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [score, setScore]   = useState(0);
 
   // All mutable game state lives in a ref so the RAF closure never goes stale
@@ -149,11 +152,11 @@ function SkillshotDodgeGame({
       const { player, fireballs, scoreSec } = state;
 
       // Background
-      ctx.fillStyle = "#0f172a";
+      ctx.fillStyle = "#f4f0e5";
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
       // Subtle grid
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.strokeStyle = "rgba(91,105,70,0.12)";
       ctx.lineWidth = 1;
       for (let i = 0; i <= CANVAS_SIZE; i += 40) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, CANVAS_SIZE); ctx.stroke();
@@ -205,9 +208,9 @@ function SkillshotDodgeGame({
       }
 
       // HUD
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillStyle = "#fffef9";
       ctx.fillRect(6, 6, 130, 30);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#3d4932";
       ctx.font = "bold 16px ui-monospace, monospace";
       ctx.fillText(`⏱ ${scoreSec}s`, 14, 26);
     };
@@ -283,7 +286,7 @@ function SkillshotDodgeGame({
         <div className="space-y-3 max-w-md mx-auto text-sm text-gray-300">
           {[
             "Fireballs fly in from the edges — dodge every single one.",
-            "Move with Arrow Keys or WASD.",
+            lang === "zh" ? "方向键 / WASD 移动，也可在场内拖动控制。" : lang === "es" ? "Muévete con las flechas / WASD o arrastra en el campo." : "Move with Arrow Keys / WASD, or drag inside the arena.",
             "One touch = game over. Survive as long as possible.",
             `Up to ${cfg.maxFb} fireballs at speed ${cfg.fbSpeed} — good luck.`,
           ].map((step, i) => (
@@ -326,16 +329,24 @@ function SkillshotDodgeGame({
           {score}s
         </span>
       </div>
-      <div className="relative rounded-2xl overflow-hidden border-2 border-orange-900/50 shadow-xl shadow-orange-900/20">
+      <div data-activity-stage className="dodge-arena relative max-w-xl mx-auto rounded-2xl overflow-hidden border-2 border-orange-900/50 shadow-xl shadow-orange-900/20">
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
           className="w-full block"
+          style={{ touchAction: "none" }}
+          onPointerDown={(event) => event.currentTarget.setPointerCapture(event.pointerId)}
+          onPointerMove={(event) => {
+            if (event.pointerType === "mouse" && event.buttons !== 1) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            gs.current.player.x = Math.max(PLAYER_R, Math.min(CANVAS_SIZE - PLAYER_R, (event.clientX - rect.left) / rect.width * CANVAS_SIZE));
+            gs.current.player.y = Math.max(PLAYER_R, Math.min(CANVAS_SIZE - PLAYER_R, (event.clientY - rect.top) / rect.height * CANVAS_SIZE));
+          }}
         />
       </div>
       <p className="text-center text-xs text-gray-600">
-        Arrow Keys or WASD to move · Don't get hit
+        {lang === "zh" ? "方向键 / WASD 或拖动 · 避开火球" : lang === "es" ? "Flechas / WASD o arrastrar · Esquiva las bolas de fuego" : "Arrow Keys / WASD or drag · Dodge the fireballs"}
       </p>
     </div>
   );

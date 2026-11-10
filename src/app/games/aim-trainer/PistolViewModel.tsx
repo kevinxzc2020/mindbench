@@ -1,8 +1,9 @@
 "use client";
 
 import * as THREE from "three";
-import { useFBX, useAnimations } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useAnimations } from "@react-three/drei";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+import { useFrame, useLoader } from "@react-three/fiber";
 import {
   Suspense,
   useEffect,
@@ -166,7 +167,16 @@ function PistolModelInner({
 }: {
   recoilRef: MutableRefObject<number>;
 }) {
-  const fbx = useFBX(PISTOL_FBX_PATH);
+  const fbx = useLoader(FBXLoader, PISTOL_FBX_PATH, (loader) => {
+    const manager = new THREE.LoadingManager();
+    manager.setURLModifier((url) => {
+      if (!/\.png$/i.test(url)) return url;
+      const name = url.split(/[\\/]/).pop()!;
+      const aliases: Record<string, string> = { armColor2: "armColor", armNormal_1: "armNormal", armSmoothness: "armRoughness" };
+      return `/resources/pistol/textures/${aliases[name.slice(0, -4)] ?? name.slice(0, -4)}.png`;
+    });
+    loader.manager = manager;
+  });
   const model = useMemo(() => {
     const c = fbx.clone(true);
     c.position.set(0, 0, 0);

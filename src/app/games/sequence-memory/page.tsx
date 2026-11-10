@@ -1,8 +1,9 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
-import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import { SEQUENCE_MEMORY_CONFIG, type Difficulty } from "@/lib/difficulty";
 import { Layers, CircleCheck, CircleX } from "lucide-react";
@@ -31,6 +32,7 @@ function SequenceMemoryGame({
   const GRID_SIZE = cfg.gridSize * cfg.gridSize;
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [level, setLevel] = useState(1);
   const [sequence, setSequence] = useState<number[]>([]);
   const [highlighted, setHighlighted] = useState<number | null>(null);
@@ -171,7 +173,7 @@ function SequenceMemoryGame({
       </div>
 
       <div
-        className={`grid gap-3 ${maxWidth} mx-auto`}
+        className={`memory-grid grid ${maxWidth} mx-auto`}
         style={{ gridTemplateColumns: `repeat(${cfg.gridSize}, 1fr)` }}
       >
         {Array.from({ length: GRID_SIZE }, (_, i) => {
@@ -182,16 +184,9 @@ function SequenceMemoryGame({
               key={i}
               onClick={() => handleCellClick(i)}
               disabled={phase !== "input"}
-              className={cn(
-                "aspect-square rounded-xl border-2 transition-all duration-150 focus:outline-none",
-                isHighlighted
-                  ? "bg-purple-400 border-purple-300 scale-110 shadow-lg shadow-purple-500/50"
-                  : isWrong
-                  ? "bg-red-500 border-red-400"
-                  : phase === "input"
-                  ? "bg-gray-800 border-gray-700 hover:bg-purple-900/50 hover:border-purple-700 cursor-pointer"
-                  : "bg-gray-800 border-gray-700"
-              )}
+              aria-label={`${t.smTitle} · ${i + 1}`}
+              data-state={isHighlighted ? "active" : isWrong ? "wrong" : "idle"}
+              className="memory-cell"
             />
           );
         })}

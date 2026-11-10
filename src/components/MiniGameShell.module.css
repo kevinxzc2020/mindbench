@@ -1,29 +1,29 @@
 .page { max-width: 1420px; margin: 0 auto; padding: 34px 32px 72px; }
 .back { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font: 10px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; }
 .back:hover { color: var(--paper); }
-.header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 28px; padding: 42px 0 24px; }
+.header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 28px; padding: 16px 0 24px; }
 .eyebrow { display: flex; align-items: center; gap: 9px; color: var(--muted); font: 10px/1.6 var(--font-mono); letter-spacing: .06em; }
 .eyebrow span { width: 6px; height: 6px; background: var(--accent); }
-.title { margin-top: 18px; color: var(--paper); font-size: clamp(36px, 5vw, 72px); font-weight: 750; line-height: 1; letter-spacing: -.06em; text-wrap: balance; }
-.description { max-width: 640px; margin-top: 15px; color: #bdbbb1; font-size: 14px; line-height: 1.75; }
+.title { margin-top: 18px; color: var(--paper); font-size: clamp(28px, 3.5vw, 42px); font-weight: 750; line-height: 1; letter-spacing: -.06em; text-wrap: balance; }
+.description { max-width: 640px; margin-top: 15px; color: #68715e; font-size: 14px; line-height: 1.75; }
 .meta { display: grid; justify-items: end; gap: 10px; color: var(--muted); font: 10px/1.5 var(--font-mono); letter-spacing: .05em; text-align: right; }
-.source { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--line); color: #c8c5b9; }
+.source { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--line); color: #68715e; }
 .source::before { content: ""; width: 6px; height: 6px; background: var(--accent); }
-.playLayout { display: grid; grid-template-columns: minmax(0, 500px) minmax(220px, 280px); align-items: start; justify-content: center; gap: 24px; margin-top: 30px; }
-.frame { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); background: #090909; box-shadow: 0 24px 80px #0008; }
-.frameBar { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 43px; padding: 0 15px; border-bottom: 1px solid #ffffff18; color: var(--muted); font: 9px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-.frameBar strong { color: #d8d4c8; font-weight: 500; }
-.frame iframe { display: block; width: 100%; height: auto; min-height: 0; aspect-ratio: 390 / 844; border: 0; background: #111; }
-.guide { position: sticky; top: 96px; padding: 20px; border: 1px solid var(--line); background: #121212; }
+.playLayout { display: grid; grid-template-columns: minmax(0, 390px) minmax(220px, 280px); align-items: start; justify-content: center; gap: 24px; margin-top: 30px; }
+.frame { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); background: #eeefe5; box-shadow: 0 24px 80px #35431f0c; }
+.frameBar { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 43px; padding: 0 15px; border-bottom: 1px solid #dfe2d5; color: var(--muted); font: 9px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.frameBar strong { color: #46523c; font-weight: 500; }
+.frame iframe { display: block; width: 100%; height: auto; min-height: 0; aspect-ratio: 390 / 844; border: 0; background: #f6f5ee; }
+.guide { position: sticky; top: 96px; padding: 20px; border: 1px solid var(--line); background: #fffef9; }
 .guideEyebrow { margin: 0 0 12px; color: var(--accent); font: 10px/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .guideTitle { color: var(--paper); font-size: 24px; line-height: 1.05; letter-spacing: -.04em; }
-.guideText { margin-top: 14px; color: #c8c5b9; font-size: 13px; line-height: 1.65; }
+.guideText { margin-top: 14px; color: #68715e; font-size: 13px; line-height: 1.65; }
 .guideMeta { display: grid; gap: 12px; margin-top: 25px; padding-top: 16px; border-top: 1px solid var(--line); }
 .guideMeta div { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .guideMeta dt { color: var(--muted); font: 9px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-.guideMeta dd { margin: 0; color: #e5e1d7; font: 11px var(--font-mono); text-align: right; }
+.guideMeta dd { margin: 0; color: #46523c; font: 11px var(--font-mono); text-align: right; }
 .note { margin-top: 12px; color: var(--muted); font: 10px/1.65 var(--font-mono); }
-.note a { display: inline-flex; align-items: center; gap: 5px; color: #d8d4c8; text-decoration: underline; text-underline-offset: 4px; }
+.note a { display: inline-flex; align-items: center; gap: 5px; color: #46523c; text-decoration: underline; text-underline-offset: 4px; }
 .note a:hover { color: var(--accent); }
 @media (max-width: 900px) {
   .page { padding: 26px 20px 52px; }
@@ -42,3 +42,38 @@
   .guide { padding: 16px; }
   .guideTitle { font-size: 21px; }
 }
+
+/* Full game content stays inside the frame; only the document scrolls. */
+.page { max-width:1024px; padding-top:12px; }
+.header { border-bottom:1px solid var(--line); }
+.source { border-radius:6px; font-size:9px; }
+.frame { border-radius:14px; }
+.frame iframe { aspect-ratio:auto; height:clamp(440px, calc(100svh - 155px), 780px); background:#f6f5ee; }
+.frameBar { min-height:48px; padding:0 8px 0 16px; background:#fffef9; }
+.frameActions { display:flex; gap:3px; }
+.frameActions button { display:grid; place-items:center; width:44px; height:44px; border-radius:7px; color:#66705d; }
+.frameActions button:hover { background:#edf0e4; color:#d94d31; }
+.guide { border-radius:12px; }
+.guideTitle { font-size:22px; line-height:1.3; }
+.frame:fullscreen { border:0; border-radius:0; width:100%; height:100dvh; background:#f6f5ee; display:flex; flex-direction:column; }
+.frame:fullscreen .frameBar { flex-shrink:0; }
+.frame:fullscreen iframe { flex:1; height:0; min-height:0; }
+@media(max-width:900px) {
+ .playLayout { max-width:520px; margin-inline:auto; }
+ .guide { order:-1; padding:16px; }
+ .guideTitle,.guideMeta,.guideEyebrow { display:none; }
+ .guideText { margin:0; font-size:13px; }
+ .meta { display:none; }
+ .header { padding-top:12px; }
+}
+@media(max-width:480px) {
+ .page { padding:12px 16px 32px; }
+ .title { font-size:30px; margin-top:10px; line-height:1.15; }
+ .frame iframe { height:clamp(440px,calc(100svh - 120px),740px); }
+ .playLayout { margin-top:18px; gap:12px; }
+ .note { font-size:11px; }
+}
+
+.frame.expanded { position:fixed; inset:0; z-index:200; width:100%; height:100dvh; border:0; border-radius:0; display:flex; flex-direction:column; }
+.frame.expanded .frameBar { flex-shrink:0; }
+.frame.expanded iframe { flex:1; height:0; min-height:0; }

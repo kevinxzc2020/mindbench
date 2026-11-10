@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { GameWrapper } from "@/components/GameWrapper";
@@ -118,6 +120,7 @@ function BlackHoleGame({ onComplete }: { onComplete: (score: number) => void }) 
   const renderer = useGodotAvailability();
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [mass, setMass] = useState(cfg.startMass);
   const [timeLeft, setTimeLeft] = useState<number>(cfg.durationSec);
   const [runKey, setRunKey] = useState(0);

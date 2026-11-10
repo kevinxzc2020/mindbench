@@ -22,8 +22,8 @@ function getViewport() {
 
 const vp = getViewport();
 export const DPR = Number(vp.dpr.toFixed(1));
-export const WIDTH = Math.round(vp.width);
-export const HEIGHT = Math.round(vp.height);
+export const WIDTH = 390;
+export const HEIGHT = 844;
 
 export class Main {
   constructor() {
@@ -32,7 +32,8 @@ export class Main {
       parent: 'phaser-example',
       scene: [GameScene],
       scale: {
-        mode: Phaser.Scale.NONE,
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         width: WIDTH,
         height: HEIGHT,
       },
@@ -40,7 +41,7 @@ export class Main {
         pixelArt: false,
         roundPixels: true,
       },
-      backgroundColor: '#bde0fe',
+      backgroundColor: '#f4f0e5',
       fps: {
         target: 60,
         forceSetTimeOut: true,

@@ -7,7 +7,6 @@ import { buildShuffleSeed } from "@/lib/tarot-seeded";
 
 const CARD_BACK_URL = "/resources/card/cardlow.png";
 const CARD_BACK_MASK_URL = "/resources/card/cardmasklow.png";
-const TABLE_BACKGROUND_URL = "/resources/card/background.png";
 const CARD_COUNT = 78;
 /** 选牌飞到顶栏的时长 */
 const PICK_FLY_DURATION_MS = 580;
@@ -443,7 +442,7 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
           height: layoutH,
           preference: "webgl",
           powerPreference: "high-performance",
-          backgroundColor: 0x121520,
+          backgroundColor: 0xf1ecdf,
           backgroundAlpha: 1,
           antialias: true,
           /** 折中清晰度与性能：高 DPI 屏提高清晰度，但限制上限避免负载过高 */
@@ -465,9 +464,8 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
           touchAction: "none",
         });
 
-        const [tex, bgTex, cardMaskTex] = await Promise.all([
+        const [tex, cardMaskTex] = await Promise.all([
           Assets.load<Texture>(CARD_BACK_URL),
-          Assets.load<Texture>(TABLE_BACKGROUND_URL),
           Assets.load<Texture>(CARD_BACK_MASK_URL),
         ]);
         if (!tex || tex.orig.width < 2) {
@@ -475,9 +473,6 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
         }
         const cardTexW = Math.max(1, tex.orig.width);
         const cardTexH = Math.max(1, tex.orig.height);
-        if (!bgTex || bgTex.orig.width < 2) {
-          throw new Error("table background texture invalid");
-        }
         if (!cardMaskTex || cardMaskTex.orig.width < 2) {
           throw new Error("card mask texture invalid");
         }
@@ -504,11 +499,12 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
           return task;
         };
 
-        const tableBg = new Sprite(bgTex);
-        const bgTw = Math.max(1, bgTex.orig.width);
-        const bgTh = Math.max(1, bgTex.orig.height);
-        tableBg.scale.set(layoutW / bgTw, layoutH / bgTh);
-        tableBg.position.set(0, 0);
+        const tableBg = new Graphics();
+        const paintTable = (width: number, height: number) => {
+          tableBg.clear().rect(0, 0, width, height).fill(0xf1ecdf);
+          tableBg.roundRect(12, 12, Math.max(1, width - 24), Math.max(1, height - 24), 14).stroke({ width: 1, color: 0xcfc6b2, alpha: 0.8 });
+        };
+        paintTable(layoutW, layoutH);
         tableBg.eventMode = "none";
         app.stage.addChild(tableBg);
 
@@ -1175,7 +1171,7 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
           Composite.add(eng.world, walls);
 
           app.renderer.resize(nw, nh);
-          tableBg.scale.set(nw / bgTw, nh / bgTh);
+          paintTable(nw, nh);
           layoutW = nw;
           layoutH = nh;
           if (gatherCompletedLocal && !spreadCompletedLocal) {
@@ -2099,7 +2095,7 @@ export function TarotShuffleStage({ onComplete, onBack, pickCount }: Props) {
 
         <div
           ref={hostRef}
-          className="relative w-full flex-1 min-h-[200px] rounded-xl border border-gray-700/60 bg-[#0b0e18] overflow-hidden"
+          className="relative w-full flex-1 min-h-[200px] rounded-xl border border-gray-700/60 bg-[#f1ecdf] overflow-hidden"
         />
         {loadError && (
           <p className="text-sm text-red-400 shrink-0">

@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import dynamic from "next/dynamic";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
@@ -26,16 +28,17 @@ const AimFpsExperience = dynamic(
 
 const CANVAS_ID = "aim-fps-lock";
 
-type Phase = "idle" | "countdown" | "running" | "done";
+type Phase = "idle" | "preparing" | "countdown" | "running" | "done";
 
 function randomTarget3D(
-  prev?: [number, number, number]
+  prev?: [number, number, number],
+  touchMode = false
 ): [number, number, number] {
-  const xMin = -7.2;
-  const xMax = 7.2;
+  const xMin = touchMode ? -1.6 : -7.2;
+  const xMax = touchMode ? 1.6 : 7.2;
   const yMin = 0.82;
   const yMax = 3.05;
-  const zNear = -3.6;
+  const zNear = touchMode ? -7 : -3.6;
   const zFar = -16.2;
   let attempts = 0;
   let x: number, y: number, z: number;
@@ -69,12 +72,20 @@ function AimGame({
   onComplete: (score: number) => void;
   difficulty: Difficulty;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const [touchMode, setTouchMode] = useState(false);
+  useEffect(() => {
+    const media = matchMedia("(pointer: coarse)");
+    const update = () => setTouchMode(media.matches);
+    update(); media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const cfg = AIM_TRAINER_CONFIG[difficulty];
   const durationSec = cfg.durationSec;
   const sphereRadius = cfg.sphereRadius;
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState<number>(durationSec);
   const [hits, setHits] = useState(0);
@@ -86,6 +97,9 @@ function AimGame({
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [targetLifeProgress, setTargetLifeProgress] = useState(1);
   const [pointerLocked, setPointerLocked] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
+  const markSceneReady = useCallback(() => setSceneReady(true), []);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const idRef = useRef(0);
   const gameTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -108,7 +122,7 @@ function AimGame({
   const spawnTarget = useCallback(
     (prevPos?: [number, number, number]) => {
       clearDespawnTimers();
-      const pos = randomTarget3D(prevPos);
+      const pos = randomTarget3D(prevPos, touchMode);
       idRef.current += 1;
       setTargetKey(idRef.current);
       setTargetPos(pos);
@@ -129,12 +143,13 @@ function AimGame({
         }, life);
       }
     },
-    [cfg.targetLifeMs]
+    [cfg.targetLifeMs, touchMode]
   );
 
   const startGame = useCallback(() => {
     setCountdown(3);
-    setPhase("countdown");
+    setPhase("preparing");
+    setSceneReady(false);
     setPointerLocked(false);
     hitsRef.current = 0;
     missesRef.current = 0;
@@ -145,6 +160,11 @@ function AimGame({
     setTimeLeft(durationSec);
     setTargetPos(null);
 
+  }, [durationSec]);
+
+  useEffect(() => {
+    if (phase !== "preparing" || !sceneReady || (!touchMode && !pointerLocked)) return;
+    setPhase("countdown");
     let count = 3;
     const cdInterval = setInterval(() => {
       count -= 1;
@@ -171,12 +191,14 @@ function AimGame({
         setCountdown(count);
       }
     }, 1000);
-  }, [durationSec, onComplete, spawnTarget]);
+    countdownRef.current = cdInterval;
+  }, [phase, sceneReady, touchMode, pointerLocked, durationSec, onComplete, spawnTarget]);
 
   useEffect(
     () => () => {
       clearGameTick();
       clearDespawnTimers();
+      if (countdownRef.current) clearInterval(countdownRef.current);
     },
     []
   );
@@ -211,7 +233,8 @@ function AimGame({
 
   const requestCanvasLock = () => {
     const el = document.getElementById(CANVAS_ID);
-    el?.requestPointerLock();
+    if (!el?.requestPointerLock) { setTouchMode(true); return; }
+    Promise.resolve(el.requestPointerLock()).catch(() => setTouchMode(true));
   };
 
   if (phase === "done") {
@@ -269,11 +292,15 @@ function AimGame({
     ? `${durationSec}s · 3D · r≈${sphereRadius.toFixed(2)} · ${(cfg.targetLifeMs! / 1000).toFixed(1)}s despawn`
     : `${durationSec}s · 3D · r≈${sphereRadius.toFixed(2)}`;
 
-  const showFpsView = phase === "countdown" || phase === "running";
+  const showFpsView = phase === "preparing" || phase === "countdown" || phase === "running";
   const fallbackPos: [number, number, number] = [-4, 1.8, -10];
 
   return (
-    <div className="space-y-4">
+    <div className="aim-workspace space-y-4">
+      {phase === "idle" && <div className="flex flex-wrap gap-2" role="group" aria-label={lang === "zh" ? "操作方式" : "Controls"}>
+        <button className="btn-secondary" aria-pressed={touchMode} onClick={() => setTouchMode(true)}>{lang === "zh" ? "直接点按" : lang === "es" ? "Toque directo" : "Direct tap"}</button>
+        <button className="btn-secondary" aria-pressed={!touchMode} onClick={() => setTouchMode(false)}>{lang === "zh" ? "鼠标视角" : lang === "es" ? "Vista con ratón" : "Mouse look"}</button>
+      </div>}
       <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
         <div
           className={cn(
@@ -312,7 +339,7 @@ function AimGame({
       </div>
 
       {/* 固定高度：子级 h-full / R3F resize 才能拿到正确 clientHeight，否则会只渲染上半屏 */}
-      <div className="relative h-[clamp(420px,62vh,720px)] w-full rounded-2xl overflow-hidden bg-gray-950 ring-1 ring-gray-800">
+      <div data-aim-stage className="relative h-[clamp(420px,62vh,720px)] w-full rounded-2xl overflow-hidden bg-gray-950 ring-1 ring-gray-800">
         {phase === "idle" && (
           <button
             type="button"
@@ -322,7 +349,7 @@ function AimGame({
             <Target size={64} strokeWidth={1.8} className="text-cyan-400" />
             <span className="text-xl font-bold">{t.aimClickToStart}</span>
             <span className="text-sm text-gray-400 max-w-md text-center px-4">
-              {t.aimInstruction}
+              {touchMode ? ({ en: "Tap each sphere directly.", zh: "直接轻点每个圆球。", es: "Toca cada esfera." }[lang]) : t.aimInstruction}
             </span>
             <span className="text-xs text-gray-500 mt-2">{difficultyNote}</span>
           </button>
@@ -332,8 +359,10 @@ function AimGame({
           <>
             <div className="absolute inset-0 z-0">
               <AimFpsExperience
+                onReady={markSceneReady}
                 active={phase === "running"}
                 pointerLocked={pointerLocked}
+                touchMode={touchMode}
                 onPointerLockChange={setPointerLocked}
                 canvasId={CANVAS_ID}
                 sphereRadius={sphereRadius}
@@ -346,6 +375,8 @@ function AimGame({
               />
             </div>
 
+            {phase === "preparing" && !sceneReady && <div className="absolute inset-0 z-30 grid place-items-center bg-white/85" role="status">{lang === "zh" ? "正在准备场景，计时尚未开始…" : "Preparing the scene. Timer has not started…"}</div>}
+
             {phase === "countdown" && (
               <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/55 pointer-events-none">
                 <span className="text-8xl font-black text-cyan-400 animate-bounce-in">
@@ -354,7 +385,7 @@ function AimGame({
               </div>
             )}
 
-            {phase === "running" && !pointerLocked && (
+            {(phase === "preparing" || phase === "running") && sceneReady && !pointerLocked && !touchMode && (
               <button
                 type="button"
                 className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-black/65 text-white px-6"

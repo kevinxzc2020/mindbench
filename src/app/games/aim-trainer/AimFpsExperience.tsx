@@ -21,7 +21,7 @@ function Room({ grid }: { grid: THREE.GridHelper }) {
       <mesh position={ROOM_CENTER.toArray()} receiveShadow>
         <boxGeometry args={[22, 5.4, 28]} />
         <meshStandardMaterial
-          color="#eef2f7"
+          color="#f3efe3"
           side={THREE.BackSide}
           roughness={0.82}
           metalness={0.04}
@@ -29,7 +29,7 @@ function Room({ grid }: { grid: THREE.GridHelper }) {
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]} receiveShadow>
         <planeGeometry args={[48, 48]} />
-        <meshStandardMaterial color="#9ca3af" roughness={0.92} metalness={0.04} />
+        <meshStandardMaterial color="#b5b49e" roughness={0.92} metalness={0.04} />
       </mesh>
       <primitive object={grid} position={[0, 0.02, 0]} />
     </>
@@ -69,8 +69,8 @@ const TargetSphere = forwardRef<
       <mesh ref={assignRef} castShadow userData={{ isTarget: true }}>
         <sphereGeometry args={[1, 40, 40]} />
         <meshStandardMaterial
-          color="#5eead4"
-          emissive="#06b6d4"
+          color="#e66b40"
+          emissive="#b74925"
           emissiveIntensity={0.95}
           metalness={0.35}
           roughness={0.28}
@@ -85,7 +85,7 @@ const TargetSphere = forwardRef<
         >
           <sphereGeometry args={[1, 28, 28]} />
           <meshBasicMaterial
-            color="#e0f2fe"
+            color="#fae3cd"
             transparent
             opacity={0.18 * lifeProgress + 0.04}
             depthWrite={false}
@@ -132,6 +132,7 @@ function pointerLockIsOnCanvasRoot(canvasId: string): boolean {
 function ShootRaycaster({
   active,
   canShoot,
+  touchMode,
   canvasId,
   targetMeshRef,
   onHit,
@@ -140,6 +141,7 @@ function ShootRaycaster({
 }: {
   active: boolean;
   canShoot: boolean;
+  touchMode: boolean;
   canvasId: string;
   targetMeshRef: React.MutableRefObject<THREE.Mesh | null>;
   onHit: () => void;
@@ -152,9 +154,11 @@ function ShootRaycaster({
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (!active || !canShoot || e.button !== 0) return;
-      if (!pointerLockIsOnCanvasRoot(canvasId)) return;
+      if (!touchMode && !pointerLockIsOnCanvasRoot(canvasId)) return;
       recoilRef.current = 1;
-      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+      const rect = gl.domElement.getBoundingClientRect();
+      const point = touchMode ? new THREE.Vector2((e.clientX - rect.left) / rect.width * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1) : new THREE.Vector2(0, 0);
+      raycaster.setFromCamera(point, camera);
       const target = targetMeshRef.current;
       const list = target && target.visible ? [target] : [];
       const hits = raycaster.intersectObjects(list, true);
@@ -170,13 +174,15 @@ function ShootRaycaster({
       else onMiss();
     };
     // Capture: clicks go to the pointer-lock target (wrapper div), not always the <canvas>
-    document.addEventListener("mousedown", onDown, true);
-    return () => document.removeEventListener("mousedown", onDown, true);
+    const surface = touchMode ? gl.domElement : document;
+    surface.addEventListener("pointerdown", onDown as EventListener, true);
+    return () => surface.removeEventListener("pointerdown", onDown as EventListener, true);
   }, [
     active,
     camera,
     canvasId,
     canShoot,
+    touchMode,
     gl.domElement,
     onHit,
     onMiss,
@@ -190,6 +196,7 @@ function ShootRaycaster({
 function Scene({
   active,
   pointerLocked,
+  touchMode,
   canvasId,
   sphereRadius,
   targetPosition,
@@ -202,6 +209,7 @@ function Scene({
 }: {
   active: boolean;
   pointerLocked: boolean;
+  touchMode: boolean;
   canvasId: string;
   sphereRadius: number;
   targetPosition: THREE.Vector3;
@@ -214,12 +222,12 @@ function Scene({
 }) {
   const targetMeshRef = useRef<THREE.Mesh | null>(null);
   const recoilRef = useRef(0);
-  const canShoot = pointerLocked;
+  const canShoot = pointerLocked || touchMode;
 
   return (
     <>
       <color attach="background" args={["#ffffff"]} />
-      <fog attach="fog" args={["#f1f5f9", 28, 95]} />
+      <fog attach="fog" args={["#f6f2e8", 28, 95]} />
 
       <hemisphereLight
         color="#ffffff"
@@ -249,10 +257,10 @@ function Scene({
       <Room grid={grid} />
 
       <PerspectiveCamera makeDefault position={[0, 1.62, 2.25]} fov={72} near={0.06} far={120}>
-        <ViewModel recoilRef={recoilRef} />
+        {!touchMode && <ViewModel recoilRef={recoilRef} />}
       </PerspectiveCamera>
 
-      <PointerLockControls />
+      {!touchMode && <PointerLockControls />}
 
       {active && (
         <group key={targetId} position={targetPosition}>
@@ -268,6 +276,7 @@ function Scene({
       <ShootRaycaster
         active={active}
         canShoot={canShoot}
+        touchMode={touchMode}
         canvasId={canvasId}
         targetMeshRef={targetMeshRef}
         onHit={onHit}
@@ -278,9 +287,16 @@ function Scene({
   );
 }
 
+function SceneReady({ onReady }: { onReady: () => void }) {
+  useEffect(onReady, [onReady]);
+  return null;
+}
+
 export type AimFpsExperienceProps = {
+  onReady: () => void;
   active: boolean;
   pointerLocked: boolean;
+  touchMode: boolean;
   onPointerLockChange: (locked: boolean) => void;
   canvasId: string;
   sphereRadius: number;
@@ -293,8 +309,10 @@ export type AimFpsExperienceProps = {
 };
 
 export function AimFpsExperience({
+  onReady,
   active,
   pointerLocked,
+  touchMode,
   onPointerLockChange,
   canvasId,
   sphereRadius,
@@ -338,9 +356,11 @@ export function AimFpsExperience({
         }}
       >
         <Suspense fallback={null}>
+          <SceneReady onReady={onReady} />
           <Scene
             active={active}
             pointerLocked={pointerLocked}
+            touchMode={touchMode}
             canvasId={canvasId}
             sphereRadius={sphereRadius}
             targetPosition={pos}

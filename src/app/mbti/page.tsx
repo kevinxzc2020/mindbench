@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { mbtiCharacterImage, mbtiCharacterAccent } from "@/lib/mbti-characters";
@@ -67,6 +67,11 @@ export default function MbtiPage() {
     setChosenIdx(null);
   }
 
+  useEffect(() => {
+    if (phase === "intro") return;
+    document.getElementById("questionnaire-workspace")?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [phase, current]);
+
   // ── Intro screen ────────────────────────────────────────────────────────────
   if (phase === "intro") {
     return (
@@ -114,7 +119,7 @@ export default function MbtiPage() {
     const progress = current / totalQuestions;
 
     return (
-      <div className="max-w-2xl mx-auto px-4 py-10">
+      <div id="questionnaire-workspace" className="max-w-2xl mx-auto px-4 py-10">
         {/* Progress */}
         <div className="mb-6 space-y-2">
           <div className="flex justify-between text-xs text-gray-500 font-medium">
@@ -160,7 +165,7 @@ export default function MbtiPage() {
                   className={cn(
                     "w-full text-left px-5 py-4 rounded-xl border text-sm font-medium transition-all duration-200 flex items-start gap-3",
                     isChosen
-                      ? "bg-brand-600 border-brand-500 text-white scale-[0.99]"
+                      ? "lab-solid bg-brand-600 border-brand-500 text-white scale-[0.99]"
                       : "bg-gray-800/60 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-500 hover:text-white",
                     chosenIdx !== null && !isChosen ? "opacity-40" : ""
                   )}
@@ -204,7 +209,7 @@ export default function MbtiPage() {
     }
 
     return (
-      <div className="max-w-2xl mx-auto px-4 py-10 space-y-5 animate-fade-in">
+      <div id="questionnaire-workspace" className="max-w-2xl mx-auto px-4 py-10 space-y-5 animate-fade-in">
         {/* Type card */}
         <div className="card p-8 text-center space-y-4" style={{ borderTop: `3px solid ${mbtiCharacterAccent(typeInfo.type)}` }}>
           <p className="text-sm font-semibold text-white/70 uppercase tracking-widest">{t.mbtiYourType}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/language-context";
 import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
@@ -220,6 +220,11 @@ export default function IQTestPage() {
     setChosen(null);
   }
 
+  useEffect(() => {
+    if (phase === "intro") return;
+    document.getElementById("questionnaire-workspace")?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [phase, current]);
+
   // ── Intro ────────────────────────────────────────────────────────────────
   if (phase === "intro") {
     return (
@@ -265,7 +270,7 @@ export default function IQTestPage() {
     const progress = ((current) / QUESTIONS.length) * 100;
 
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 space-y-6">
+      <div id="questionnaire-workspace" className="max-w-2xl mx-auto px-4 py-12 space-y-6">
         {/* Progress bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-500">
@@ -391,7 +396,7 @@ export default function IQTestPage() {
   void lang;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12 space-y-6 animate-fade-in">
+    <div id="questionnaire-workspace" className="max-w-2xl mx-auto px-4 py-12 space-y-6 animate-fade-in">
       <div className="card p-8 text-center space-y-4">
         <Brain size={56} strokeWidth={1.8} className="mx-auto text-blue-400" />
         <p className="text-gray-400 text-sm">Estimated IQ Range</p>

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Download, Pause, Play, RotateCcw } from "lucide-react";
 import { useLang } from "@/lib/language-context";
-import { csvLog, LOG_LIMIT, type SessionLog, type DiagnosticTool } from "@/lib/device-diagnostics";
+import { csvLog, LOG_LIMIT, type SessionLog } from "@/lib/device-diagnostics";
 import { COMMON, EVENT_NAMES, localText, toolText } from "./diagnostic-copy";
 import styles from "./DeviceDiagnostics.module.css";
+import { metric, type ReportTool } from "@/lib/device-history";
+import { SaveCheckup } from "./SaveCheckup";
 
 export function useDeviceText() {
   const { lang } = useLang();
@@ -66,7 +68,7 @@ function downloadFile(name: string, contents: string, type: string) {
   const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export function SessionReport<T extends SessionLog>({ session, tool, settings, hasInput, children }: { session: Session<T>; tool: DiagnosticTool; settings: Record<string, unknown>; hasInput: boolean; children: ReactNode }) {
+export function SessionReport<T extends SessionLog>({ session, tool, settings, hasInput, children }: { session: Session<T>; tool: ReportTool; settings: Record<string, unknown>; hasInput: boolean; children: ReactNode }) {
   const { lang, c, t } = useDeviceText();
   const [onlyReview, setOnlyReview] = useState(false);
   const s = session.state.current;
@@ -83,6 +85,10 @@ export function SessionReport<T extends SessionLog>({ session, tool, settings, h
     return detail||"—";
   };
   const exportReport = () => downloadFile(`${fileName()}.json`, JSON.stringify({ version: 1, tool, language: lang, startedAt: session.startedAt.current, exportedAt: new Date().toISOString(), settings, scope: "Browser events received only while this test was active. Observations are not hardware diagnoses. No input events are uploaded by this tool.", retainedEventLimit: LOG_LIMIT, omittedEvents: s.logged - s.log.length, data: s }, null, 2), "application/json");
+  const totals = s as SessionLog & Record<string, unknown>;
+  const labels: Record<string, [string,string,string]> = { presses:["Presses","按下次数","Pulsaciones"],repeats:["Auto-repeat","自动重复","Repetición"],maxChord:["Max simultaneous keys","最多同时按键","Máximo simultáneo"],suspects:["Observations to review","待复核记录","Observaciones a revisar"],rapid:["Rapid click pairs","快速连点对","Pares rápidos"],dragCompleted:["Completed drags","完成拖拽","Arrastres completos"],dragAttempts:["Drag attempts","拖拽次数","Intentos de arrastre"],dragEarly:["Early releases","提前松开","Liberaciones anticipadas"],doubleClicks:["Browser double clicks","浏览器双击","Dobles clics"],events:["Wheel events","滚动事件","Eventos de rueda"],opposite:["Opposite direction events","反向事件","Eventos opuestos"],eligible:["Events on selected axis","所选轴事件","Eventos en el eje"],ignoredZoom:["Excluded zoom events","排除的缩放事件","Zoom excluido"] };
+  const settingLabels: Record<string, [string,string,string]> = { layout:["Keyboard layout","键盘布局","Distribución del teclado"],mode:["Test mode","检测模式","Modo"],rapidRepressThresholdMs:["Rapid repress threshold (ms)","快速复按阈值（ms）","Umbral de repetición rápida (ms)"],rapidClickThresholdMs:["Rapid click threshold (ms)","快速点击阈值（ms）","Umbral de clic rápido (ms)"],thresholdIsHeuristic:["Threshold is a review aid","阈值仅供辅助复核","Umbral orientativo"],expectedDirection:["Expected scroll direction","预期滚动方向","Dirección esperada"],units:["Scroll units","滚动单位","Unidades de desplazamiento"] };
+  const summaryMetrics = [metric("eventsReceived",["Recorded events","记录事件数","Eventos registrados"],s.logged),metric("interruptions",["Pauses","暂停次数","Pausas"],s.interruptions),...Object.entries(labels).flatMap(([key,label])=>typeof totals[key]==="number"?[metric(key,label,totals[key] as number)]:[]),...Object.entries(settings).flatMap(([key,value])=>typeof value==="string"||typeof value==="number"||typeof value==="boolean"?[metric(`setting-${key}`,settingLabels[key]??[key,key,key],value)]:[])];
   return <>
     <section className={styles.report}><div className={styles.sectionHead}><h2>{c("summary")}</h2><span>{s.interruptions} {c("interrupted")}</span></div>{children}
       <div className={styles.exports}><button disabled={session.active || !hasInput} onClick={exportReport}><Download size={15}/>{c("report")} · JSON</button><button disabled={session.active || !hasInput} onClick={() => downloadFile(`${fileName()}.csv`, csvLog(s.log), "text/csv;charset=utf-8")}><Download size={15}/>{c("csv")}</button></div><p className={styles.caption}>{c("exportHint")}</p>
@@ -91,5 +97,6 @@ export function SessionReport<T extends SessionLog>({ session, tool, settings, h
       <p className={styles.caption}>{t("Showing the latest 60 matching events. Exports retain up to 5,000 events; totals include the entire session.", "显示最近 60 条匹配记录；导出最多保留 5,000 条事件，统计总数覆盖整轮检测。", "Se muestran los últimos 60 eventos coincidentes. La exportación conserva hasta 5.000; los totales cubren toda la sesión.")}{s.logged > LOG_LIMIT && ` ${t("Older events omitted:", "已省略较早事件：", "Eventos antiguos omitidos:")} ${s.logged - s.log.length}`}</p>
       {visible.length ? <div className={styles.tableScroll}><table><thead><tr><th>{c("time")} (ms)</th><th>{c("event")}</th><th>{c("target")}</th><th>{c("detail")}</th></tr></thead><tbody>{visible.map((e,i)=><tr key={`${s.logged}-${i}`} className={e.kind === "suspect" ? styles.suspectRow : undefined}><td>{e.at.toFixed(1)}</td><td>{EVENT_NAMES[e.event] ? toolText(lang, EVENT_NAMES[e.event]) : e.event}</td><td>{e.target}</td><td>{detailText(e.event,e.detail)}</td></tr>)}</tbody></table></div> : <p className={styles.empty}>{c(onlyReview ? "noSuspects" : "noEvents")}</p>}
     </section>
+    <SaveCheckup tool={tool} disabled={session.active||!hasInput} metrics={summaryMetrics}/>
   </>;
 }

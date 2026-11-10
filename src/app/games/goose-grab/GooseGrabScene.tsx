@@ -623,7 +623,7 @@ export default function GooseGrabScene({
       dpr={[1, 1.5]}
       style={{
         background:
-          "radial-gradient(circle at 50% 30%, #fde68a 0%, #d97706 35%, #7c2d12 75%, #451a03 100%)",
+          "radial-gradient(circle at 50% 30%, #fffdf5 0%, #f0e8d8 65%, #e1d8c4 100%)",
       }}
     >
       {/* 真实重力 (-9.81) —— 之前 -4 太弱，物品轻飘飘还容易飞出去 */}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useCallback, useRef } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -86,6 +88,7 @@ function VerbalMemoryGame({
   const cfg = VM_CONFIG[difficulty];
 
   const [phase, setPhase]       = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [score, setScore]       = useState(0);
   const [lives, setLives]       = useState(cfg.lives);
   const [word, setWord]         = useState("");
@@ -238,7 +241,7 @@ function VerbalMemoryGame({
           "border-white/10"
         }`}
       >
-        <p className="text-5xl font-black text-white tracking-wide">{word}</p>
+        <p className="text-4xl sm:text-5xl font-black text-white tracking-wide break-words">{word}</p>
         {feedback && (
           <p className={`mt-4 text-sm font-bold ${
             feedback === "correct" ? "text-green-400" : "text-red-400"
@@ -254,7 +257,7 @@ function VerbalMemoryGame({
           onClick={() => answer("seen")}
           disabled={feedback !== null}
           className="py-6 rounded-2xl font-black text-xl
-                     bg-gradient-to-br from-blue-500 to-blue-700 text-white
+                     lab-solid bg-brand-600 text-white
                      hover:scale-105 active:scale-95 disabled:opacity-40 disabled:scale-100
                      shadow-lg shadow-blue-500/30 transition-all"
         >
@@ -264,7 +267,7 @@ function VerbalMemoryGame({
           onClick={() => answer("new")}
           disabled={feedback !== null}
           className="py-6 rounded-2xl font-black text-xl
-                     bg-gradient-to-br from-slate-600 to-slate-800 text-white
+                     bg-gray-800 text-white
                      border border-white/20 hover:scale-105 active:scale-95
                      disabled:opacity-40 disabled:scale-100 transition-all"
         >

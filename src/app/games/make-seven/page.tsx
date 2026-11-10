@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -123,22 +125,6 @@ function initGrid(cfg: { size: number; newVals: number[] }): Grid {
   return g;
 }
 
-// ── Tile colors ───────────────────────────────────────────────────────────────
-const TILE_STYLE: Record<number, string> = {
-  0: "bg-gray-800/60 border-white/5 text-transparent",
-  1: "bg-blue-600  border-blue-400  text-white",
-  2: "bg-cyan-500  border-cyan-300  text-white",
-  3: "bg-teal-500  border-teal-300  text-white",
-  4: "bg-green-500 border-green-300 text-white",
-  5: "bg-yellow-500 border-yellow-300 text-white",
-  6: "bg-orange-500 border-orange-300 text-white",
-};
-
-function tileStyle(val: number) {
-  if (val === 7) return "bg-gradient-to-br from-red-400 to-rose-600 border-red-300 text-white shadow-lg shadow-red-500/40 animate-pulse font-black";
-  return TILE_STYLE[val] ?? "bg-purple-600 border-purple-300 text-white";
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function MakeSevenPage() {
   return (
@@ -165,6 +151,7 @@ function MakeSevenGame({
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
   const [phase, setPhase] = useState<"playing" | "won" | "over">("playing");
+  useGameRunPhase(phase);
   // Track which cells just merged for pop animation
   const [mergedSet, setMergedSet] = useState<Set<string>>(new Set());
   const mergeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -236,7 +223,12 @@ function MakeSevenGame({
   }, []);
 
   // Touch / swipe
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const touchStart = useRef<{ x: number; y: number; id: number } | null>(null);
+  useEffect(() => {
+    const cancelSwipe = () => { touchStart.current = null; };
+    window.addEventListener("resize", cancelSwipe);
+    return () => window.removeEventListener("resize", cancelSwipe);
+  }, []);
 
   const restart = () => {
     setGrid(initGrid(cfg));
@@ -244,14 +236,11 @@ function MakeSevenGame({
     setPhase("playing");
   };
 
-  const cellBase = cfg.size === 4
-    ? "w-[72px] h-[72px] text-2xl sm:w-20 sm:h-20"
-    : "w-[60px] h-[60px] text-xl sm:w-[68px] sm:h-[68px]";
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="merge-workspace flex flex-col items-center gap-5">
       {/* HUD */}
-      <div className="flex gap-4">
+      <div className="merge-hud flex gap-4">
         <div className="card px-5 py-2 text-center">
           <div className="text-[10px] text-gray-500 uppercase tracking-widest">Score</div>
           <div className="text-2xl font-black text-white tabular-nums">{score}</div>
@@ -264,15 +253,18 @@ function MakeSevenGame({
 
       {/* Grid */}
       <div
-        className={`card p-3 select-none cursor-default${slideDir ? ` slide-${slideDir}` : ""}`}
-        onTouchStart={(e) => {
-          const t = e.touches[0];
-          touchStart.current = { x: t.clientX, y: t.clientY };
+        style={{ touchAction: "none" }}
+        className={`lab-number-board card p-3 select-none cursor-default${slideDir ? ` slide-${slideDir}` : ""}`}
+        onPointerDown={(e) => {
+          if (!e.isPrimary || e.button !== 0 || phase !== "playing") return;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          touchStart.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
         }}
-        onTouchEnd={(e) => {
-          if (!touchStart.current) return;
-          const dx = e.changedTouches[0].clientX - touchStart.current.x;
-          const dy = e.changedTouches[0].clientY - touchStart.current.y;
+        onPointerCancel={() => { touchStart.current = null; }}
+        onPointerUp={(e) => {
+          if (!touchStart.current || touchStart.current.id !== e.pointerId) return;
+          const dx = e.clientX - touchStart.current.x;
+          const dy = e.clientY - touchStart.current.y;
           touchStart.current = null;
           if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
           if (Math.abs(dx) > Math.abs(dy)) handleDir(dx > 0 ? "right" : "left");
@@ -281,11 +273,12 @@ function MakeSevenGame({
       >
         <div className="flex flex-col gap-2">
           {grid.map((row, r) => (
-            <div key={r} className="flex gap-2">
+            <div key={r} className="lab-number-row">
               {row.map((val, c) => (
                 <div
                   key={c}
-                  className={`grid-tile ${cellBase} rounded-xl border-2 flex items-center justify-center font-bold ${tileStyle(val)} ${mergedSet.has(`${r},${c}`) ? "tile-merge" : ""}`}
+                  data-value={val}
+                  className={`grid-tile lab-number-tile text-xl flex items-center justify-center font-bold ${mergedSet.has(`${r},${c}`) ? "tile-merge" : ""}`}
                 >
                   {val > 0 ? val : ""}
                 </div>
@@ -296,7 +289,7 @@ function MakeSevenGame({
       </div>
 
       {/* D-pad */}
-      <div className="grid grid-cols-3 gap-1">
+      <div className="merge-controls grid grid-cols-3 gap-1">
         <div />
         <button onClick={() => handleDir("up")} className="btn-ghost p-2 text-lg">↑</button>
         <div />

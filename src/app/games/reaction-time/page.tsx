@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -12,6 +14,7 @@ type Phase =
   | "green"        // 现在！快点！
   | "postGreenRed" // (hell) 绿变红了 — 点了 = 失败
   | "clicked"      // 成功（展示用时）
+  | "done"         // 本轮五次测量已经完成
   | "tooEarly"     // 提前点 / 点了干扰色
   | "failedRed"    // (hell) 点在变红之后
   | "missed";      // (hell) 绿色窗口内没点，红色也没点，错过了
@@ -39,6 +42,7 @@ function ReactionGame({
   const cfg = REACTION_TIME_CONFIG[difficulty];
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [distractorColor, setDistractorColor] =
     useState<DistractorColor | null>(null);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
@@ -126,6 +130,11 @@ function ReactionGame({
   useEffect(() => () => clearAllTimers(), [clearAllTimers]);
 
   const handleClick = () => {
+    if (phase === "done") {
+      setAttempts([]);
+      startWaiting();
+      return;
+    }
     if (
       phase === "idle" ||
       phase === "clicked" ||
@@ -150,7 +159,7 @@ function ReactionGame({
       setReactionTime(rt);
       const newAttempts = [...attempts, rt];
       setAttempts(newAttempts);
-      setPhase("clicked");
+      setPhase(newAttempts.length >= 5 ? "done" : "clicked");
       if (newAttempts.length >= 5) {
         const avg = Math.round(
           newAttempts.reduce((a, b) => a + b, 0) / newAttempts.length
@@ -195,6 +204,9 @@ function ReactionGame({
   } else if (phase === "postGreenRed") {
     message = "✗";
     subMessage = "Too slow — don't click red!";
+  } else if (phase === "done") {
+    message = `${Math.round(attempts.reduce((sum, value) => sum + value, 0) / attempts.length)} ms`;
+    subMessage = `${t.rtAvg} · ${t.restart}`;
   } else if (phase === "clicked" && reactionTime !== null) {
     message = `${reactionTime} ms`;
     subMessage = `${t.rtContinueHint}${5 - attempts.length}${t.rtContinueHint2}`;
@@ -231,7 +243,8 @@ function ReactionGame({
 
       <button
         onClick={handleClick}
-        className={`w-full h-[28rem] rounded-2xl font-bold text-white text-3xl transition-colors duration-75 focus:outline-none select-none ${bgColor}`}
+        data-phase={phase} data-difficulty={difficulty} data-color={phase === "distractor" ? distractorColor : undefined}
+        className={`reaction-pad w-full h-[28rem] rounded-2xl font-bold text-white text-3xl transition-colors duration-75 focus:outline-none select-none ${bgColor}`}
       >
         <div>{message}</div>
         {subMessage && (

@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -76,6 +78,7 @@ function BeatNumberGame({
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(cfg.timeMs);
   const [phase, setPhase] = useState<"idle" | "playing" | "done">("idle");
+  useGameRunPhase(phase);
 
   // Path = ordered list of selected [r,c]
   const [path, setPath] = useState<Array<[number, number]>>([]);
@@ -250,14 +253,20 @@ function BeatNumberGame({
 
       {/* Grid */}
       <div
-        className={`card p-3 transition-all duration-150 ${flash ? "border-green-400/60 bg-green-950/20" : "border-white/10"}`}
+        className={`lab-number-board card p-3 transition-all duration-150 ${flash ? "border-green-400/60 bg-green-950/20" : "border-white/10"}`}
         style={{ touchAction: "none", userSelect: "none" }}
+        onPointerDown={(event) => event.currentTarget.setPointerCapture(event.pointerId)}
+        onPointerMove={(event) => {
+          const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-grid-row]");
+          if (cell && event.currentTarget.contains(cell)) extendDrag(Number(cell.dataset.gridRow), Number(cell.dataset.gridCol));
+        }}
+        onPointerCancel={endDrag}
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
       >
         <div className="flex flex-col gap-1.5">
           {grid.map((row, r) => (
-            <div key={r} className="flex gap-1.5">
+            <div key={r} className="lab-number-row">
               {row.map((val, c) => {
                 const k = key(r, c);
                 const inPath = pathSet.has(k);
@@ -267,14 +276,9 @@ function BeatNumberGame({
                     key={c}
                     onPointerDown={(e) => { e.preventDefault(); startDrag(r, c); }}
                     onPointerEnter={() => extendDrag(r, c)}
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center
-                      text-lg font-black cursor-pointer transition-all duration-75 ${
-                        isHead
-                          ? "bg-green-400 border-green-200 text-white scale-110 shadow-lg shadow-green-400/40"
-                          : inPath
-                          ? "bg-green-600/80 border-green-400 text-white scale-105"
-                          : "bg-slate-700 border-white/10 text-white hover:border-white/30"
-                      }`}
+                    data-grid-row={r} data-grid-col={c}
+                    data-selected={inPath} data-next={false}
+                    className="lab-number-tile flex items-center justify-center text-lg font-bold relative cursor-pointer"
                   >
                     {val}
                   </div>

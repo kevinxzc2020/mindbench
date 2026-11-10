@@ -2,6 +2,7 @@
 .inner { max-width: 1600px; margin: 0 auto; padding: 22px 32px 0; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-bottom: 22px; }
 .brand { flex-shrink: 0; }
+.links { display: grid; gap: 4px; }
 .brand a { display: inline-flex; }
 .brand img { width: 180px; height: 50px; object-fit: contain; }
 .brand p { color: var(--muted); font-size: 11px; line-height: 1.6; }
@@ -13,6 +14,7 @@
   .inner { padding: 20px 20px 0; }
   .top { align-items: flex-start; flex-direction: column; gap: 16px; padding-bottom: 16px; }
   .top nav { justify-content: flex-start; gap: 0 24px; }
+  .links { width: 100%; }
 }
 @media (max-width: 480px) {
   .inner { padding: 18px 16px 0; }
@@ -21,3 +23,15 @@
   .top nav a { font-size: 11px; }
   .bottom { font-size: 8px; }
 }
+
+/* Light laboratory footer */
+.footer { background:#eef0e6; border-color:#dfe4d4; }
+.inner { max-width:1360px; padding:32px 40px 0; }
+.top { gap:35px; padding-bottom:28px; }
+.brand img { width:180px; height:40px; object-fit:cover; object-position:center; }
+.brand p { color:#879177; }
+.top nav a { color:#6e7c5e; font-size:11px; }
+.top nav a:hover,.top nav a[aria-current="page"] { color:#c74a2f; }
+.bottom { border-color:#dce3cf; color:#8e987e; padding-block:20px; }
+@media(max-width:760px) { .inner { padding:24px 24px 0; } .top { gap:15px; } }
+@media(max-width:480px) { .inner { padding-inline:18px; } }

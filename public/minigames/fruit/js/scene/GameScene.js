@@ -58,7 +58,7 @@ export class GameScene extends Phaser.Scene {
     FRUIT_COLOR_NAMES.forEach((name) => {
       this.load.image(`fruit_${name}`, `assets/fruit_${name}.png`);
     });
-    this.load.image('bg_stage', 'assets/bg_stage.png');
+    // Laboratory funnel artwork uses the same geometry as the collision walls.
 
     // Fallback: if any image fails to load (e.g. asset missing), fall back to
     // procedurally-drawn solid-color circles so the game still runs.
@@ -123,7 +123,7 @@ export class GameScene extends Phaser.Scene {
       globalThis.MindBenchGameBridge?.setReviveHandler(() => this.reviveAfterReward());
       notifyGameState('playing');
 
-      this.cameras.main.setBackgroundColor('#bde0fe');
+      this.cameras.main.setBackgroundColor('#f4f0e5');
 
     this.computeGeometry();
     this.drawBackdrop();
@@ -209,23 +209,12 @@ export class GameScene extends Phaser.Scene {
   drawBackdrop() {
     const { w, h, funnelTopY, funnelBottomY, channelLeft, channelRight } = this.geo;
 
-    if (this.textures.exists('bg_stage')) {
-      // Stretch the pre-composed background image to the exact game viewport.
-      // The image was authored with the same funnel ratios used here, so the
-      // visual grass edges align with the physical funnel walls.
-      const bg = this.add.image(w / 2, h / 2, 'bg_stage');
-      bg.setDisplaySize(w, h);
-      bg.setDepth(-100);
-      return;
-    }
-
-    // -------- Fallback (no asset): draw the original flat backdrop --------
     const sky = this.add.graphics();
-    sky.fillStyle(0xbde0fe, 1);
+    sky.fillStyle(0xf4f0e5, 1);
     sky.fillRect(0, 0, w, h);
 
     const wall = this.add.graphics();
-    wall.fillStyle(0x6c3a1f, 1);
+    wall.fillStyle(0xdcccb2, 1);
     wall.beginPath();
     wall.moveTo(0, funnelTopY);
     wall.lineTo(channelLeft, funnelBottomY);
@@ -240,6 +229,10 @@ export class GameScene extends Phaser.Scene {
     wall.lineTo(w, h);
     wall.closePath();
     wall.fillPath();
+    wall.lineStyle(3, 0xb89a73, 1);
+    wall.beginPath(); wall.moveTo(0, funnelTopY); wall.lineTo(channelLeft, funnelBottomY); wall.lineTo(channelLeft, h); wall.strokePath();
+    wall.beginPath(); wall.moveTo(w, funnelTopY); wall.lineTo(channelRight, funnelBottomY); wall.lineTo(channelRight, h); wall.strokePath();
+
   }
 
   buildStaticBodies() {
@@ -563,14 +556,14 @@ export class GameScene extends Phaser.Scene {
 
   // -------------------------------------------------------------------------
   buildHud() {
-    const style = { fontSize: '20px', color: '#1d3557', fontStyle: 'bold' };
+    const style = { fontSize: '20px', color: '#48543c', fontStyle: 'bold' };
     this.hudText = this.add.text(16, 16, '', style).setDepth(1000);
     this.statusText = this.add
       .text(WIDTH / 2, HEIGHT * 0.45, '', { fontSize: '36px', color: '#e63946', fontStyle: 'bold' })
       .setOrigin(0.5)
       .setDepth(1000);
     this.hintText = this.add
-      .text(WIDTH / 2, HEIGHT * 0.5, '', { fontSize: '18px', color: '#1d3557' })
+      .text(WIDTH / 2, HEIGHT * 0.5, '', { fontSize: '18px', color: '#48543c' })
       .setOrigin(0.5)
       .setDepth(1000);
     this.refreshHud();

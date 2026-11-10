@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/language-context";
 import { TarotShuffleStage } from "./TarotShuffleStage";
@@ -45,10 +45,14 @@ export default function TarotPage() {
     setPhase("intro");
   }, []);
 
+  useEffect(() => {
+    if (phase === "shuffle") document.getElementById("tarot-workspace")?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [phase]);
+
   // ── Shuffle (Pixi + Matter) ───────────────────────────────────────────────
   if (phase === "shuffle") {
     return (
-      <div className="mx-auto flex h-[86vh] max-h-[86vh] w-[min(70vw,calc(100vw-1.5rem))] max-w-full min-h-0 flex-col px-2 sm:px-3 pt-4 pb-3">
+      <div id="tarot-workspace" className="scroll-mt-20 mx-auto flex h-[min(780px,82svh)] w-full max-w-6xl min-h-[480px] flex-col px-2 sm:px-3 pt-4 pb-3">
         <div className="min-h-0 flex-1 overflow-hidden">
           <TarotShuffleStage onComplete={finishShuffle} onBack={cancelShuffle} pickCount={drawCount} />
         </div>

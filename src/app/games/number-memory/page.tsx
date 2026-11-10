@@ -1,5 +1,7 @@
 "use client";
 
+import { useGameRunPhase } from "@/components/GameRunContext";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { GameWrapper } from "@/components/GameWrapper";
 import { useLang } from "@/lib/language-context";
@@ -40,6 +42,7 @@ function NumberMemoryGame({
   const cfg = NUMBER_MEMORY_CONFIG[difficulty];
 
   const [phase, setPhase] = useState<Phase>("idle");
+  useGameRunPhase(phase);
   const [level, setLevel] = useState(cfg.startLevel);
   const [target, setTarget] = useState("");
   const [userInput, setUserInput] = useState("");
@@ -173,7 +176,7 @@ function NumberMemoryGame({
         <p className="text-sm text-gray-400">
           {t.level} {level} — {t.nmShowing}
         </p>
-        <div className="text-7xl font-mono font-black tracking-widest text-white animate-fade-in py-6">
+        <div className="memory-number font-mono font-black text-white animate-fade-in py-6" style={{ fontSize: `clamp(1rem, ${Math.min(8, 95 / target.length)}vw, ${Math.min(4.5, 65 / target.length)}rem)` }}>
           {target}
         </div>
         <div className="text-xs text-gray-500">
@@ -235,6 +238,7 @@ function NumberMemoryGame({
 
         <input
           autoFocus
+          aria-label={t.nmInputPlaceholder}
           type="text"
           inputMode="numeric"
           className="input text-center text-3xl font-mono tracking-widest h-16"

@@ -20,10 +20,10 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function scrollToGameArea(): void {
   if (typeof document === "undefined") return;
-  const el = document.getElementById("mb-game-area");
-  if (!el) return;
-  // block: "center" 让游戏区居中对齐到视口中央
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Wait for the new board to mount, then keep its toolbar below the header.
+  requestAnimationFrame(() => {
+    document.getElementById("mb-game-area")?.scrollIntoView({ behavior: "instant", block: "start" });
+  });
 }
 
 // 游戏分类。首页/排行榜/stats 都按这个分组展示。

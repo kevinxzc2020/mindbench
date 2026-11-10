@@ -1,6 +1,6 @@
 /** Browser input observations, not a hardware diagnosis. All times are monotonic milliseconds. */
 export const LOG_LIMIT = 5000;
-export type DiagnosticTool = "keyboard" | "mouse" | "wheel" | "screen" | "speakers" | "microphone";
+export type DiagnosticTool = "keyboard" | "mouse" | "wheel" | "screen" | "speakers" | "microphone" | "webcam" | "gamepad" | "touch" | "pen" | "trackpad" | "environment" | "device-reports";
 export type LogKind = "input" | "notice" | "suspect";
 export interface InputLog { at: number; event: string; target: string; detail: string; kind: LogKind }
 export interface SessionLog { log: InputLog[]; logged: number; interruptions: number }

@@ -11,13 +11,13 @@ export function BrainMark({
 }) {
   return (
     <Image
-      src="/brand/mindbench-wordmark-v2.png"
-      width={size * 4}
-      height={size}
+      src="/brand/mindbench-laboratory-logo.png"
+      width={2172}
+      height={724}
       sizes={`${size * 4}px`}
       className={className}
       alt="MindBench"
-      style={{ objectFit: "contain", flexShrink: 0 }}
+      style={{ width: size * 4, height: size, objectFit: "cover", objectPosition: "center", flexShrink: 0 }}
     />
   );
 }

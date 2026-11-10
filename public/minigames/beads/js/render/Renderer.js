@@ -280,7 +280,7 @@ export class Renderer {
     const notchOffset = 50 * bu; // 刘海屏偏移
 
     // 关卡标题
-    ctx.fillStyle = '#5B3E8A';
+    ctx.fillStyle = '#46523C';
     ctx.font = `bold ${Math.round(24 * bu)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(gameText('beadsTitle', '快乐拼拼豆'), w / 2, 35 * bu + notchOffset);
@@ -563,7 +563,7 @@ export class Renderer {
       const y = l.holdingY + (l.holdingH - cellW) / 2;
 
       // 空格子
-      ctx.fillStyle = '#F0ECF5';
+      ctx.fillStyle = '#E8E7D9';
       ctx.beginPath();
       this.roundRect(ctx, x, y, cellW, cellW, 6 * bu);
       ctx.fill();
@@ -602,7 +602,7 @@ export class Renderer {
 
     // 只有重新开始按钮（居中）
     const btnX = (w - l.btnW) / 2;
-    this.drawButton(btnX, l.btnY, l.btnW, l.btnH, gameText('restart', '重新开始'), '#4ECDC4', true);
+    this.drawButton(btnX, l.btnY, l.btnW, l.btnH, gameText('restart', '重新开始'), '#CF472D', true);
   }
 
   drawButton(x, y, w, h, text, color, enabled) {
@@ -697,7 +697,7 @@ export class Renderer {
     this.roundRect(ctx, boxX, boxY, boxW, boxH, 16 * bu);
     ctx.fill();
 
-    ctx.fillStyle = '#5B3E8A';
+    ctx.fillStyle = '#46523C';
     ctx.font = `bold ${Math.round(26 * bu)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(gameText('beadsWin', '🎉 恭喜完成!'), w / 2, boxY + 55 * bu);
@@ -742,7 +742,7 @@ export class Renderer {
     const prog = gameState.getProgress();
     ctx.fillText(`${gameText('progress', '完成进度')}: ${prog.matched}/${prog.total}`, w / 2, boxY + 95 * bu);
 
-    this.drawButton(boxX + 70 * bu, boxY + 120 * bu, 140 * bu, 44 * bu, gameText('restart', '重新开始'), '#4ECDC4', true);
+    this.drawButton(boxX + 70 * bu, boxY + 120 * bu, 140 * bu, 44 * bu, gameText('restart', '重新开始'), '#CF472D', true);
     ctx.textAlign = 'left';
   }
 

@@ -152,13 +152,13 @@ export class GameScene extends Phaser.Scene {
   buildHUD() {
     this.hudText = this.add.text(WIDTH / 2, this.s(50), gameText('screwTitle', '打个螺丝 · Day 1'), {
       fontSize: `${Math.round(this.s(32))}px`,
-      color: '#ffffff',
+      color: '#343d2c',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.statusText = this.add.text(WIDTH / 2, this.s(88), '', {
       fontSize: `${Math.round(this.s(20))}px`,
-      color: '#cccccc',
+      color: '#647057',
     }).setOrigin(0.5);
   }
 
@@ -223,7 +223,7 @@ export class GameScene extends Phaser.Scene {
     g.fillRoundedRect(box.cx - box.sw / 2, box.cy - box.sh / 2 + this.s(10), box.sw, this.s(14), box.r);
     const hw = this.s(50);
     const hh = this.s(20);
-    g.fillStyle(0x222639, 1);
+    g.fillStyle(0xe5dcc9, 1);
     g.fillRoundedRect(box.cx - hw / 2, box.cy - box.sh / 2 - this.s(2), hw, hh, this.s(8));
     g.fillStyle(fill, 1);
     g.fillRoundedRect(box.cx - hw / 2 + this.s(4), box.cy - box.sh / 2 + this.s(2), hw - this.s(8), hh - this.s(6), this.s(6));
@@ -281,7 +281,7 @@ export class GameScene extends Phaser.Scene {
     // 标题
     this.add.text(WIDTH / 2, this.toScreenY(cy - rectH / 2 - 24), gameText('bufferTitle', '备选区（满 5 即失败）'), {
       fontSize: `${Math.round(this.s(20))}px`,
-      color: '#aaaaaa',
+      color: '#647057',
     }).setOrigin(0.5);
 
     // 矩形框 + 圆洞（合并到 1 个 Graphics）
@@ -294,9 +294,9 @@ export class GameScene extends Phaser.Scene {
     const sr = this.s(20);
 
     // 外框
-    g.fillStyle(0x2a2d44, 1);
+    g.fillStyle(0xe9e1d1, 1);
     g.fillRoundedRect(sx, sy, sw, sh, sr);
-    g.lineStyle(this.s(2), 0x6a6e8e, 0.9);
+    g.lineStyle(this.s(2), 0xb9ae96, 0.9);
     g.strokeRoundedRect(sx, sy, sw, sh, sr);
     // 内层装饰
     g.fillStyle(0xffffff, 0.05);
@@ -304,7 +304,7 @@ export class GameScene extends Phaser.Scene {
 
     // 5 个圆洞
     for (const c of this.bufferHoleCenters) {
-      g.fillStyle(0x14162a, 1);
+      g.fillStyle(0xcfc5af, 1);
       g.fillCircle(c.x, c.y, this.bufferHoleR);
       g.lineStyle(this.s(2), 0x000000, 0.55);
       g.strokeCircle(c.x, c.y, this.bufferHoleR);
@@ -691,7 +691,7 @@ export class GameScene extends Phaser.Scene {
     notifyGameState(result === 'lose' ? 'lost' : 'won');
     const overlay = this.add.graphics();
     overlay.setDepth(10000);
-    overlay.fillStyle(0x000000, 0.7);
+    overlay.fillStyle(0xfffdf4, 0.96);
     overlay.fillRect(0, 0, WIDTH, HEIGHT);
 
     const title = result === 'win' ? gameText('win', '🎉 通关！') : gameText('lose', '💀 失败');
@@ -705,7 +705,7 @@ export class GameScene extends Phaser.Scene {
 
     const tip = this.add.text(WIDTH / 2, HEIGHT / 2 + this.s(40), gameText('replayLevel', '点击屏幕重开（新关卡）'), {
       fontSize: `${Math.round(this.s(28))}px`,
-      color: '#ffffff',
+      color: '#343d2c',
     }).setOrigin(0.5).setDepth(10001);
     console.log('[WIN-DBG] endGame UI created');
 
