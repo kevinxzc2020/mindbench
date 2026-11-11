@@ -1,4 +1,5 @@
 .shell { max-width:1360px; margin:auto; color:#30372a; }
+.topicSection[id] { scroll-margin-top:100px; }
 .detail { padding:25px 40px 50px; }
 .eyebrow { display:flex; gap:9px; align-items:center; color:#6e7b60; font:10px/1.7 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; }
 .breadcrumb { display:flex; align-items:center; gap:10px; flex-wrap:wrap; color:#8b957e; font-size:11px; padding:5px 0 25px; }.breadcrumb a { padding:5px 0; }.breadcrumb a:hover { color:#d94d31; }.breadcrumb span { color:#46523c; }

@@ -13,9 +13,9 @@ import { getAdSenseConfig } from "@/lib/adsense";
 const { clientId: adSenseClientId } = getAdSenseConfig();
 
 export const metadata: Metadata = {
-  title: "MindBench — Tests, tools & curious minds",
+  title: "MindBench — Device checks & everyday tools",
   description:
-    "Explore cognitive tests, personality activities, games and official device resources. Check your keyboard, mouse, screen, speakers and microphone in the device collection.",
+    "Check your keyboard, mouse, scroll wheel, screen, speakers and microphone. Keep local checkup summaries, find official drivers, then explore cognitive tests and games.",
   icons: {
     icon: { url: "/brand/mindbench-laboratory-favicon.png", type: "image/png", sizes: "64x64" },
     apple: { url: "/brand/mindbench-laboratory-apple.png", type: "image/png", sizes: "180x180" },

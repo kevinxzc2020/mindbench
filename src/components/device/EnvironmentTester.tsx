@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -13,11 +14,13 @@ interface EnvironmentSnapshot { at: string; secure: boolean; width: number; heig
 type PolicyDocument = Document & { permissionsPolicy?: { allowsFeature: (feature: string) => boolean }; featurePolicy?: { allowsFeature: (feature: string) => boolean } };
 
 export function EnvironmentTester() {
+  const journey = useCheckupJourney();
   const { t } = useDeviceText();
   const [snapshot, setSnapshot] = useState<EnvironmentSnapshot | null>(null), [busy, setBusy] = useState(false);
   const operation = useRef(0);
   useEffect(() => () => { operation.current++; }, []);
   const inspect = async () => {
+    journey.begin();
     const id = ++operation.current; setBusy(true);
     const policy = (document as PolicyDocument).permissionsPolicy ?? (document as PolicyDocument).featurePolicy;
     const allowed = (feature: string): boolean | null => { try { return policy ? policy.allowsFeature(feature) : null; } catch { return null; } };
@@ -50,7 +53,7 @@ export function EnvironmentTester() {
       <div className={styles.stats}><div><span>{t("Secure context", "安全上下文", "Contexto seguro")}</span><strong>{snapshot.secure ? t("Yes", "是", "Sí") : t("No", "否", "No")}</strong></div><div><span>{t("Viewport · CSS px", "视口 · CSS 像素", "Ventana · px CSS")}</span><strong>{snapshot.width} × {snapshot.height}</strong></div><div><span>{t("Pixel ratio", "像素比例", "Proporción de píxeles")}</span><strong>{snapshot.dpr}</strong></div><div><span>{t("Reported max touch points", "报告的最大触点数", "Máximo táctil informado")}</span><strong>{snapshot.touches}</strong></div></div>
       <div className={styles.grid}><section className={styles.panel}><h2>{t("Permission state", "权限状态", "Permisos")}</h2><p className={styles.hint}>{t("Camera", "摄像头", "Cámara")}: {permissionText(snapshot.camera)}</p><p className={styles.hint}>{t("Microphone", "麦克风", "Micrófono")}: {permissionText(snapshot.microphone)}</p><p className={styles.hint}>{t("A granted permission is not proof that a device is connected. Change denied permissions using the browser's site settings, then check again.", "已允许不代表设备已连接。若被拒绝，请在浏览器的网站权限设置中修改后重新检查。", "Un permiso concedido no confirma un dispositivo conectado. Cambia los permisos denegados en la configuración del sitio.")}</p></section><section className={styles.panel}><h2>{t("Local environment", "本地环境", "Entorno local")}</h2><p className={styles.hint}>{t("Local history storage", "本地记录存储", "Almacenamiento local")}: {snapshot.storage ? t("Write check succeeded", "写入检查成功", "Escritura comprobada") : t("Unavailable", "不可用", "No disponible")}</p><p className={styles.hint}>{t("Screen size reported in CSS pixels", "浏览器报告的屏幕 CSS 尺寸", "Tamaño de pantalla en px CSS")}: {snapshot.screenWidth} × {snapshot.screenHeight}</p><p className={styles.hint}>{t("Coarse pointer / hover", "粗指针／悬停支持", "Puntero grueso / hover")}: {snapshot.coarse ? "✓" : "—"} / {snapshot.hover ? "✓" : "—"}</p></section></div>
       <div className={styles.table}><table><thead><tr><th>{t("Interface", "接口", "Interfaz")}</th><th>{t("Browser support", "浏览器支持", "Soporte")}</th><th>{t("Page policy", "页面策略", "Política")}</th><th>{t("Next step", "下一步", "Siguiente paso")}</th></tr></thead><tbody>{snapshot.rows.map(row => <tr key={row.id}><th>{row.name}</th><td>{row.api ? t("Interface present", "接口存在", "Interfaz presente") : t("Not exposed", "未提供", "No disponible")}</td><td>{row.allowed === false ? t("Blocked", "受限制", "Bloqueado") : row.allowed === true ? t("Allowed by page", "页面策略允许", "Permitido") : t("Not checked / not applicable", "未检查／不适用", "No comprobado / no aplica")}</td><td>{row.route && <Link href={`/tools/${row.route}`}>{t("Open tool →", "打开工具 →", "Abrir →")}</Link>}</td></tr>)}</tbody></table></div>
-      <SaveCheckup tool="environment" metrics={[metric("secure", ["Secure context", "安全上下文", "Contexto seguro"], snapshot.secure), metric("storage", ["Local storage", "本地存储", "Almacenamiento local"], snapshot.storage), metric("touchPoints", ["Reported max touch points", "报告的最大触点数", "Máximo táctil informado"], snapshot.touches), metric("viewport", ["Viewport", "视口", "Ventana"], `${snapshot.width} × ${snapshot.height}`, "CSS px"), metric("dpr", ["Pixel ratio", "像素比例", "Proporción de píxeles"], snapshot.dpr), ...snapshot.rows.map(row => metric(row.id, [row.name, row.name, row.name], row.api))]}/>
+      <SaveCheckup tool="environment" disabled={busy} metrics={[metric("secure", ["Secure context", "安全上下文", "Contexto seguro"], snapshot.secure), metric("storage", ["Local storage", "本地存储", "Almacenamiento local"], snapshot.storage), metric("touchPoints", ["Reported max touch points", "报告的最大触点数", "Máximo táctil informado"], snapshot.touches), metric("viewport", ["Viewport", "视口", "Ventana"], `${snapshot.width} × ${snapshot.height}`, "CSS px"), metric("dpr", ["Pixel ratio", "像素比例", "Proporción de píxeles"], snapshot.dpr), ...snapshot.rows.map(row => metric(row.id, [row.name, row.name, row.name], row.api))]}/>
     </>}
     <p className={styles.hint}>{t("An interface being present does not certify connected hardware or browser compatibility. Screen dimensions are software-reported, not a measurement of native panel resolution. Recheck after changing browser permissions or moving between displays.", "接口存在不代表已连接对应设备，也不保证全部行为兼容。屏幕尺寸是软件报告值，不是面板原生分辨率的实测。修改权限或切换显示器后请重新检查。", "La presencia de una interfaz no certifica hardware conectado ni compatibilidad completa. Las dimensiones son datos de software, no una medida del panel. Repite tras cambiar permisos o pantalla.")}</p>
   </div>;

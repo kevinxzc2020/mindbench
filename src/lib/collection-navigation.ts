@@ -4,10 +4,10 @@ import { GAMES } from "./utils";
 export type CollectionId = "mind" | "devices" | "utilities" | "drivers" | "discover";
 
 export const COLLECTION_NAV: readonly { id: CollectionId; name: Record<Lang, string> }[] = [
-  { id: "mind", name: { en: "Ability tests", zh: "能力测试", es: "Capacidades" } },
   { id: "devices", name: { en: "Device checkup", zh: "设备自检", es: "Dispositivos" } },
   { id: "utilities", name: { en: "Utilities", zh: "实用工具", es: "Herramientas" } },
   { id: "drivers", name: { en: "Drivers", zh: "驱动资料", es: "Controladores" } },
+  { id: "mind", name: { en: "Ability tests", zh: "能力测试", es: "Capacidades" } },
   { id: "discover", name: { en: "Fun & discovery", zh: "趣味探索", es: "Explorar" } },
 ];
 

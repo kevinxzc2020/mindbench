@@ -20,9 +20,13 @@ import { PointerTester } from "./PointerTester";
 import { EnvironmentTester } from "./EnvironmentTester";
 import { DeviceHistory } from "./DeviceHistory";
 import styles from "./DeviceDiagnostics.module.css";
+import { CheckupJourney } from "./CheckupJourney";
 
 const icons={keyboard:Keyboard,mouse:Mouse,wheel:MoveVertical,screen:Monitor,speakers:Headphones,microphone:Mic,webcam:Camera,gamepad:Gamepad2,touch:Hand,pen:PenTool,trackpad:MousePointer2,environment:ScanSearch,"device-reports":History};
 export function DeviceDiagnostics({tool}:{tool:DiagnosticTool}) {
+  return tool === "device-reports" ? <DeviceDiagnosticsContent tool={tool}/> : <CheckupJourney key={tool} tool={tool}><DeviceDiagnosticsContent tool={tool}/></CheckupJourney>;
+}
+function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
   const {lang}=useLang(); const {c,t}=useDeviceText(); const Icon=icons[tool]; const router=useRouter();
   const groups: { label: string; ids: DiagnosticTool[] }[] = [
     { label:t("Input devices","输入设备","Dispositivos de entrada"), ids:["keyboard","mouse","wheel","trackpad","gamepad","touch","pen"] },

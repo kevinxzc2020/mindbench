@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Gamepad2, Play, Square } from "lucide-react";
@@ -14,6 +15,7 @@ interface PadView { id: string; index: number; mapping: string; axes: number[]; 
 const standardNames = ["A / Cross", "B / Circle", "X / Square", "Y / Triangle", "LB / L1", "RB / R1", "LT / L2", "RT / R2", "Back / Select", "Start", "LS / L3", "RS / R3", "D-pad ↑", "D-pad ↓", "D-pad ←", "D-pad →", "Home"];
 
 export function GamepadTester() {
+  const journey = useCheckupJourney();
   const { t } = useDeviceText(); const text = useRef(t); text.current = t;
   const running = useRef(false), frame = useRef(0), selected = useRef(-1), deviceKey = useRef(""), currentPad = useRef<HapticPad | null>(null);
   const stats = useRef<PadStats>(freshPadStats()), restStart = useRef<number | null>(null), restSamples = useRef<number[][]>([]);
@@ -33,6 +35,7 @@ export function GamepadTester() {
     return () => { stop(); window.removeEventListener("blur", stop); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("keydown", escape); };
   }, [stop]);
   const start = () => {
+    journey.begin();
     setError(""); setMessage(""); running.current = true; setActive(true); let lastRender = 0;
     const read = (now: number) => {
       if (!running.current) return;
@@ -73,7 +76,7 @@ export function GamepadTester() {
   return <div className={styles.root}>
     <p className={styles.intro}>{t("Connect a controller by USB or Bluetooth, start listening, then press a controller button so the browser can expose it. Check every button, slowly rotate the sticks, and let them rest before a hands-off sample.", "通过 USB 或蓝牙连接手柄，开始接收后再按手柄按键，让浏览器识别。逐个按键、缓慢转动摇杆，静置后再采集回中样本。", "Conecta un mando por USB o Bluetooth, inicia y pulsa un botón para que el navegador lo detecte. Prueba los botones, gira las palancas y déjalas en reposo antes de medir.")}</p>
     {supported === false && <p className={styles.error}>{t("Gamepad access is not exposed in this browser/context.", "当前浏览器或运行环境未提供手柄访问。", "Este navegador o contexto no ofrece acceso a mandos.")}</p>}
-    <div className={styles.controls}><button className={styles.primary} disabled={supported === false} onClick={() => active ? stop() : start()}>{active ? <Square size={16}/> : <Play size={16}/>} {active ? t("Stop listening", "停止接收", "Detener") : t("Start listening", "开始接收", "Iniciar")}</button><button onClick={() => { resetSample(); setMessage(""); }}>{t("Reset session", "重置本轮", "Reiniciar")}</button><span className={styles.status}>{active ? t("Listening", "正在接收", "Escuchando") : t("Paused", "已暂停", "En pausa")}</span></div>
+    <div className={styles.controls}><button className={styles.primary} disabled={supported === false} onClick={() => active ? stop() : start()}>{active ? <Square size={16}/> : <Play size={16}/>} {active ? t("Stop listening", "停止接收", "Detener") : t("Start listening", "开始接收", "Iniciar")}</button><button onClick={() => { journey.reset(); resetSample(); setMessage(""); }}>{t("Reset session", "重置本轮", "Reiniciar")}</button><span className={styles.status}>{active ? t("Listening", "正在接收", "Escuchando") : t("Paused", "已暂停", "En pausa")}</span></div>
     {error && <p role="alert" className={styles.error}>{error}</p>}{message && <p role="status" className={styles.hint}>{message}</p>}
     <div className={styles.fields}><label>{t("Controller", "手柄设备", "Mando")}<select value={index} onChange={e => choose(Number(e.target.value))}><option value={-1}>{t("Detect first controller", "自动选择首个手柄", "Detectar primer mando")}</option>{pads.map(p => <option key={p.index} value={p.index}>#{p.index + 1} · {p.id}</option>)}</select></label><label>{t("Visual center reference radius", "中心参考圈半径", "Radio de referencia central")}<select value={deadzone} onChange={e => setDeadzone(Number(e.target.value))}>{[.05, .1, .15, .2].map(v => <option key={v} value={v}>{v.toFixed(2)}</option>)}</select></label></div>
     {!pad ? <div className={styles.empty}><Gamepad2 size={42} style={{ margin: "0 auto 16px" }}/>{t("No controller sample yet. Start listening and press a button on your controller. No device is not a failed hardware test.", "尚无手柄样本。开始接收后，请按一下手柄上的按键；未识别到设备不代表硬件损坏。", "Sin muestra de mando. Inicia y pulsa un botón del mando. No detectarlo no significa que esté averiado.")}</div> : <>

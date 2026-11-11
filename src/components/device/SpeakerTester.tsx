@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 import { SaveCheckup } from "./SaveCheckup";
 import { metric } from "@/lib/device-history";
 
@@ -12,6 +13,7 @@ import styles from "./AudioDiagnostics.module.css";
 type Heard = "correct" | "reversed" | "silent" | "distorted" | "unsure";
 interface ListeningNote {at:string;settings:ToneOptions;result:Heard;note:string}
 export function SpeakerTester() {
+  const journey = useCheckupJourney();
   const {t,lang}=useDeviceText();const audio=useRef<HTMLAudioElement>(null),url=useRef(""),operation=useRef(0);
   const [kind,setKind]=useState<ToneKind>("sine"),[frequency,setFrequency]=useState(440),[endFrequency,setEndFrequency]=useState(12000),[seconds,setSeconds]=useState(3),[volume,setVolume]=useState(10);
   const [active,setActive]=useState(false),[starting,setStarting]=useState(false),[elapsed,setElapsed]=useState(0),[duration,setDuration]=useState(0),[last,setLast]=useState<ToneOptions|null>(null),[error,setError]=useState("");
@@ -19,6 +21,7 @@ export function SpeakerTester() {
   const stop=useCallback(()=>{operation.current++;audio.current?.pause();setActive(false);setStarting(false);},[]);
   useEffect(()=>{const hidden=()=>{if(document.hidden)stop();};const escape=(e:KeyboardEvent)=>{if(e.key==="Escape")stop();};document.addEventListener("visibilitychange",hidden);window.addEventListener("keydown",escape);window.addEventListener("blur",stop);return()=>{operation.current++;audio.current?.pause();if(url.current)URL.revokeObjectURL(url.current);document.removeEventListener("visibilitychange",hidden);window.removeEventListener("keydown",escape);window.removeEventListener("blur",stop);};},[stop]);
   const play=async(channel:AudioChannel)=>{
+    journey.begin();
     stop();const id=++operation.current;setStarting(true);setError("");setMessage("");
     const options:ToneOptions={kind,channel,frequency,endFrequency,seconds,volume:volume/100};
     try {

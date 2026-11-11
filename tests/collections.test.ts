@@ -6,8 +6,8 @@ import { GAMES } from "../src/lib/utils";
 import { MINI_GAMES } from "../src/lib/mini-games";
 
 test("homepage and navigation expose the same five categories in the agreed order", () => {
-  assert.deepEqual(COLLECTIONS.map(c => c.id), ["mind", "devices", "utilities", "drivers", "discover"]);
-  assert.deepEqual(COLLECTION_NAV.map(c => c.name.zh), ["能力测试", "设备自检", "实用工具", "驱动资料", "趣味探索"]);
+  assert.deepEqual(COLLECTIONS.map(c => c.id), ["devices", "utilities", "drivers", "mind", "discover"]);
+  assert.deepEqual(COLLECTION_NAV.map(c => c.name.zh), ["设备自检", "实用工具", "驱动资料", "能力测试", "趣味探索"]);
   assert.deepEqual(COLLECTIONS.map(c => c.name), COLLECTION_NAV.map(c => c.name));
 });
 

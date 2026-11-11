@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
 import { useLang } from "@/lib/language-context";
+import { usePrivacy } from "./PrivacyPreferences";
 
 declare global {
   interface Window {
@@ -33,10 +34,13 @@ const COPY = {
 };
 
 /** One top-of-page placement, separate from game filters and gameplay controls. */
-export function AdSenseBanner() {
+export function AdSenseBanner({ placement = "home" }: { placement?: "home" | "result" }) {
   const { lang } = useLang();
   const copy = COPY[lang];
   const config = getAdSenseConfig();
+  const { consent, ready } = usePrivacy();
+  const slot = placement === "result" ? config.resultSlotId : config.homeSlotId;
+  const resultTitle = { en: "After-check advertisement", zh: "检测完成后广告位", es: "Publicidad tras la revisión" }[lang];
 
   if (config.mode === "preview") {
     return (
@@ -48,8 +52,8 @@ export function AdSenseBanner() {
         <div className="ad-preview-canvas">
           <div className="ad-preview-symbol" aria-hidden="true"><span>AD</span></div>
           <div className="ad-preview-copy">
-            <p className="ad-preview-title">{copy.title}</p>
-            <p className="ad-preview-description">{copy.description}</p>
+            <p className="ad-preview-title">{placement === "result" ? resultTitle : copy.title}</p>
+            {placement === "home" && <p className="ad-preview-description">{copy.description}</p>}
           </div>
           <span className="ad-preview-format">{copy.format}</span>
         </div>
@@ -58,9 +62,9 @@ export function AdSenseBanner() {
     );
   }
 
-  if (config.mode !== "live" || !config.clientId || !config.homeSlotId) return null;
+  if (config.mode !== "live" || !config.clientId || !slot || !ready || !consent.advertising) return null;
 
-  return <LiveBanner clientId={config.clientId} slotId={config.homeSlotId} label={copy.label} />;
+  return <LiveBanner key={`${placement}-${slot}`} clientId={config.clientId} slotId={slot} label={copy.label} />;
 }
 
 function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: string; label: string }) {
@@ -112,8 +116,8 @@ function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: str
         style={{ display: "block" }}
         data-ad-client={clientId}
         data-ad-slot={slotId}
-        data-ad-format="horizontal"
-        data-full-width-responsive="false"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
       />
       {visible && (
         <Script

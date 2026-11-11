@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, Pause, Play, RotateCcw } from "lucide-react";
@@ -10,6 +11,7 @@ import styles from "./ExtendedDiagnostics.module.css";
 
 const COLORS = ["#ecb77b", "#a7c8a0", "#a4b8d2", "#d7a0b3", "#b5a0d7", "#eddf9f"];
 export function PointerTester({ tool }: { tool: PointerTool }) {
+  const journey = useCheckupJourney();
   const { t } = useDeviceText(); const text = useRef(t); text.current = t;
   const surface = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null), listening = useRef(false), raf = useRef(0);
   const stats = useRef(freshPointerStats());
@@ -53,7 +55,7 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
     window.addEventListener("blur", stop); window.addEventListener("keydown", escape); document.addEventListener("visibilitychange", hidden); document.addEventListener("fullscreenchange", changed);
     return () => { listening.current = false; cancelAnimationFrame(raf.current); resize.disconnect(); el.removeEventListener("pointerdown", down); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", cancel); el.removeEventListener("lostpointercapture", lost); el.removeEventListener("wheel", wheel); el.removeEventListener("dblclick", dbl); el.removeEventListener("contextmenu", prevent); el.removeEventListener("auxclick", prevent); window.removeEventListener("blur", stop); window.removeEventListener("keydown", escape); document.removeEventListener("visibilitychange", hidden); document.removeEventListener("fullscreenchange", changed); };
   }, [tool, refresh, stop]);
-  const start = () => { listening.current = true; setActive(true); setMessage(""); surface.current?.focus({ preventScroll: true }); };
+  const start = () => { journey.begin(); listening.current = true; setActive(true); setMessage(""); surface.current?.focus({ preventScroll: true }); };
   const reset = () => { stop(); stats.current = freshPointerStats(); scroll.current = { count: 0, zoom: 0, doubleClicks: 0, values: {} }; setMessage(""); refresh(); };
   const toggleFullscreen = async () => { stop(); try { if (document.fullscreenElement) await document.exitFullscreen(); else await panel.current?.requestFullscreen(); } catch { setMessage(t("Fullscreen is unavailable; the embedded test area still works.", "此环境无法全屏，仍可使用页面内检测区域。", "La pantalla completa no está disponible; usa el área integrada.")); } };
   const s = stats.current, wheel = scroll.current, edges = Array.from(s.cells).filter(cell => isEdgeCell(cell)).length;

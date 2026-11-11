@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 import { SaveCheckup } from "./SaveCheckup";
 import { metric } from "@/lib/device-history";
 
@@ -19,12 +20,13 @@ function Waveform({samples,active,label}:{samples:RefObject<Float32Array>;active
   return <canvas ref={canvas} className={styles.waveform} role="img" aria-label={label}/>;
 }
 export function MicrophoneTester({capture}:{capture?:MicrophoneCapture}={}) {
+  const journey = useCheckupJourney();
   const {t,lang}=useDeviceText(),mic=useMicrophone(t,capture);const playback=useRef<HTMLAudioElement>(null);
   const [device,setDevice]=useState(""),[processing,setProcessing]=useState(false),[playError,setPlayError]=useState("");
   const stopPlayback=useCallback(()=>{playback.current?.pause();},[]);
   useEffect(()=>{const hidden=()=>{if(document.hidden)stopPlayback();};const escape=(e:KeyboardEvent)=>{if(e.key==="Escape")stopPlayback();};document.addEventListener("visibilitychange",hidden);window.addEventListener("keydown",escape);return()=>{playback.current?.pause();document.removeEventListener("visibilitychange",hidden);window.removeEventListener("keydown",escape);};},[stopPlayback]);
   const active=mic.status==="active",busy=mic.recording!=="idle";
-  const begin=()=>{stopPlayback();setPlayError("");void mic.start(device,processing);};
+  const begin=()=>{journey.begin();stopPlayback();setPlayError("");void mic.start(device,processing);};
   const db=(n:number)=>Number.isFinite(n)?`${n.toFixed(1)} dBFS`:"−∞ dBFS";
   const reported=(value:boolean|undefined)=>value===undefined?t("Not reported","未提供","No informado"):value?t("On","开启","Activado"):t("Off","关闭","Desactivado");
   const settingReport=mic.settings?{sampleRate:mic.settings.sampleRate,channelCount:mic.settings.channelCount,echoCancellation:mic.settings.echoCancellation,noiseSuppression:mic.settings.noiseSuppression,autoGainControl:mic.settings.autoGainControl}:null;

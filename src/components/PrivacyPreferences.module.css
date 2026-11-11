@@ -1,0 +1,6 @@
+.panel{position:fixed;z-index:10000;inset:auto 20px 20px auto;width:min(580px,calc(100vw - 40px));max-height:calc(100dvh - 40px);overflow:auto;padding:24px;background:#fffdf7;border:1px solid #d8cebd;border-radius:16px;box-shadow:0 12px 70px #332e2926;color:#34332c}
+.panel h2{font-size:20px;font-weight:650;margin-bottom:10px}.panel p{font-size:13px;line-height:1.7;color:#686658}.panel p a{text-decoration:underline}
+.choices{display:grid;gap:4px;margin:14px 0}.choices label{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px}.choices input{accent-color:#be4d30;width:18px;height:18px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.actions button{flex:1;min-width:110px;min-height:44px;padding:10px;background:#f1ecdf;border:1px solid #d4ccbc;border-radius:7px;font-size:12px;color:#34332c}.actions button:hover{border-color:#be4d30;background:#f8eadd}
+.settings{font:inherit;color:inherit;text-align:left;min-height:44px}.settings:hover{text-decoration:underline}
+@media(max-width:600px){.panel{inset:auto 12px 12px;width:calc(100vw - 24px);padding:18px;max-height:calc(100dvh - 24px)}}

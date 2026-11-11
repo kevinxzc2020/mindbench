@@ -8,6 +8,7 @@ import { COMMON, EVENT_NAMES, localText, toolText } from "./diagnostic-copy";
 import styles from "./DeviceDiagnostics.module.css";
 import { metric, type ReportTool } from "@/lib/device-history";
 import { SaveCheckup } from "./SaveCheckup";
+import { useCheckupJourney } from "./CheckupJourney";
 
 export function useDeviceText() {
   const { lang } = useLang();
@@ -15,6 +16,7 @@ export function useDeviceText() {
 }
 
 export function useDiagnosticSession<T extends SessionLog>(factory: () => T, interrupt: (s: T, time: number, reason: string) => void) {
+  const { begin, reset: resetJourney } = useCheckupJourney();
   const state = useRef<T>(factory());
   const surface = useRef<HTMLDivElement>(null);
   const startButton = useRef<HTMLButtonElement>(null);
@@ -35,13 +37,15 @@ export function useDiagnosticSession<T extends SessionLog>(factory: () => T, int
     if (restoreFocus) startButton.current?.focus();
   }, [clock, interrupt, refresh]);
   const start = useCallback(() => {
+    begin();
     if (origin.current === null) { origin.current = performance.now(); startedAt.current = new Date().toISOString(); }
     listening.current = true; setActive(true); setReason(""); surface.current?.focus({ preventScroll: true });
     surface.current?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  }, []);
+  }, [begin]);
   const reset = useCallback(() => {
+    resetJourney();
     listening.current = false; setActive(false); setReason(""); state.current = factory(); origin.current = null; startedAt.current = null; refresh();
-  }, [factory, refresh]);
+  }, [factory, refresh, resetJourney]);
   useEffect(() => {
     const blur = () => pause("focus-lost");
     const visibility = () => { if (document.hidden) pause("page-hidden"); };

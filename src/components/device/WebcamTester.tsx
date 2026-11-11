@@ -1,4 +1,5 @@
 "use client";
+import { useCheckupJourney } from "./CheckupJourney";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Download, Maximize, Square } from "lucide-react";
@@ -9,6 +10,7 @@ import styles from "./ExtendedDiagnostics.module.css";
 
 export type CameraCapture = (constraints: MediaStreamConstraints) => Promise<MediaStream>;
 export function WebcamTester({ capture }: { capture?: CameraCapture } = {}) {
+  const journey = useCheckupJourney();
   const { t } = useDeviceText(); const text = useRef(t); text.current = t;
   const video = useRef<HTMLVideoElement>(null), stage = useRef<HTMLDivElement>(null), stream = useRef<MediaStream | null>(null);
   const request = useRef(0), mounted = useRef(false), frame = useRef(0), imageUrl = useRef("");
@@ -33,6 +35,7 @@ export function WebcamTester({ capture }: { capture?: CameraCapture } = {}) {
     return () => { mounted.current = false; stop(); if (imageUrl.current) URL.revokeObjectURL(imageUrl.current); navigator.mediaDevices?.removeEventListener("devicechange", refresh); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("keydown", escape); };
   }, [refresh, stop]);
   const start = async () => {
+    journey.begin();
     stop(); const id = ++request.current; setStatus("requesting"); setError(""); setNotice(""); setSettings(null); setLabel(""); setDecoded({ width: 0, height: 0 }); setDelivered(null);
     let input: MediaStream | null = null;
     try {
