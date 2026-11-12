@@ -31,6 +31,7 @@ export function activeCollection(pathname: string): CollectionId | undefined {
       (Object.hasOwn(COLLECTION_ALIASES, slug) ? COLLECTION_ALIASES[slug] : undefined);
   }
   if (segments[0] === "tools") return "devices";
+  if (segments[0] === "convert") return "utilities";
   if (segments[0] === "drivers") return "drivers";
   if (["iq-test", "mbti", "tarot"].includes(segments[0])) return "discover";
   if (segments[0] === "daily") return "mind";

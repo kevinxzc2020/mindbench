@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { BarChart3, ChevronDown, ClipboardList, Globe2, Grid2X2, History, Menu, Search, Trophy, X } from "lucide-react";
+import { BarChart3, ChevronDown, ClipboardList, Files, Globe2, Grid2X2, History, Menu, Search, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import { activeCollection, COLLECTION_NAV } from "@/lib/collection-navigation";
@@ -35,6 +35,7 @@ export function Header() {
   const active = activeCollection(pathname);
   const navItems = COLLECTION_NAV.map(item => ({ ...item, href: `/collections/${item.id}` }));
   const commonItems = [
+    { href: "/convert", label: { en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang], icon: Files },
     { href: "/progress", label: c.progress, icon: History },
     { href: "/tools/device-reports", label: c.reports, icon: ClipboardList },
     { href: "/leaderboard", label: t.leaderboard, icon: Trophy },

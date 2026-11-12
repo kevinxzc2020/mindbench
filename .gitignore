@@ -71,3 +71,6 @@ SETUP.md
 /skillshot/
 /lol-skillshot-dodger/
 /sheep/
+
+# PDF.js assets reproduced from locked dependency at dev/build time
+/public/vendor/pdfjs/

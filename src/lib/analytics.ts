@@ -1,5 +1,6 @@
 import { REPORT_TOOLS, type ReportTool } from "./device-history";
 import { isLocalAdPreview } from "./adsense";
+import { getConverter, type ConverterId } from "./converters";
 
 export function getAnalyticsId() {
   const id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() ?? "";
@@ -37,9 +38,17 @@ export function trackJourney(event: JourneyEvent) {
   return true;
 }
 
+/** No filenames, content, document properties or output URLs are analytics fields. */
+export function trackConversion(name: "conversion_start" | "conversion_complete" | "conversion_download", converter: ConverterId) {
+  if (!send || !getConverter(converter) || !["conversion_start", "conversion_complete", "conversion_download"].includes(name)) return false;
+  send(name, { converter_id: converter });
+  return true;
+}
+
 /** Query strings, fragments and private/dynamic paths are not analytics dimensions. */
 export function analyticsPath(pathname: string) {
   const path = pathname.split(/[?#]/)[0];
+  if (path === "/convert" || (path.startsWith("/convert/") && getConverter(path.slice("/convert/".length)))) return path;
   if (/^\/(?:$|tools\/[a-z-]+$|collections(?:\/[a-z-]+)?$|games\/(?:minigames\/)?[a-z0-9-]+$|drivers(?:\/[a-z0-9-]+){0,2}$|(?:mbti|iq-test|tarot|daily|progress|leaderboard|privacy|cookies|terms|about|contact|rights)$)/.test(path)) return path;
   return "/other";
 }

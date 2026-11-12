@@ -34,7 +34,7 @@
   body {
     @apply text-gray-100 antialiased;
     background: var(--ink);
-    min-width: 320px;
+    min-width: min(320px, 100%);
     font-feature-settings: "ss01" 1, "cv11" 1;
   }
 

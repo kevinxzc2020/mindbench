@@ -6,6 +6,7 @@ import { DRIVER_DEVICES, driverPath } from "./driver-library";
 import { LABORATORY_ART } from "./laboratory-art";
 import { ENTRY_COVERS } from "./entry-covers";
 import { COLLECTION_NAV, type CollectionId } from "./collection-navigation";
+import { CONVERTERS } from "./converters";
 export type { CollectionId } from "./collection-navigation";
 
 export type Localized = Record<Lang, string>;
@@ -23,7 +24,7 @@ const collectionDetails: readonly Omit<Collection, "name" | "image" | "imageAlt"
   { id: "mind", description: words("Find your focus. Test your memory, reaction and precision.", "测测反应、记忆与精准度，记录每一次进步。", "Pon a prueba tu memoria, tus reflejos y tu precisión."), topics: words("Memory / Reaction / Precision", "记忆 / 反应 / 精准度", "Memoria / Reflejos / Precisión") },
   { id: "devices", description: words("A place for checking the tools you use every day.", "从键盘到屏幕，按设备找到需要的检查。", "Un lugar para comprobar los dispositivos de cada día."), topics: words("Keyboard / Mouse / Screen", "键盘 / 鼠标 / 屏幕", "Teclado / Ratón / Pantalla") },
   { id: "drivers", description: words("Find official software, firmware and support by model.", "按型号找到官方软件、固件与使用说明。", "Encuentra software, firmware y ayuda oficial por modelo."), topics: words("Software / Firmware / Guides", "软件 / 固件 / 说明书", "Software / Firmware / Guías") },
-  { id: "utilities", description: words("Record, replay and download audio. More voice tools are planned.", "录音、回放与音频下载，更多声音处理工具正在规划。", "Graba, escucha y descarga audio. Hay más herramientas de voz previstas."), topics: words("Recording / Playback / Download", "录音 / 回放 / 下载", "Grabación / Reproducción / Descarga") },
+  { id: "utilities", description: words("Convert images, PDF, audio and tables, or record and replay sound locally.", "转换图片、PDF、音频与表格，也能本地录音和回放。", "Convierte imágenes, PDF, audio y tablas, o graba y escucha sonido localmente."), topics: words("Files / Images / Audio / Data", "文件 / 图片 / 音频 / 数据", "Archivos / Imágenes / Audio / Datos") },
   { id: "discover", description: words("Explore your personality, try tarot or take a break with a mini-game.", "探索 MBTI、IQ 趣测与塔罗，也能玩一局轻松的小游戏。", "Explora tu personalidad, prueba el tarot o descansa con un minijuego."), topics: words("Personality / Tarot / Mini-games", "性格 / 塔罗 / 小游戏", "Personalidad / Tarot / Minijuegos") },
 ];
 // One source for the order and names used by the homepage, header and footer.
@@ -85,6 +86,7 @@ export const CATALOG: Record<CollectionId, readonly CatalogEntry[]> = {
   ],
   drivers: DRIVER_DEVICES.map(device => ({ id: `${device.brand}-${device.slug}`, title: words(`${device.brandName.en} ${device.name}`, `${device.brandName.zh} ${device.name}`, `${device.brandName.es} ${device.name}`), description: device.description, group: device.brandName, href: driverPath(device), keywords: [...device.keywords, device.modelCode.replace(/-/g, ""), device.name.replace(/ /g, "")].join(" ") })),
   utilities: [
+    ...CONVERTERS.map(tool => ({ id: `convert-${tool.id}`, title: tool.title, description: tool.description, group: words("File conversion", "文件转换", "Conversión de archivos"), href: `/convert/${tool.id}`, keywords: `conversion converter convert format file ${tool.formats} 格式 转换 转档 文件 convertir conversor` })),
     { id: "voice-recorder", title: words("Record & replay", "录音与回放", "Grabar y escuchar"), description: words("Use the microphone tool to record locally, replay and download your audio.", "在麦克风工具中录音、回放并下载音频，录音保存在本地。", "Usa la herramienta de micrófono para grabar localmente, escuchar y descargar audio."), group: group.voice, href: "/tools/microphone", image: ENTRY_COVERS["voice-recorder"] },
     planned("voice-effects", words("Voice effects", "趣味变声", "Efectos de voz"), words("Robot, echo and filtered voices, with an original/effect comparison.", "机器人、回声与滤波效果，切换原声与变声试听。", "Voces robóticas, eco y filtros, con comparación de original y efecto."), group.voice),
     planned("pitch", words("Pitch studio", "实时变调", "Cambio de tono"), words("Explore higher and lower pitches while keeping the pace of your speech.", "尝试更高或更低的音调，保留说话的节奏。", "Explora tonos más altos y bajos manteniendo el ritmo del habla."), group.voice),

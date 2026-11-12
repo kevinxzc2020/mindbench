@@ -3,41 +3,50 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, ArrowUpRight, AudioLines, Brain, ChevronRight, ClipboardList, FileDown, Gamepad2, Keyboard, Mic, Monitor, Mouse, Search, ShieldCheck, Sparkles, Target, Trophy, Wrench, X, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, AudioLines, Brain, ChevronRight, ClipboardList, FileDown, Gamepad2, Keyboard, Mic, Monitor, Mouse, MoveVertical, Search, ShieldCheck, Sparkles, Target, Trophy, Wrench, X, Zap } from "lucide-react";
 import { useLang } from "@/lib/language-context";
 import { CATALOG, COLLECTIONS, matchesEntry, type CatalogEntry, type CollectionId } from "@/lib/collections";
 import { LABORATORY_ART } from "@/lib/laboratory-art";
 import { AdSenseBanner } from "./AdSenseBanner";
+import { CONVERTERS } from "@/lib/converters";
 import styles from "./LaboratoryHome.module.css";
 
 const ICONS = { mind: Brain, devices: Monitor, utilities: Wrench, drivers: FileDown, discover: Sparkles };
-export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard, mouse: Mouse, wheel: Mouse, screen: Monitor, microphone: Mic, speakers: AudioLines, "reaction-time": Zap, "cps-test": Mouse, "aim-trainer": Target, "voice-recorder": Mic, "device-reports": ClipboardList, mbti: Sparkles };
+export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard, mouse: Mouse, wheel: MoveVertical, screen: Monitor, microphone: Mic, speakers: AudioLines, "reaction-time": Zap, "cps-test": Mouse, "aim-trainer": Target, "voice-recorder": Mic, "device-reports": ClipboardList, mbti: Sparkles };
 const MIND_PICKS = ["reaction-time", "sequence-memory", "number-memory", "aim-trainer"];
-const DEVICE_PICKS = ["keyboard", "mouse", "wheel", "screen", "speakers", "microphone"];
+const QUICK_CHECKS = [
+  { id: "keyboard", summary: { en: "Key response · Repeats · Combos", zh: "按键响应 · 连击 · 多键冲突", es: "Teclas · Repeticiones · Combinaciones" } },
+  { id: "mouse", summary: { en: "Buttons · Double clicks · Drag", zh: "按键 · 疑似双击 · 断拖", es: "Botones · Doble clic · Arrastre" } },
+  { id: "wheel", summary: { en: "Scroll direction · Unexpected jumps", zh: "滚动方向 · 反向跳动", es: "Dirección · Saltos inesperados" } },
+  { id: "screen", summary: { en: "Colors · Dead pixels · Motion", zh: "纯色 · 坏点观察 · 拖影", es: "Colores · Píxeles · Movimiento" } },
+  { id: "speakers", summary: { en: "Left / right channels · Test tones", zh: "左右声道 · 测试音 · 扫频", es: "Canales izq. / der. · Tonos" } },
+  { id: "microphone", summary: { en: "Input level · Record & replay", zh: "输入电平 · 录音回放", es: "Nivel de entrada · Grabación" } },
+] as const;
+const MORE_DEVICE_PICKS = ["trackpad", "webcam", "gamepad", "touch", "pen", "environment"];
 const HOME_COPY = {
   zh: {
-    eyebrow: "设备检测与日常实用工具", title: "设备哪里不对劲？", accent: "从这里查一查。", intro: "按键没反应、鼠标连点、滚轮乱跳，还是开会前想确认声音？打开对应工具，检查、记录，再决定下一步。",
+    eyebrow: "设备检测与日常实用工具", title: "你想检查什么？", intro: "选择一项，直接开始。检查键鼠、屏幕与声音，无需安装。",
     start: "选择检测工具", explore: "查看自检记录", feature: "从你的设备开始", featureTitle: "每个问题，都有一个检查入口。", featureMeta: "键盘 · 鼠标 · 屏幕 · 声音", featureLink: "打开设备实验室", reaction: "反应时间", personality: "MBTI 性格", tarot: "塔罗",
     play: "测试与趣味探索", playDesc: "挑战能力 · 了解自己 · 轻松玩一局", devices: "设备与实用工具", devicesDesc: "键鼠屏幕 · 声音检测 · 官方驱动", navigation: "首页分区",
     tests: "检查完了，换你挑战一下。", testsDesc: "设备之外，也试试自己的反应、记忆与精准度。", allTests: "全部能力测试",
     discover: "换个角度，认识自己。", discoverDesc: "IQ 趣测、性格探索与塔罗，为好奇心多留一点空间。", allFun: "全部趣味探索", games: "想轻松一点？", gamesDesc: "来一局消除、拼图或小挑战。", playGames: "浏览小游戏",
-    deviceTitle: "你想检查什么？", deviceIntro: "按键有没有漏按，滚轮会不会反向跳动，声音来自哪一边？把日常设备的小疑问，交给一项具体的检查。", allDevices: "全部设备检测", support: "工具与资料", utilityTitle: "声音实用工具", utilityDesc: "本地录音、回放与音频下载。", driverTitle: "官方驱动资料库", driverDesc: "按品牌和型号找到软件、固件与说明书。", close: "收起搜索结果",
+    deviceTitle: "还有其他设备要检查？", deviceIntro: "继续检查触控板、摄像头、手柄和触摸设备，或查看浏览器支持哪些检测。", allDevices: "全部设备检测", support: "工具与资料", utilityTitle: "文件与声音工具", utilityDesc: "图片、PDF、音频、表格转换与录音。", driverTitle: "官方驱动资料库", driverDesc: "按品牌和型号找到软件、固件与说明书。", close: "收起搜索结果",
   },
   en: {
-    eyebrow: "EVERYDAY TOOLS. CLEARER ANSWERS.", title: "Something not working?", accent: "Start with a simple check.", intro: "A missed key, a jumpy scroll wheel, or no sound before a call? Open a focused tool, check what happens and keep a record for your next step.",
+    eyebrow: "DEVICE CHECKS & EVERYDAY TOOLS", title: "What needs a check?", intro: "Pick a tool and start. Check your keyboard, mouse, screen or audio. No installation needed.",
     start: "Find a device check", explore: "Checkup history", feature: "Start with your setup", featureTitle: "A useful check for every setup.", featureMeta: "Keyboard · Mouse · Screen · Audio", featureLink: "Open the device lab", reaction: "Reaction time", personality: "MBTI personality", tarot: "Tarot",
     play: "Tests & discovery", playDesc: "Challenge yourself · Get curious · Play a little", devices: "Devices & useful tools", devicesDesc: "Keyboard & mouse · Screen & audio · Drivers", navigation: "Homepage sections",
     tests: "Setup checked. Your turn.", testsDesc: "Explore your reactions, memory and precision when you are ready for a break.", allTests: "All cognitive tests",
     discover: "A different side of you.", discoverDesc: "Reasoning puzzles, personality and tarot. Follow a little curiosity.", allFun: "All fun & discovery", games: "Fancy something lighter?", gamesDesc: "Unwind with a matching game, a puzzle or a small challenge.", playGames: "Browse mini-games",
-    deviceTitle: "What would you like to check?", deviceIntro: "A missed key, a jumpy scroll wheel, sound on the wrong side? Start with a focused check of the devices you use every day.", allDevices: "All device checks", support: "Tools & resources", utilityTitle: "Useful audio tools", utilityDesc: "Record locally, replay and download your audio.", driverTitle: "Official driver library", driverDesc: "Find software, firmware and guides by brand and model.", close: "Close search results",
+    deviceTitle: "More devices to check?", deviceIntro: "Check your trackpad, camera, gamepad or touch devices, and see which tests your browser supports.", allDevices: "All device checks", support: "Tools & resources", utilityTitle: "File & audio tools", utilityDesc: "Convert images, PDF, audio and tables, or record sound.", driverTitle: "Official driver library", driverDesc: "Find software, firmware and guides by brand and model.", close: "Close search results",
   },
   es: {
-    eyebrow: "HERRAMIENTAS PARA TU DÍA A DÍA", title: "¿Algo no funciona bien?", accent: "Empieza por comprobarlo.", intro: "¿Falla una tecla, salta la rueda o no hay sonido antes de una llamada? Abre una herramienta, observa lo que ocurre y guarda un resumen.",
+    eyebrow: "DISPOSITIVOS Y HERRAMIENTAS ÚTILES", title: "¿Qué quieres comprobar?", intro: "Elige una prueba y empieza. Revisa teclado, ratón, pantalla o audio sin instalar nada.",
     start: "Elegir una comprobación", explore: "Historial de revisiones", feature: "Empieza por tu equipo", featureTitle: "Una comprobación para tu equipo.", featureMeta: "Teclado · Ratón · Pantalla · Audio", featureLink: "Abrir pruebas de dispositivos", reaction: "Tiempo de reacción", personality: "Personalidad MBTI", tarot: "Tarot",
     play: "Pruebas y descubrimientos", playDesc: "Ponte a prueba · Conócete · Juega un poco", devices: "Dispositivos y herramientas", devicesDesc: "Teclado y ratón · Pantalla y audio · Controladores", navigation: "Secciones de inicio",
     tests: "Equipo revisado. Ahora te toca a ti.", testsDesc: "Explora tus reflejos, memoria y precisión cuando quieras un descanso.", allTests: "Todas las pruebas cognitivas",
     discover: "Otra forma de conocerte.", discoverDesc: "Razonamiento, personalidad y tarot. Sigue tu curiosidad.", allFun: "Explorar todo", games: "¿Algo más ligero?", gamesDesc: "Descansa con un juego de parejas, un puzle o un pequeño reto.", playGames: "Ver minijuegos",
-    deviceTitle: "¿Qué quieres comprobar?", deviceIntro: "¿Una tecla no responde, la rueda salta o el sonido sale del lado incorrecto? Empieza con una comprobación concreta de tus dispositivos.", allDevices: "Todas las pruebas de dispositivos", support: "Herramientas y recursos", utilityTitle: "Herramientas de audio", utilityDesc: "Graba localmente, escucha y descarga tu audio.", driverTitle: "Biblioteca de controladores oficiales", driverDesc: "Busca software, firmware y guías por marca y modelo.", close: "Cerrar resultados",
+    deviceTitle: "¿Más dispositivos por revisar?", deviceIntro: "Comprueba el panel táctil, la cámara, el mando y los dispositivos táctiles, o consulta qué pruebas admite tu navegador.", allDevices: "Todas las pruebas de dispositivos", support: "Herramientas y recursos", utilityTitle: "Archivos y audio", utilityDesc: "Convierte imágenes, PDF, audio y tablas, o graba sonido.", driverTitle: "Biblioteca de controladores oficiales", driverDesc: "Busca software, firmware y guías por marca y modelo.", close: "Cerrar resultados",
   },
 };
 const COPY = {
@@ -86,17 +95,39 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
     {suggestionsOpen && query.trim() && <div className={styles.searchResults} aria-label={c.searchLabel}><p role="status">{unique.length} {c.results}</p>{unique.slice(0,5).map(({entry,category: resultCategory}) => entry.href ? <Link key={entry.id} href={entry.href}><span>{entry.title[lang]}<small>{COLLECTIONS.find(col=>col.id===resultCategory)!.name[lang]}</small></span><ArrowUpRight size={17}/></Link> : <div key={entry.id}>{entry.title[lang]}<small>{c.planned}</small></div>)}{unique.length ? <button type="button" onClick={showResults}>{c.browse}<ArrowRight size={16}/></button> : <p>{c.noDesc}</p>}</div>}
   </div>;
   return <div className={styles.page}>
-    <section className={directoryOnly ? styles.directoryHero : styles.hero} aria-labelledby="lab-title">
-      <div className={styles.heroCopy}>
-        <p className={styles.eyebrow}><span/>{directoryOnly ? c.catalog : h.eyebrow}</p>
-        <h1 id="lab-title">{directoryOnly ? c.directory : <>{h.title}<br/><span>{h.accent}</span></>}</h1>
-        <p className={styles.intro}>{directoryOnly ? c.directoryDesc : h.intro}</p>
-        {!directoryOnly && <div className={styles.heroActions}><a href="#device-lab" className={styles.primaryAction}><Wrench size={18}/>{h.start}<ArrowUpRight size={18}/></a><Link href="/tools/device-reports" className={styles.textAction}>{h.explore}<ArrowRight size={17}/></Link></div>}
-        {search}
-        {directoryOnly ? <div className={styles.searchHints}><span>{c.hint}</span><Link href="/tools/keyboard">{c.keyboard}</Link><Link href="/tools/screen">{c.screen}</Link><Link href="/collections/drivers">{c.drivers}</Link></div> : <nav className={styles.heroQuickLinks} aria-label={h.allDevices}>{DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id)!; const Icon = TOOL_ICONS[id] ?? Monitor; return <Link href={entry.href!} key={id}><Icon size={16}/>{entry.title[lang]}<ArrowUpRight size={13}/></Link>; })}</nav>}
+    {directoryOnly ? <section className={styles.directoryHero} aria-labelledby="lab-title">
+      <p className={styles.eyebrow}><span/>{c.catalog}</p>
+      <h1 id="lab-title">{c.directory}</h1>
+      <p className={styles.intro}>{c.directoryDesc}</p>
+      {search}
+      <div className={styles.searchHints}><span>{c.hint}</span><Link href="/tools/keyboard">{c.keyboard}</Link><Link href="/tools/screen">{c.screen}</Link><Link href="/collections/drivers">{c.drivers}</Link></div>
+    </section> : <section className={styles.launchHero} aria-labelledby="lab-title">
+      <div className={styles.launchMain}>
+        <p className={styles.eyebrow}><span/>{h.eyebrow}</p>
+        <h1 id="lab-title">{h.title}</h1>
+        <p className={styles.launchIntro}>{h.intro}</p>
+        <nav className={styles.launchGrid} aria-label={h.start}>
+          {QUICK_CHECKS.map(({id, summary}) => {
+            const entry = CATALOG.devices.find(item => item.id === id)!;
+            const Icon = TOOL_ICONS[id];
+            return <Link href={entry.href!} key={id} className={styles.launchCard}>
+              <span className={styles.launchCardTop}><span className={styles.launchIcon}><Icon size={24} aria-hidden="true"/></span><ArrowUpRight size={19} aria-hidden="true"/></span>
+              <h2>{entry.title[lang]}</h2><p>{summary[lang]}</p>
+            </Link>;
+          })}
+        </nav>
+        <div className={styles.launchFoot}><Link href="/collections/devices">{h.allDevices}<ArrowRight size={16}/></Link><Link href="/tools/device-reports"><ClipboardList size={16}/>{h.explore}</Link></div>
       </div>
-      {!directoryOnly && <Link href="/collections/devices" className={styles.feature}><div className={styles.featureImage}><Image src={LABORATORY_ART.home.src} alt={LABORATORY_ART.home.alt[lang]} fill priority sizes="(max-width: 600px) 100vw, 42vw"/><span className={styles.featureTag}><span/> DEVICE LAB</span><span className={styles.featureCross}>+</span></div><div className={styles.featureCaption}><div><span>{h.feature}</span><h2>{h.featureTitle}</h2><p>{h.featureMeta}</p></div><span className={styles.roundArrow} aria-label={h.featureLink}><ArrowUpRight size={23}/></span></div></Link>}
-    </section>
+      <aside className={styles.launchAside} aria-label={h.support}>
+        <div className={styles.launchArt}><Image src={LABORATORY_ART.home.src} alt={LABORATORY_ART.home.alt[lang]} fill priority sizes="(max-width: 600px) 96px, (max-width: 1000px) 240px, 280px"/></div>
+        <div className={styles.launchSearch}><h2>{c.searchLabel}</h2>{search}<Link href="/collections" className={styles.launchBrowse}>{c.browse}<ArrowRight size={16}/></Link></div>
+        <Link href="/collections/drivers" className={styles.launchResource}><FileDown size={21}/><span>{h.driverTitle}<small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
+      </aside>
+    </section>}
+    {!directoryOnly && <section className={styles.conversionShelf} aria-label={{ en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang]}>
+      <div><span className={styles.eyebrow}>FILES / {lang === "zh" ? "本地处理" : lang === "es" ? "PROCESO LOCAL" : "LOCAL PROCESSING"}</span><h2>{{ en: "Need a different format?", zh: "文件换个格式？", es: "¿Necesitas otro formato?" }[lang]}</h2></div>
+      <nav>{CONVERTERS.filter(tool => ["image", "pdf-to-images", "audio-to-wav"].includes(tool.id)).map(tool => <Link key={tool.id} href={`/convert/${tool.id}`}>{tool.title[lang]}<ArrowUpRight size={14}/></Link>)}<Link href="/convert" className={styles.conversionAll}>{{ en: "All converters", zh: "全部转换器", es: "Todos los conversores" }[lang]}<ArrowRight size={15}/></Link></nav>
+    </section>}
     {!directoryOnly && <nav className={styles.sectionNav} aria-label={h.navigation}>
       <a href="#device-lab"><span className={styles.sectionNumber}>01</span><div><strong>{h.devices}</strong><p>{h.devicesDesc}</p></div><ArrowRight size={20}/></a>
       <a href="#play-lab"><span className={styles.sectionNumber}>02</span><div><strong>{h.play}</strong><p>{h.playDesc}</p></div><ArrowRight size={20}/></a>
@@ -109,7 +140,7 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
     {!directoryOnly && <>
       <section id="device-lab" className={styles.deviceZone} aria-labelledby="device-title">
         <header className={styles.deviceHead}><div><p className={styles.eyebrow}>01 / {h.devices}</p><h2 id="device-title">{h.deviceTitle}</h2><p>{h.deviceIntro}</p><Link className={styles.deviceAction} href="/collections/devices">{h.allDevices}<ArrowUpRight size={17}/></Link></div><div className={styles.deviceArtwork}><Image src={LABORATORY_ART.devices.src} alt={LABORATORY_ART.devices.alt[lang]} fill sizes="(max-width: 600px) 100vw, 32vw"/></div></header>
-        <div className={styles.deviceGrid}>{DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id); if (!entry?.href) return null; const Icon = TOOL_ICONS[id] ?? Monitor; return <Link href={entry.href} key={id} className={styles.deviceCard}><span className={styles.deviceThumb}>{entry.image ? <Image src={entry.image} alt="" fill sizes="80px"/> : <Icon size={24}/>}</span><div><h3>{entry.title[lang]}</h3><p>{entry.description[lang]}</p></div><ArrowUpRight size={17}/></Link>; })}</div>
+        <div className={styles.deviceGrid}>{MORE_DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id); if (!entry?.href) return null; const Icon = TOOL_ICONS[id] ?? Monitor; return <Link href={entry.href} key={id} className={styles.deviceCard}><span className={styles.deviceThumb}>{entry.image ? <Image src={entry.image} alt="" fill sizes="80px"/> : <Icon size={24}/>}</span><div><h3>{entry.title[lang]}</h3><p>{entry.description[lang]}</p></div><ArrowUpRight size={17}/></Link>; })}</div>
         <nav className={styles.supportGrid} aria-label={h.support}>{[{id:"utilities" as const,title:h.utilityTitle,desc:h.utilityDesc,Icon:Wrench},{id:"drivers" as const,title:h.driverTitle,desc:h.driverDesc,Icon:FileDown}].map(({id,title,desc,Icon}) => <Link key={id} href={`/collections/${id}`}><Icon size={22}/><div><h3>{title}</h3><p>{desc}</p></div><ArrowUpRight size={17}/></Link>)}</nav>
         <div className={styles.deviceFoot}><p className={styles.localNote}><ShieldCheck size={15}/>{c.local}</p><Link href="/tools/device-reports"><ClipboardList size={16}/>{c.reports}<ArrowRight size={16}/></Link></div>
       </section>
