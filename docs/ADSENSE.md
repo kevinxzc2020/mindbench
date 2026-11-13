@@ -25,7 +25,7 @@
 4. 页面 `<head>` 会包含 `google-adsense-account` 验证标签；根路径 `/ads.txt` 会输出该发布商的授权行。未配置有效 ID 时不输出验证标签，`/ads.txt` 返回 404，不生成虚构授权记录。
 5. 在 AdSense 选择 meta 标签或 ads.txt 方式验证网站并申请审核。能否获批由 Google 决定。
 6. 在上线前补齐与实际数据处理一致的隐私说明，并在 AdSense“隐私权和消息”完成所需的同意管理设置。代码中的广告开关不替代 Google CMP 或其他合适的同意管理平台。
-7. 创建一个自适应展示广告单元，将代码的 `data-ad-slot` 数字填入 `NEXT_PUBLIC_ADSENSE_HOME_SLOT`。此实现使用手动广告位；在 AdSense 后台保持自动广告关闭，防止后台设置额外插入覆盖层或游戏区广告。
+7. 创建一个自适应展示广告单元，将代码的 `data-ad-slot` 数字填入 `NEXT_PUBLIC_ADSENSE_HOME_SLOT`。如需插页式 / 侧边栏自动广告，按 [monetization.md](monetization.md) 的「自动广告」一节配置，只开启这两种格式并排除检测和游戏页面。
 8. 网站审核通过、同意管理配置完成后，设置 `NEXT_PUBLIC_ADSENSE_MODE=live`，重新构建部署。
 9. 如需启用“失败后看广告复活”，在 Google Ad Manager 创建 rewarded web 广告单元，并把完整广告单元路径填入 `NEXT_PUBLIC_AD_MANAGER_REWARDED_UNIT_PATH`，格式类似 `/网络代码/广告单元名称`。这个值不是 `ca-pub-...` 发布商 ID；没有有效路径时，复活广告保持关闭，不会伪造奖励。
 10. Rewarded web ad 必须在正式域名和可用广告配置上验证。游戏内会在用户失败后先展示说明和“暂不观看”，只有用户点击观看才打开广告；广告未完成不会发放额外机会。

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/language-context";
 import { getAnalyticsId, setAnalyticsSender } from "@/lib/analytics";
-import { getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
+import { autoAdsEnabled, getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
 import { CONSENT_KEY, NO_CONSENT, parseConsent, type SiteConsent } from "@/lib/site-consent";
 import styles from "./PrivacyPreferences.module.css";
 
@@ -27,7 +27,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
     const read = () => { try { return parseConsent(localStorage.getItem(CONSENT_KEY)); } catch { return null; } };
     const saved = read(); previous.current = saved ?? NO_CONSENT; setConsent(previous.current); setDraft(previous.current); setReady(true);
     const ads = getAdSenseConfig();
-    const configured = getAnalyticsId() || (ads.mode === "live" && (ads.homeSlotId || ads.resultSlotId));
+    const configured = getAnalyticsId() || (ads.mode === "live" && (ads.homeSlotId || ads.resultSlotId || (ads.clientId && autoAdsEnabled())));
     setVisible(Boolean(configured && !saved && !isLocalAdPreview(location.hostname)));
     const sync = (event: StorageEvent) => {
       if (event.key !== CONSENT_KEY && event.key !== null) return;

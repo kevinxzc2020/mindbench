@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
+import { ADSENSE_SCRIPT_ID, getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
 import { useLang } from "@/lib/language-context";
 import { usePrivacy } from "./PrivacyPreferences";
 
@@ -121,7 +121,7 @@ function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: str
       />
       {visible && (
         <Script
-          id="mindbench-adsense"
+          id={ADSENSE_SCRIPT_ID}
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
           strategy="afterInteractive"
           crossOrigin="anonymous"

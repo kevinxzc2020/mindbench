@@ -35,3 +35,23 @@ export function isLocalAdPreview(hostname: string) {
     || hostname === "[::1]"
     || /^127\./.test(hostname);
 }
+
+/** Opt-in switch for AdSense Auto ads (vignette + side rail are chosen in the AdSense dashboard). */
+export function autoAdsEnabled() {
+  return process.env.NEXT_PUBLIC_ADSENSE_AUTO_ADS === "on";
+}
+
+/**
+ * Pages where the Auto ads script may run. Everything else — device checks (/tools),
+ * games, validation pages, tests and account pages — never loads it, so full-screen
+ * vignettes and side rails cannot cover an active check or game.
+ */
+const AUTO_ADS_EXACT = new Set(["/", "/about", "/collections", "/leaderboard", "/daily", "/stats"]);
+const AUTO_ADS_PREFIXES = ["/collections/", "/drivers/"];
+
+export function isAutoAdsRoute(pathname: string) {
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return AUTO_ADS_EXACT.has(path) || AUTO_ADS_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
+export const ADSENSE_SCRIPT_ID = "mindbench-adsense";
