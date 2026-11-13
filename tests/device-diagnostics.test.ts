@@ -90,3 +90,52 @@ test("CSV escapes commas, quotes and newlines",()=>{
   const s=createKeyboardState();appendLog(s,{at:1,event:"test",target:"key",detail:'a,"b"\nc',kind:"notice"});
   assert.ok(csvLog(s.log).includes('"a,""b""\nc"'));assert.ok(csvLog(s.log).startsWith("\uFEFF"));
 });
+test("Windows PrintScreen keyup without keydown counts as one press",()=>{
+  const s=createKeyboardState();keyUp(s,"PrintScreen",10);
+  assert.equal(s.presses,1);assert.equal(s.keys.PrintScreen.presses,1);assert.equal(s.keys.PrintScreen.releases,1);assert.deepEqual(s.held,[]);
+  keyUp(s,"KeyA",20);assert.equal(s.keys.KeyA,undefined);
+});
+test("PrintScreen with both events is not double counted",()=>{
+  const s=createKeyboardState();keyDown(s,"PrintScreen",false,0,30);keyUp(s,"PrintScreen",50);
+  assert.equal(s.presses,1);assert.equal(s.keys.PrintScreen.releases,1);
+});
+test("macOS: keys pressed under Command are cleared when Command is released, without suspects",()=>{
+  const mac={metaSuppressesKeyup:true};const s=createKeyboardState();
+  keyDown(s,"MetaLeft",false,0,30,mac);keyDown(s,"KeyC",false,10,30,mac);keyUp(s,"MetaLeft",100,mac);
+  assert.deepEqual(s.held,[]);assert.equal(s.suspects,0);assert.equal(s.keys.KeyC.releases,0);
+  keyDown(s,"KeyC",false,105,30,mac);assert.equal(s.suspects,0);assert.equal(s.keys.KeyC.presses,2);
+});
+test("macOS: repeated key under held Command is a new press, not a missing release",()=>{
+  const mac={metaSuppressesKeyup:true};const s=createKeyboardState();
+  keyDown(s,"MetaLeft",false,0,30,mac);keyDown(s,"KeyC",false,10,30,mac);keyDown(s,"KeyC",false,300,30,mac);
+  assert.equal(s.suspects,0);assert.equal(s.keys.KeyC.presses,2);assert.deepEqual(s.held,["MetaLeft","KeyC"]);
+});
+test("macOS: Shift held across Command release stays held",()=>{
+  const mac={metaSuppressesKeyup:true};const s=createKeyboardState();
+  keyDown(s,"MetaLeft",false,0,30,mac);keyDown(s,"ShiftLeft",false,5,30,mac);keyUp(s,"MetaLeft",50,mac);
+  assert.deepEqual(s.held,["ShiftLeft"]);
+});
+test("without the macOS flag a missing release is still flagged",()=>{
+  const s=createKeyboardState();keyDown(s,"MetaLeft",false,0,30);keyDown(s,"KeyC",false,10,30);keyDown(s,"KeyC",false,300,30);
+  assert.equal(s.suspects,1);
+});
+import { pollingSummary, nearestRate, dpiFromCounts } from "../src/lib/mouse-measurements";
+import { KEY_COMBOS, freshCombo, updateCombo } from "../src/lib/keyboard-layout";
+test("layout key counts for compact boards",()=>{
+  for(const [layout,count] of [["75",84],["60",61]] as const){const codes=layoutCodes(layout);assert.equal(codes.length,count);assert.equal(new Set(codes).size,count);}
+  assert.ok(layoutCodes("60").includes("Escape"));assert.ok(!layoutCodes("60").includes("F1"));
+});
+test("polling estimate ignores pauses and snaps to a standard rate",()=>{
+  const t:number[]=[];let now=0;for(let i=0;i<300;i++){now+=1;t.push(now);}now+=400;for(let i=0;i<300;i++){now+=1;t.push(now);}
+  const s=pollingSummary(t)!;assert.equal(Math.round(s.medianHz),1000);assert.equal(s.nearest,1000);assert.ok(s.steadyShare>0.99);
+  assert.equal(pollingSummary([0,1,2]),null);assert.equal(nearestRate(470),500);assert.equal(nearestRate(130),125);
+});
+test("DPI uses the physical distance",()=>{
+  assert.equal(dpiFromCounts(1600,2.54,"cm"),1600);assert.equal(dpiFromCounts(-800,1,"in"),800);assert.equal(dpiFromCounts(100,0,"cm"),null);
+});
+test("combo passes only when every key is held together and keeps the best partial",()=>{
+  const keys=KEY_COMBOS[0].keys;let r=freshCombo(keys);
+  r=updateCombo(r,keys,["KeyW","KeyA","KeyS"]);assert.equal(r.best,3);assert.deepEqual(r.missing,["KeyD"]);assert.equal(r.passed,false);
+  r=updateCombo(r,keys,["KeyW"]);assert.equal(r.best,3);
+  r=updateCombo(r,keys,keys);assert.equal(r.passed,true);
+});

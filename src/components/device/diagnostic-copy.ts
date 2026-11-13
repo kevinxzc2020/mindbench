@@ -52,7 +52,7 @@ export const COMMON = {
 
 export const EVENT_NAMES: Record<string, [string, string, string]> = {
   keydown: ["Key down", "按下", "Pulsación"], keyup: ["Key up", "松开", "Liberación"], repeat: ["Auto-repeat", "长按自动重复", "Repetición automática"],
-  "rapid-repress": ["Rapid re-press", "短间隔重复按下", "Pulsación repetida rápida"], "down-without-up": ["Missing key release", "未收到松开即再次按下", "Pulsación sin liberación"],
+  "rapid-repress": ["Rapid re-press", "短间隔重复按下", "Pulsación repetida rápida"], "down-without-up": ["Missing key release", "未收到松开即再次按下", "Pulsación sin liberación"], "keyup-only": ["Key press (release only)", "按键（系统只发送松开）", "Pulsación (solo liberación)"], "release-hidden-by-os": ["Release hidden by OS", "系统未发送松开", "Liberación oculta por el sistema"],
   mousedown: ["Button down", "鼠标按下", "Botón pulsado"], mouseup: ["Button up", "鼠标松开", "Botón liberado"],
   "rapid-click-pair": ["Rapid click pair", "短间隔连续点击", "Par de clics rápidos"], "double-click": ["Browser double-click", "浏览器双击事件", "Doble clic del navegador"],
   "drag-complete": ["Drag completed", "拖拽完成", "Arrastre completado"], "drag-early-release": ["Released before target", "到终点前已松开", "Liberación antes del destino"],

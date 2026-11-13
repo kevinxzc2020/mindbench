@@ -15,12 +15,25 @@ const freshLog = (): SessionLog => ({ log: [], logged: 0, interruptions: 0 });
 export interface KeyResult { presses: number; releases: number; repeats: number; suspects: number; heldSince: number | null; lastUp: number | null; lastHold: number | null; shortestGap: number | null }
 export interface KeyboardState extends SessionLog { keys: Record<string, KeyResult>; held: string[]; presses: number; repeats: number; suspects: number; maxChord: number; last: string }
 export const createKeyboardState = (): KeyboardState => ({ ...freshLog(), keys: {}, held: [], presses: 0, repeats: 0, suspects: 0, maxChord: 0, last: "" });
-export function keyDown(s: KeyboardState, code: string, repeat: boolean, at: number, threshold: number) {
+const META_KEYS = ["MetaLeft", "MetaRight"];
+const MODIFIER = /^(Shift|Control|Alt|Meta)(Left|Right)$|^CapsLock$/;
+/** Keys some platforms report with keyup only (Windows PrintScreen). */
+export const KEYUP_ONLY_KEYS = new Set(["PrintScreen"]);
+export interface KeyboardPlatform { metaSuppressesKeyup?: boolean }
+const newKey = (): KeyResult => ({ presses: 0, releases: 0, repeats: 0, suspects: 0, heldSince: null, lastUp: null, lastHold: null, shortestGap: null });
+/** macOS withholds keyup for keys pressed while Command is held. Clear them without inventing a release. */
+function clearHiddenRelease(s: KeyboardState, code: string, at: number) {
+  const k = s.keys[code]; if (!k || k.heldSince === null) return;
+  k.heldSince = null; k.lastUp = null; s.held = s.held.filter(c => c !== code);
+  log(s, at, "release-hidden-by-os", code, "Command held: the OS did not send keyup", "notice");
+}
+export function keyDown(s: KeyboardState, code: string, repeat: boolean, at: number, threshold: number, platform: KeyboardPlatform = {}) {
   if (!code) return;
-  const k = s.keys[code] ?? (s.keys[code] = { presses: 0, releases: 0, repeats: 0, suspects: 0, heldSince: null, lastUp: null, lastHold: null, shortestGap: null });
+  const k = s.keys[code] ?? (s.keys[code] = newKey());
   s.last = code;
   // OS auto-repeat is not a second physical press and must never be labelled chatter.
   if (repeat) { k.repeats++; s.repeats++; log(s, at, "repeat", code); return; }
+  if (k.heldSince !== null && platform.metaSuppressesKeyup && !MODIFIER.test(code) && s.held.some(c => META_KEYS.includes(c))) clearHiddenRelease(s, code, at);
   if (k.heldSince !== null) { k.suspects++; s.suspects++; log(s, at, "down-without-up", code, "No release was received between keydown events", "suspect"); return; }
   if (k.lastUp !== null) {
     const gap = Math.max(0, at - k.lastUp);
@@ -31,12 +44,23 @@ export function keyDown(s: KeyboardState, code: string, repeat: boolean, at: num
   s.held.push(code); s.maxChord = Math.max(s.maxChord, s.held.length);
   log(s, at, "keydown", code);
 }
-export function keyUp(s: KeyboardState, code: string, at: number) {
+export function keyUp(s: KeyboardState, code: string, at: number, platform: KeyboardPlatform = {}) {
   const k = s.keys[code];
+  if ((!k || k.heldSince === null) && KEYUP_ONLY_KEYS.has(code)) {
+    // The platform never sends keydown for this key, so a trusted keyup is the only evidence of a press.
+    const key = k ?? (s.keys[code] = newKey());
+    key.presses++; key.releases++; s.presses++; key.lastUp = at; s.last = code;
+    log(s, at, "keyup-only", code, "Platform sends keyup only for this key");
+    return;
+  }
   if (!k || k.heldSince === null) return; // A key held before starting isn't a failed key.
-  k.releases++; k.lastHold = Math.max(0, at - k.heldSince); k.heldSince = null; k.lastUp = at;
+  const since = k.heldSince;
+  k.releases++; k.lastHold = Math.max(0, at - since); k.heldSince = null; k.lastUp = at;
   s.held = s.held.filter(k => k !== code); s.last = code;
   log(s, at, "keyup", code, `${k.lastHold.toFixed(1)} ms held`);
+  if (platform.metaSuppressesKeyup && META_KEYS.includes(code) && !s.held.some(c => META_KEYS.includes(c))) {
+    for (const other of [...s.held]) if (!MODIFIER.test(other) && (s.keys[other].heldSince ?? -Infinity) >= since) clearHiddenRelease(s, other, at);
+  }
 }
 export function interruptKeyboard(s: KeyboardState, at: number, reason: string) {
   for (const key of Object.values(s.keys)) { key.heldSince = null; key.lastUp = null; }

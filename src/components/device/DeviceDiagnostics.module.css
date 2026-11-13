@@ -162,3 +162,16 @@
 .key { border-color:#cbd2bd; }.notTested { background:#f1f1e8; color:#667058; }.received { background:#dde8c8; color:#425b2a; border-color:#a6bc88; }.held { background:#d94d31; color:#fff; border-color:#b63c25; box-shadow:none; }.review { background:#f6ddc7; color:#915127; border-color:#d49c69; }
 .legend,.surfaceFoot { color:#657057; }.mouseBody { background:linear-gradient(140deg,#faf9f1,#dddccd); border-color:#929b80; box-shadow:10px 14px 24px #4b58321a; }.mouseLeft,.mouseRight { color:#657057; }.leftHeld .mouseLeft,.rightHeld .mouseRight { background:#e7ad8e; color:#5f331e; }.mouseWheel { background:repeating-linear-gradient(0deg,#c9cbb9 0 3px,#899177 3px 5px); border-color:#899177; }.mouseSeam { background:#b7bea6; }.trailLine { stroke:#667b48; }.startTarget { fill:#87a9671a; stroke:#6b8a4a; }.endTarget { stroke:#ce6343; }.guideLine { stroke:#929c7e66; }.wheelCore { color:#50623e; border-color:#a8b694; background:#f1f4e7; }.wheelCore small { color:#657057; }.wheelCompass > span { color:#aab39a; }.activePart { box-shadow:none; }
 @media(max-width:760px) { .keyboard { min-width:540px; flex-wrap:wrap; gap:16px; }.mainKeys { min-width:540px; }.extraKeys { width:100%; }.keyboardScroll { scrollbar-width:thin; scrollbar-color:#9eac87 #eef0e6; }.controls { position:static; }.controls button { flex:1 1 auto; } }
+.comboPanel { margin: 0 22px 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; }
+.comboPanel h2 { font-size: 14px; font-weight: 600; }
+.comboKeys { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+.comboKeys > span { min-width: 52px; padding: 10px 12px; text-align: center; border: 1px solid #cbd2bd; border-bottom-width: 3px; border-radius: 5px; background: #f1f1e8; color: #667058; font: 600 13px var(--font-mono); }
+.comboKeys > span.comboHeld { background: #d94d31; border-color: #a83620; color: #fff; }
+.comboKeys > span.comboSeen { background: #dde8c8; border-color: #a6bc88; color: #425b2a; }
+.comboPass { color: #3f6a24; font-weight: 600; font-size: 13px; }
+.comboActions { display: flex; gap: 8px; margin: 10px 0; }
+.comboActions button { padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
+.comboActions button:disabled { opacity: .45; }
+.comboResults { margin: 6px 0 10px; padding-left: 18px; font-size: 12px; list-style: disc; display: grid; gap: 4px; }
+.keyboardSurface:fullscreen { overflow: auto; border-radius: 0; display: flex; flex-direction: column; justify-content: center; }
+.measureArea { display: flex; align-items: center; justify-content: center; min-height: 180px; margin: 12px 0; padding: 16px; border: 1px dashed #cbd2bd; border-radius: 10px; font-size: 13px; color: #667058; user-select: none; text-align: center; }
