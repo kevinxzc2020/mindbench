@@ -4,7 +4,7 @@ import type { ReportTool } from "./device-history";
 type Plan = { tests: string[]; game: string; next: ReportTool };
 export const CHECKUP_NEXT: Record<ReportTool, Plan> = {
   keyboard: { tests: ["typing-test", "sequence-memory"], game: "arrow", next: "mouse" },
-  mouse: { tests: ["cps-test", "aim-trainer"], game: "screw", next: "wheel" },
+  mouse: { tests: ["cps-test", "aim-trainer"], game: "screw", next: "keyboard" },
   wheel: { tests: ["cps-test", "reaction-time"], game: "fruit", next: "mouse" },
   trackpad: { tests: ["reaction-time", "sequence-memory"], game: "screw", next: "mouse" },
   screen: { tests: ["visual-memory", "sequence-memory"], game: "beads", next: "environment" },

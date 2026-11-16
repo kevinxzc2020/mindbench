@@ -120,7 +120,6 @@ test("without the macOS flag a missing release is still flagged",()=>{
   assert.equal(s.suspects,1);
 });
 import { pollingSummary, nearestRate, dpiFromCounts } from "../src/lib/mouse-measurements";
-import { KEY_COMBOS, freshCombo, updateCombo } from "../src/lib/keyboard-layout";
 test("layout key counts for compact boards",()=>{
   for(const [layout,count] of [["75",84],["60",61]] as const){const codes=layoutCodes(layout);assert.equal(codes.length,count);assert.equal(new Set(codes).size,count);}
   assert.ok(layoutCodes("60").includes("Escape"));assert.ok(!layoutCodes("60").includes("F1"));
@@ -132,10 +131,4 @@ test("polling estimate ignores pauses and snaps to a standard rate",()=>{
 });
 test("DPI uses the physical distance",()=>{
   assert.equal(dpiFromCounts(1600,2.54,"cm"),1600);assert.equal(dpiFromCounts(-800,1,"in"),800);assert.equal(dpiFromCounts(100,0,"cm"),null);
-});
-test("combo passes only when every key is held together and keeps the best partial",()=>{
-  const keys=KEY_COMBOS[0].keys;let r=freshCombo(keys);
-  r=updateCombo(r,keys,["KeyW","KeyA","KeyS"]);assert.equal(r.best,3);assert.deepEqual(r.missing,["KeyD"]);assert.equal(r.passed,false);
-  r=updateCombo(r,keys,["KeyW"]);assert.equal(r.best,3);
-  r=updateCombo(r,keys,keys);assert.equal(r.passed,true);
 });

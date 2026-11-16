@@ -21,28 +21,35 @@ import { EnvironmentTester } from "./EnvironmentTester";
 import { DeviceHistory } from "./DeviceHistory";
 import styles from "./DeviceDiagnostics.module.css";
 import { CheckupJourney } from "./CheckupJourney";
+import { MouseGuide } from "./MouseGuide";
+import { KeyboardGuide } from "./KeyboardGuide";
 
 const icons={keyboard:Keyboard,mouse:Mouse,wheel:MoveVertical,screen:Monitor,speakers:Headphones,microphone:Mic,webcam:Camera,gamepad:Gamepad2,touch:Hand,pen:PenTool,trackpad:MousePointer2,environment:ScanSearch,"device-reports":History};
 export function DeviceDiagnostics({tool}:{tool:DiagnosticTool}) {
   return tool === "device-reports" ? <DeviceDiagnosticsContent tool={tool}/> : <CheckupJourney key={tool} tool={tool}><DeviceDiagnosticsContent tool={tool}/></CheckupJourney>;
 }
 function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
-  const {lang}=useLang(); const {c,t}=useDeviceText(); const Icon=icons[tool]; const router=useRouter();
+  const {lang}=useLang(); const {c,t}=useDeviceText(); const router=useRouter();
+  // Mouse buttons and scroll wheel share one page with two tabs; each tab keeps its own route and report.
+  const mouseFamily = tool==="mouse"||tool==="wheel"; const page: DiagnosticTool = mouseFamily ? "mouse" : tool; const Icon=icons[page];
   const groups: { label: string; ids: DiagnosticTool[] }[] = [
-    { label:t("Input devices","输入设备","Dispositivos de entrada"), ids:["keyboard","mouse","wheel","trackpad","gamepad","touch","pen"] },
+    { label:t("Input devices","输入设备","Dispositivos de entrada"), ids:["keyboard","mouse","trackpad","gamepad","touch","pen"] },
     { label:t("Screen & sound","屏幕与声音","Pantalla y sonido"), ids:["screen","speakers","microphone","webcam"] },
     { label:t("Environment & records","环境与记录","Entorno e historial"), ids:["environment","device-reports"] },
   ];
   return <div className={styles.shell}>
     <Link href="/collections/devices" className={styles.back}><ArrowLeft size={15}/>{c("back")}</Link>
-    <header className={styles.header}><div><p className={styles.eyebrow}><Icon size={17}/> MINDBENCH / DEVICE LAB</p><h1>{toolText(lang,DEVICE_TOOLS[tool].title)}</h1><p>{toolText(lang,DEVICE_TOOLS[tool].intro)}</p></div><div className={styles.labStamp} aria-hidden="true"><Icon size={50} strokeWidth={1}/><span>INPUT / OUTPUT</span></div></header>
+    <header className={styles.header}><div><p className={styles.eyebrow}><Icon size={17}/> MINDBENCH / DEVICE LAB</p><h1>{toolText(lang,DEVICE_TOOLS[page].title)}</h1><p>{toolText(lang,DEVICE_TOOLS[page].intro)}</p></div><div className={styles.labStamp} aria-hidden="true"><Icon size={50} strokeWidth={1}/><span>INPUT / OUTPUT</span></div></header>
     <div className={styles.workspace}>
     <aside className={styles.toolSidebar}>
-      <label className={styles.mobileTools}>{t("Switch tool","切换检测工具","Cambiar herramienta")}<select value={tool} onChange={e=>router.push(`/tools/${e.target.value}`)}>{groups.map(group=><optgroup key={group.label} label={group.label}>{group.ids.map(id=><option key={id} value={id}>{toolText(lang,DEVICE_TOOLS[id].title)}</option>)}</optgroup>)}</select></label>
-      <nav className={styles.toolNav} aria-label={c("back")}>{groups.map(group=><div key={group.label}><p>{group.label}</p>{group.ids.map(id=>{const ToolIcon=icons[id];return <Link href={`/tools/${id}`} aria-current={id===tool?"page":undefined} key={id}><ToolIcon size={16}/><span>{toolText(lang,DEVICE_TOOLS[id].title)}</span></Link>;})}</div>)}</nav>
+      <label className={styles.mobileTools}>{t("Switch tool","切换检测工具","Cambiar herramienta")}<select value={page} onChange={e=>router.push(`/tools/${e.target.value}`)}>{groups.map(group=><optgroup key={group.label} label={group.label}>{group.ids.map(id=><option key={id} value={id}>{toolText(lang,DEVICE_TOOLS[id].title)}</option>)}</optgroup>)}</select></label>
+      <nav className={styles.toolNav} aria-label={c("back")}>{groups.map(group=><div key={group.label}><p>{group.label}</p>{group.ids.map(id=>{const ToolIcon=icons[id];return <Link href={`/tools/${id}`} aria-current={id===page?"page":undefined} key={id}><ToolIcon size={16}/><span>{toolText(lang,DEVICE_TOOLS[id].title)}</span></Link>;})}</div>)}</nav>
     </aside><div className={styles.toolContent}>
     <p className={styles.localNote}>{c("local")}</p>
+    {mouseFamily&&<nav className={styles.subTabs} aria-label={t("Mouse checks","鼠标检测项目","Pruebas del ratón")}>{([["mouse",t("Buttons","按键","Botones")],["wheel",t("Scroll wheel","滚轮","Rueda")]] as const).map(([id,label])=>{const TabIcon=icons[id];return <Link key={id} href={`/tools/${id}`} aria-current={id===tool?"page":undefined} scroll={false}><TabIcon size={15}/>{label}</Link>;})}</nav>}
     {tool==="webcam"?<WebcamTester/>:tool==="gamepad"?<GamepadTester/>:tool==="touch"||tool==="pen"||tool==="trackpad"?<PointerTester tool={tool}/>:tool==="environment"?<EnvironmentTester/>:tool==="device-reports"?<DeviceHistory/>:tool==="speakers"?<SpeakerTester/>:tool==="microphone"?<MicrophoneTester/>:tool==="screen"?<Suspense fallback={<p role="status">{t("Loading screen patterns…","正在加载屏幕图案…","Cargando patrones…")}</p>}><ScreenTester/></Suspense>:tool==="keyboard"?<KeyboardTester/>:tool==="mouse"?<MouseTester/>:<WheelTester/>}
+    {mouseFamily&&<MouseGuide/>}
+    {tool==="keyboard"&&<KeyboardGuide/>}
     {tool==="gamepad"&&<p className={styles.sources}><a href="https://www.w3.org/TR/gamepad/" target="_blank" rel="noopener noreferrer">W3C Gamepad · 2025-07-10</a></p>}
     {tool==="webcam"&&<p className={styles.sources}><a href="https://www.w3.org/TR/mediacapture-streams/" target="_blank" rel="noopener noreferrer">W3C Media Capture and Streams · 2025-10-09</a></p>}
     {(tool==="pen"||tool==="touch"||tool==="trackpad")&&<p className={styles.sources}><a href="https://www.w3.org/TR/pointerevents3/" target="_blank" rel="noopener noreferrer">W3C Pointer Events Level 3 · 2026-06-30</a></p>}

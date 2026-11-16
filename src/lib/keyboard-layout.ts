@@ -43,20 +43,26 @@ export function layoutCodes(layout: KeyboardLayout) {
   return [...keyboardRows(layout).flat(), ...navigationCluster(layout).map(p => p.cap), ...(hasNumpad(layout) ? NUMPAD_KEYS : [])].map(k => k.code);
 }
 
-/** Guided combinations for checking simultaneous key registration. None of them is a browser/OS shortcut. */
-export const KEY_COMBOS: { id: string; keys: string[] }[] = [
-  { id: "wasd", keys: ["KeyW", "KeyA", "KeyS", "KeyD"] },
-  { id: "move-jump", keys: ["ShiftLeft", "KeyW", "KeyD", "Space"] },
-  { id: "top-row", keys: ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY"] },
-  { id: "modifiers", keys: ["ControlLeft", "ShiftLeft", "AltLeft", "KeyZ", "KeyX"] },
-  { id: "home-row", keys: ["KeyA", "KeyS", "KeyD", "KeyF", "KeyJ", "KeyK", "KeyL", "Semicolon"] },
-];
-export interface ComboResult { best: number; missing: string[]; passed: boolean }
-export const freshCombo = (keys: string[]): ComboResult => ({ best: 0, missing: [...keys], passed: false });
-/** Keeps the moment with the most combo keys held together; passes when all are held at once. */
-export function updateCombo(result: ComboResult, keys: string[], held: readonly string[]): ComboResult {
-  if (result.passed) return result;
-  const down = keys.filter(k => held.includes(k));
-  if (down.length <= result.best) return result;
-  return { best: down.length, missing: keys.filter(k => !held.includes(k)), passed: down.length === keys.length };
+/** Language layout read from the browser's layout map (Chrome/Edge). It says which character each physical key types, not the keyboard model. */
+export type LanguageLayout = "qwerty" | "azerty" | "qwertz";
+export function languageFromMap(map: ReadonlyMap<string, string>): LanguageLayout {
+  if (map.get("KeyQ") === "a") return "azerty";
+  if (map.get("KeyY") === "z") return "qwertz";
+  return "qwerty";
 }
+const RELABELED = /^(Key[A-Z]|Backquote|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|IntlBackslash)$/;
+/** Keycap text as typed on the user's language layout; digits and named keys keep their reference labels. */
+export function localKeyLabel(cap: KeyCap, map: ReadonlyMap<string, string> | null) {
+  const typed = map && RELABELED.test(cap.code) ? map.get(cap.code) : undefined;
+  return typed && typed.trim().length === 1 ? typed.toUpperCase() : cap.label;
+}
+/**
+ * Suggests a physical form from keys actually received. It only ever moves to a larger form:
+ * a received key proves it exists, but a key not pressed yet proves nothing.
+ */
+export function inferLayout(current: KeyboardLayout, pressed: readonly string[]): KeyboardLayout | null {
+  if (pressed.includes("IntlBackslash")) return current === "iso" ? null : "iso";
+  if (!hasNumpad(current) && pressed.some(code => code.startsWith("Numpad") || code === "NumLock")) return "ansi";
+  return null;
+}
+

@@ -16,8 +16,7 @@ export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard,
 const MIND_PICKS = ["reaction-time", "sequence-memory", "number-memory", "aim-trainer"];
 const QUICK_CHECKS = [
   { id: "keyboard", summary: { en: "Key response · Repeats · Combos", zh: "按键响应 · 连击 · 多键冲突", es: "Teclas · Repeticiones · Combinaciones" } },
-  { id: "mouse", summary: { en: "Buttons · Double clicks · Drag", zh: "按键 · 疑似双击 · 断拖", es: "Botones · Doble clic · Arrastre" } },
-  { id: "wheel", summary: { en: "Scroll direction · Unexpected jumps", zh: "滚动方向 · 反向跳动", es: "Dirección · Saltos inesperados" } },
+  { id: "mouse", summary: { en: "Buttons · Double clicks · Scroll wheel", zh: "按键 · 疑似双击 · 滚轮", es: "Botones · Doble clic · Rueda" } },
   { id: "screen", summary: { en: "Colors · Dead pixels · Motion", zh: "纯色 · 坏点观察 · 拖影", es: "Colores · Píxeles · Movimiento" } },
   { id: "speakers", summary: { en: "Left / right channels · Test tones", zh: "左右声道 · 测试音 · 扫频", es: "Canales izq. / der. · Tonos" } },
   { id: "microphone", summary: { en: "Input level · Record & replay", zh: "输入电平 · 录音回放", es: "Nivel de entrada · Grabación" } },
