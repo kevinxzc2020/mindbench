@@ -2,20 +2,22 @@ export type AdSenseMode = "off" | "preview" | "live";
 /**
  * Standard Google ad sizes, as [min available width px, width, height]. The width is the space
  * the ad's own container has (CSS container queries), not the screen, so an ad never overflows.
- * banner: top-of-tool leaderboard; content: between content blocks; rail: margin skyscraper.
+ * banner: top-of-tool leaderboard; content: between content blocks; rail: margin skyscraper;
+ * anchor: sticky bottom bar.
  * The CSS in globals.css (.ad-unit-*) must use the same breakpoints.
  */
 export const AD_SIZES = {
   banner: [[0, 320, 100], [728, 728, 90]],
   content: [[0, 300, 250], [728, 728, 90], [970, 970, 90]],
   rail: [[0, 160, 600]],
+  anchor: [[0, 320, 50], [728, 728, 90]],
 } as const;
 export type AdSize = keyof typeof AD_SIZES;
 export function adSizeFor(placement: AdPlacement): AdSize {
-  return placement === "rail" ? "rail" : placement === "top" ? "banner" : "content";
+  return placement === "rail" ? "rail" : placement === "anchor" ? "anchor" : placement === "top" ? "banner" : "content";
 }
 /** Manual display placements. All sit between content blocks, never inside a test or game surface. */
-export type AdPlacement = "rail" | "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
+export type AdPlacement = "anchor" | "rail" | "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
 
 // Verified in the owner's AdSense account. This is a public identifier, not a secret.
 const MINDBENCH_PUBLISHER = "ca-pub-7552640548182350";

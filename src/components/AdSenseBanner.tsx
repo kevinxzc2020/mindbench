@@ -19,6 +19,7 @@ const COPY = {
 };
 
 const PLACEMENT_TITLES: Record<AdPlacement, [string, string, string]> = {
+  anchor: ["Bottom anchor", "底部浮动广告", "Anuncio inferior"],
   rail: ["Side rail", "侧边广告", "Lateral"],
   top: ["Top banner", "顶部横幅", "Banner superior"],
   home: ["Homepage", "首页", "Página principal"],

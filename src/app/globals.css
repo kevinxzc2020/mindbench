@@ -1829,13 +1829,14 @@
 
 /* Google standard ad sizes (keep in sync with AD_SIZES in src/lib/adsense.ts).
    Sizes follow the width the ad's container actually has, so ads never overflow a column. */
-.ad-placement.ad-size-banner, .ad-placement.ad-size-content { container-type: inline-size; text-align: center; }
+.ad-placement.ad-size-banner, .ad-placement.ad-size-content, .ad-placement.ad-size-anchor { container-type: inline-size; text-align: center; }
 .ad-placement .ad-placement-heading { text-align: left; }
 .ad-unit { display: inline-block; vertical-align: top; }
 .ad-unit-banner { width: 320px; height: 100px; }
 .ad-unit-content { width: 300px; height: 250px; }
 .ad-unit-rail { width: 160px; height: 600px; }
-@container (min-width: 728px) { .ad-unit-banner, .ad-unit-content { width: 728px; height: 90px; } }
+.ad-unit-anchor { width: 320px; height: 50px; }
+@container (min-width: 728px) { .ad-unit-banner, .ad-unit-content, .ad-unit-anchor { width: 728px; height: 90px; } }
 @container (min-width: 970px) { .ad-unit-content { width: 970px; height: 90px; } }
 .ad-live { min-height: 0; }
 .ad-live:has(ins[data-ad-status="unfilled"]) { display: none; }
@@ -1846,3 +1847,17 @@
 @container (min-width: 728px) { .ad-dim-0 { display: none; } .ad-dim-728 { display: inline; } }
 @container (min-width: 970px) { .ad-size-content .ad-dim-728, .ad-dim-728:has(~ .ad-dim-970) { display: none; } .ad-dim-970 { display: inline; } }
 .ad-unit-rail.ad-preview-box { padding: 0 10px; text-align: center; }
+
+/* Bottom anchor: slides up after load, sits above page content, closable. Hidden when no ad renders. */
+.ad-anchor { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 6px 8px; background: #fbfaf5; border-top: 1px solid #dcdccd; box-shadow: 0 -4px 18px #2a2d2414; transform: translateY(110%); transition: transform .35s ease; }
+.ad-anchor.is-open { transform: translateY(0); }
+.ad-anchor:not(:has(.ad-placement)), .ad-anchor:has(ins[data-ad-status="unfilled"]) { display: none; }
+.ad-anchor .ad-placement { margin: 0 auto; max-width: none; }
+.ad-anchor .ad-placement-heading, .ad-anchor .ad-preview-note, .ad-anchor .ad-preview-box strong { display: none; }
+.ad-anchor-close { position: absolute; top: -26px; right: 12px; display: grid; place-items: center; width: 44px; height: 26px; border: 1px solid #dcdccd; border-bottom: 0; border-radius: 8px 8px 0 0; background: #fbfaf5; color: #5d6452; cursor: pointer; }
+.ad-anchor-close:hover { color: #b3482d; }
+.ad-anchor-close:focus-visible { outline: 3px solid #bd4a30; outline-offset: 2px; }
+body:has(.ad-anchor.is-open .ad-placement) { padding-bottom: 64px; }
+@media (min-width: 744px) { body:has(.ad-anchor.is-open .ad-placement) { padding-bottom: 104px; } }
+:fullscreen ~ .ad-anchor, body:has(:fullscreen) .ad-anchor { display: none; }
+@media (prefers-reduced-motion: reduce) { .ad-anchor { transition: none; } }
