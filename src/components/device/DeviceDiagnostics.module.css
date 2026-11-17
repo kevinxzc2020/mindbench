@@ -262,3 +262,6 @@
 .mPadPlate { fill: #ecebdf; stroke: #8d967b; stroke-width: 1.5; }
 .mPadLabel { font: 600 9px var(--font-mono); fill: #657057; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 .extraButtons .extraSwitched { background: #fbeee6; border-color: #e6b89f; color: #9a4a26; font-family: inherit; }
+
+.toolAd { margin-top:36px; }
+.toolAd:empty { display:none; }

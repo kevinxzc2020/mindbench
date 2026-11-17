@@ -1,5 +1,6 @@
 "use client";
 
+import { AdSenseBanner } from "./AdSenseBanner";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -85,6 +86,7 @@ export function CollectionDetail({ id }: { id: CollectionId }) {
           return sectionEntries.length ? <section key={key} id={key === "Mini-games" ? "mini-games" : undefined} className={styles.topicSection}>{label && <h2 className={styles.topicHeading}>{label[lang]}<span>{sectionEntries.length}</span></h2>}<div className={`${styles.entryGrid} ${styles.detailGrid}`}>{sectionEntries.map(entry => <EntryCard entry={entry} key={entry.id} />)}</div></section> : null;
         })}</div> : <div className={styles.empty}><Search size={28} /><h2>{query.trim() ? c.noResults : c.empty}</h2><p>{query.trim() ? c.noResultsDesc : c.emptyDesc}</p><button type="button" onClick={() => { setQuery(""); setAvailableOnly(false); setActiveGroup("all"); }}>{c.allGroups}<ArrowUpRight size={16} /></button></div>}</section>
     </div>
+    <div className={styles.collectionAd}><AdSenseBanner placement="collection"/></div>
     <section className={styles.related}><p className={styles.eyebrow}>{c.next}</p><div>{COLLECTIONS.filter(col => col.id !== id).map(col => { const RelatedIcon = ICONS[col.id]; return <Link href={`/collections/${col.id}`} key={col.id}><RelatedIcon size={19} /><span>{col.name[lang]}</span><ArrowUpRight size={17} /></Link>; })}</div></section>
   </div>;
 }

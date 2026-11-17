@@ -30,7 +30,7 @@ const HERO_TRUST = [
   { en: "No account needed", zh: "无需注册", es: "Sin registrarte" },
   { en: "Test inputs stay on your device", zh: "检测数据留在本机", es: "Los datos quedan en tu equipo" },
 ] as const;
-const MORE_DEVICE_PICKS = ["trackpad", "webcam", "gamepad", "touch", "pen", "environment"];
+const MORE_DEVICE_PICKS = ["trackpad", "gamepad", "touch", "pen", "motion", "environment"];
 const HOME_COPY = {
   zh: {
     eyebrow: "设备检测与日常实用工具", title: "你想检查什么？", intro: "选择一项，直接开始。检查键鼠、屏幕与声音，无需安装。",
@@ -145,26 +145,35 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
         <strong>{entry.title[lang]}</strong><small>{entry.group[lang]}</small>
       </Link>)}</div>
     </section>}
-    {!directoryOnly && <section className={styles.conversionShelf} aria-label={{ en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang]}>
-      <div><span className={styles.eyebrow}>FILES / {lang === "zh" ? "本地处理" : lang === "es" ? "PROCESO LOCAL" : "LOCAL PROCESSING"}</span><h2>{{ en: "Need a different format?", zh: "文件换个格式？", es: "¿Necesitas otro formato?" }[lang]}</h2></div>
-      <nav>{CONVERTERS.filter(tool => ["image", "pdf-to-images", "audio-to-wav"].includes(tool.id)).map(tool => <Link key={tool.id} href={`/convert/${tool.id}`}>{tool.title[lang]}<ArrowUpRight size={14}/></Link>)}<Link href="/convert" className={styles.conversionAll}>{{ en: "All converters", zh: "全部转换器", es: "Todos los conversores" }[lang]}<ArrowRight size={15}/></Link></nav>
-    </section>}
-    {!directoryOnly && <nav className={styles.sectionNav} aria-label={h.navigation}>
-      <a href="#device-lab"><span className={styles.sectionNumber}>01</span><div><strong>{h.devices}</strong><p>{h.devicesDesc}</p></div><ArrowRight size={20}/></a>
-      <a href="#play-lab"><span className={styles.sectionNumber}>02</span><div><strong>{h.play}</strong><p>{h.playDesc}</p></div><ArrowRight size={20}/></a>
-    </nav>}
-    <div className={styles.ad}><AdSenseBanner/></div>
+    {!directoryOnly && <div className={styles.ad}><AdSenseBanner placement="home"/></div>}
     {(directoryOnly || searching) && <section id="collections" className={styles.catalog} aria-labelledby="catalog-title"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>/ {c.catalog}</p><h2 id="catalog-title" tabIndex={-1}>{c.browse}</h2><p>{c.directoryDesc}</p></div>{!directoryOnly && <button type="button" onClick={() => { reset(); setExpanded(false); }}>{h.close}<X size={17}/></button>}</div>
       <div className={styles.filters}><div role="group" aria-label={c.categories}><button type="button" aria-pressed={category==="all"} onClick={()=>setCategory("all")}>{c.all}</button>{COLLECTIONS.map(col=><button type="button" key={col.id} aria-pressed={category===col.id} onClick={()=>setCategory(col.id)}>{col.name[lang]}</button>)}</div>{searching && <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/>{c.available}</label>}</div>
       <p className={styles.resultCount} role="status">{rows.length} {c.results}</p>{rows.length ? <div className={styles.toolGrid}>{rows.map(row=><ToolCard key={`${row.category}-${row.entry.id}`} {...row}/>)}</div> : <div className={styles.empty}><Search size={30}/><h3>{c.no}</h3><p>{c.noDesc}</p><button type="button" onClick={reset}>{c.reset}<ArrowRight size={16}/></button></div>}
     </section>}
     {!directoryOnly && <>
-      <section id="device-lab" className={styles.deviceZone} aria-labelledby="device-title">
-        <header className={styles.deviceHead}><div><p className={styles.eyebrow}>01 / {h.devices}</p><h2 id="device-title">{h.deviceTitle}</h2><p>{h.deviceIntro}</p><Link className={styles.deviceAction} href="/collections/devices">{h.allDevices}<ArrowUpRight size={17}/></Link></div><div className={styles.deviceArtwork}><Image src={LABORATORY_ART.devices.src} alt={LABORATORY_ART.devices.alt[lang]} fill sizes="(max-width: 600px) 100vw, 32vw"/></div></header>
-        <div className={styles.deviceGrid}>{MORE_DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id); if (!entry?.href) return null; const Icon = TOOL_ICONS[id] ?? Monitor; return <Link href={entry.href} key={id} className={styles.deviceCard}><span className={styles.deviceThumb}>{entry.image ? <Image src={entry.image} alt="" fill sizes="80px"/> : <Icon size={24}/>}</span><div><h3>{entry.title[lang]}</h3><p>{entry.description[lang]}</p></div><ArrowUpRight size={17}/></Link>; })}</div>
-        <nav className={styles.supportGrid} aria-label={h.support}>{[{id:"utilities" as const,title:h.utilityTitle,desc:h.utilityDesc,Icon:Wrench},{id:"drivers" as const,title:h.driverTitle,desc:h.driverDesc,Icon:FileDown}].map(({id,title,desc,Icon}) => <Link key={id} href={`/collections/${id}`}><Icon size={22}/><div><h3>{title}</h3><p>{desc}</p></div><ArrowUpRight size={17}/></Link>)}</nav>
-        <div className={styles.deviceFoot}><p className={styles.localNote}><ShieldCheck size={15}/>{c.local}</p><Link href="/tools/device-reports"><ClipboardList size={16}/>{c.reports}<ArrowRight size={16}/></Link></div>
+      <section id="device-lab" className={styles.toolsBand} aria-labelledby="device-title">
+        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>01 / {h.devices}</p><h2 id="device-title">{{ en: "More tools", zh: "更多工具", es: "Más herramientas" }[lang]}</h2><p>{h.deviceIntro}</p></div><Link href="/collections/devices">{h.allDevices}<ArrowUpRight size={17}/></Link></div>
+        <div className={styles.toolsGrid}>
+          <div className={styles.toolsPanel}>
+            <h3>{{ en: "More device checks", zh: "更多设备检测", es: "Más pruebas de dispositivos" }[lang]}</h3>
+            <ul>{MORE_DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id); if (!entry?.href) return null; const Icon = TOOL_ICONS[id] ?? Monitor; return <li key={id}><Link href={entry.href} className={styles.toolsRow}><span className={styles.toolsThumb}>{entry.image ? <Image src={entry.image} alt="" fill sizes="44px"/> : <Icon size={20}/>}</span><span><strong>{entry.title[lang]}</strong><small>{entry.description[lang]}</small></span><ArrowUpRight size={15}/></Link></li>; })}</ul>
+          </div>
+          <div className={styles.toolsPanel}>
+            <h3>{{ en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang]}</h3>
+            <p className={styles.toolsNote}>{{ en: "Converted on your device. Files are not uploaded.", zh: "在本机完成转换，文件不会上传。", es: "Se convierten en tu equipo. No se suben archivos." }[lang]}</p>
+            <ul>{CONVERTERS.slice(0, 5).map(tool => <li key={tool.id}><Link href={`/convert/${tool.id}`} className={styles.toolsLink}>{tool.title[lang]}<ArrowUpRight size={14}/></Link></li>)}</ul>
+            <Link href="/convert" className={styles.toolsMore}>{{ en: "All converters", zh: "全部转换器", es: "Todos los conversores" }[lang]}<ArrowRight size={15}/></Link>
+          </div>
+          <div className={styles.toolsPanel}>
+            <h3>{{ en: "Drivers & records", zh: "驱动与记录", es: "Controladores e historial" }[lang]}</h3>
+            <Link href="/collections/drivers" className={styles.toolsFeature}><FileDown size={22}/><span><strong>{h.driverTitle}</strong><small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
+            <Link href="/tools/device-reports" className={styles.toolsFeature}><ClipboardList size={22}/><span><strong>{c.reports}</strong><small>{{ en: "Saved summaries of your checks, kept in this browser.", zh: "保存在本浏览器里的检测摘要。", es: "Resúmenes de tus pruebas guardados en este navegador." }[lang]}</small></span><ChevronRight size={16}/></Link>
+            <Link href="/collections/utilities" className={styles.toolsFeature}><Wrench size={22}/><span><strong>{h.utilityTitle}</strong><small>{h.utilityDesc}</small></span><ChevronRight size={16}/></Link>
+          </div>
+        </div>
+        <p className={styles.localNote}><ShieldCheck size={15}/>{c.local}</p>
       </section>
+      <div className={styles.ad}><AdSenseBanner placement="home-mid"/></div>
       <section id="play-lab" className={styles.playZone} aria-labelledby="play-title">
         <span id="games" className={styles.anchor}/>
         <div className={styles.sectionHead}><div><p className={styles.eyebrow}>02 / {h.play}</p><h2 id="play-title">{h.tests}</h2><p>{h.testsDesc}</p></div><Link href="/collections/mind">{h.allTests}<ArrowUpRight size={17}/></Link></div>
@@ -173,9 +182,9 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
         <section id="fun-tests" className={styles.exploreBlock} aria-labelledby="explore-title">
           <div className={styles.sectionHead}><div><p className={styles.eyebrow}>EXPLORE YOURSELF</p><h2 id="explore-title">{h.discover}</h2><p>{h.discoverDesc}</p></div><Link href="/collections/discover">{h.allFun}<ArrowUpRight size={17}/></Link></div>
           <div className={styles.exploreGrid}>{CATALOG.discover.filter(entry => ["iq", "mbti", "tarot"].includes(entry.id)).map(entry => <ToolCard key={entry.id} entry={entry} category="discover"/>)}</div>
-          <Link className={styles.gameBreak} href="/collections/discover#mini-games"><Gamepad2 size={25}/><div><h3>{h.games}</h3><p>{h.gamesDesc}</p></div><span>{h.playGames}<ArrowRight size={17}/></span></Link>
         </section>
       </section>
+      <div className={`${styles.ad} ${styles.adBottom}`}><AdSenseBanner placement="home-bottom"/></div>
       <Link href="/collections" className={styles.allTools}><Search size={18}/>{c.browse}<ArrowRight size={18}/></Link>
     </>}
     {directoryOnly && <section className={styles.records} aria-label={c.records}><h2>{c.records}</h2><div>{[{href:"/progress",title:c.progress,desc:c.progressDesc,Icon:Brain},{href:"/tools/device-reports",title:c.reports,desc:c.reportsDesc,Icon:ClipboardList},{href:"/leaderboard",title:c.ranking,desc:c.rankingDesc,Icon:Trophy}].map(({href,title,desc,Icon})=><Link key={href} href={href}><Icon size={22}/><div><h3>{title}</h3><p>{desc}</p></div><ChevronRight size={18}/></Link>)}</div></section>}

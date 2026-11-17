@@ -12,6 +12,7 @@
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | 现有公开发布商 ID。 |
 | `NEXT_PUBLIC_ADSENSE_HOME_SLOT` | AdSense 首页展示广告单元的 `data-ad-slot`。 |
 | `NEXT_PUBLIC_ADSENSE_RESULT_SLOT` | 另一个展示广告单元，在用户完成设备检查之后显示。缺失时不复用首页 ID。 |
+| `NEXT_PUBLIC_ADSENSE_DISPLAY_SLOT` | 通用展示广告单元的 `data-ad-slot`，用于首页中部、首页底部、工具页底部、合集页和驱动详情页。留空时沿用首页单元。 |
 | `NEXT_PUBLIC_ADSENSE_AUTO_ADS` | `on` 时在白名单页面全站加载 AdSense 脚本，供后台开启的插页式（vignette）和侧边栏（side rail）自动广告使用；其他值或留空均关闭。仍需 `live` 模式和广告同意。 |
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | GA4 网站数据流的 `G-...` ID；留空时不加载。 |
 
@@ -27,6 +28,20 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 5. 在 GA4 创建事件范围的自定义维度 `tool_id`、`content_id`、`content_type`、`placement`。可将 `tool_complete` 标为关键事件，并建立下面的漏斗。
 6. 使用正式站点的自有测试访问核实拒绝、允许、撤回、换页和再次检测。通过 GA4 Realtime / Tag Assistant 检查事件及重复计数。AdSense 填充和收入只能由后台真实数据确认。
 
+## 手动广告位
+
+| 位置 | placement | 单元 |
+| --- | --- | --- |
+| 首页小游戏推荐栏下方 | `home` | HOME_SLOT |
+| 首页「更多工具」与「能力测试」之间 | `home-mid` | DISPLAY_SLOT |
+| 首页底部、「浏览全部工具」上方 | `home-bottom` | DISPLAY_SLOT |
+| 设备检测完成后 | `result` | RESULT_SLOT |
+| 每个设备检测页底部（技术依据下方） | `tool` | DISPLAY_SLOT |
+| 合集页底部、相关合集上方 | `collection` | DISPLAY_SLOT |
+| 驱动详情页底部 | `content` | DISPLAY_SLOT |
+
+所有广告位都在内容区块之间，并标注「广告」。不放在检测区域、游戏区域或按钮旁边，避免误点；游戏页只使用激励复活广告。
+
 ## 自动广告（插页式 / 侧边栏）
 
 插页式（全屏，在站内跳转时出现，带关闭按钮）和侧边栏（宽屏左右竖条）是 AdSense Auto ads 格式，由 Google 渲染和控制。**不得把 AdSense 广告代码放进自制的弹窗或模态框**，那违反广告放置政策。
@@ -39,7 +54,7 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 
 AdSense 后台：
 
-1. 「广告 → 按网站 → 编辑」开启自动广告，只开启「插页式广告」和「侧边栏广告」等叠加格式，关闭页内广告、锚定广告等其他格式。
+1. 「广告 → 按网站 → 编辑」开启自动广告，开启「插页式广告」「侧边栏广告」和「锚定广告」（手机底部横条，收入较高）。页内广告可先关闭，因为手动广告位已覆盖内容区块之间的位置。
 2. 在「页面排除」中排除 `/tools/*`、`/games/*`、`/audio-validation`、`/camera-validation` 等页面。完成检测后的横幅也会加载同一脚本，没有后台排除时，自动广告可能在检测页出现。
 3. 本站使用 Next.js 客户端路由。插页式广告依赖站内链接跳转触发，在单页跳转中出现的频率尚未实测；上线后需在正式域名确认。
 

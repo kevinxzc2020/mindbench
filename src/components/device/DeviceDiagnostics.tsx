@@ -21,6 +21,7 @@ import { EnvironmentTester } from "./EnvironmentTester";
 import { DeviceHistory } from "./DeviceHistory";
 import styles from "./DeviceDiagnostics.module.css";
 import { CheckupJourney } from "./CheckupJourney";
+import { AdSenseBanner } from "../AdSenseBanner";
 import { MouseGuide } from "./MouseGuide";
 import { KeyboardGuide } from "./KeyboardGuide";
 
@@ -54,5 +55,6 @@ function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
     {tool==="webcam"&&<p className={styles.sources}><a href="https://www.w3.org/TR/mediacapture-streams/" target="_blank" rel="noopener noreferrer">W3C Media Capture and Streams · 2025-10-09</a></p>}
     {(tool==="pen"||tool==="touch"||tool==="trackpad")&&<p className={styles.sources}><a href="https://www.w3.org/TR/pointerevents3/" target="_blank" rel="noopener noreferrer">W3C Pointer Events Level 3 · 2026-06-30</a></p>}
     <p className={styles.sources}>{t("Technical references","技术依据","Referencias técnicas")}: {tool==="speakers"||tool==="microphone"?<><a href="https://www.w3.org/TR/webaudio/" target="_blank" rel="noopener noreferrer">W3C Web Audio</a> · <a href="https://www.w3.org/TR/mediacapture-streams/" target="_blank" rel="noopener noreferrer">Media Capture</a> · <a href="https://www.w3.org/TR/mediastream-recording/" target="_blank" rel="noopener noreferrer">MediaStream Recording</a></>:tool==="screen"?<><a href="https://fullscreen.spec.whatwg.org/" target="_blank" rel="noopener noreferrer">WHATWG Fullscreen</a> · <a href="https://html.spec.whatwg.org/multipage/imagebitmap-and-animations.html#animation-frames" target="_blank" rel="noopener noreferrer">HTML Animation Frames</a></>:<><a href="https://www.w3.org/TR/uievents/" target="_blank" rel="noopener noreferrer">W3C UI Events</a> · <a href="https://www.w3.org/TR/pointerevents/" target="_blank" rel="noopener noreferrer">W3C Pointer Events</a></>}</p>
+    {tool!=="device-reports"&&<div className={styles.toolAd}><AdSenseBanner placement="tool"/></div>}
   </div></div></div>;
 }

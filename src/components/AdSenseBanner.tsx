@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { ADSENSE_SCRIPT_ID, getAdSenseConfig, isLocalAdPreview } from "@/lib/adsense";
+import { ADSENSE_SCRIPT_ID, getAdSenseConfig, isLocalAdPreview, type AdPlacement } from "@/lib/adsense";
 import { useLang } from "@/lib/language-context";
 import { usePrivacy } from "./PrivacyPreferences";
 
@@ -34,13 +34,23 @@ const COPY = {
 };
 
 /** One top-of-page placement, separate from game filters and gameplay controls. */
-export function AdSenseBanner({ placement = "home" }: { placement?: "home" | "result" }) {
+const PLACEMENT_TITLES: Record<AdPlacement, [string, string, string]> = {
+  home: ["Homepage banner placement", "首页顶部广告位", "Banner de la página principal"],
+  "home-mid": ["Homepage mid-page placement", "首页中部广告位", "Anuncio a mitad de página"],
+  "home-bottom": ["Homepage bottom placement", "首页底部广告位", "Anuncio al final de la página"],
+  result: ["After-check advertisement", "检测完成后广告位", "Publicidad tras la revisión"],
+  tool: ["Below-the-tool placement", "工具下方广告位", "Anuncio bajo la herramienta"],
+  collection: ["Collection page placement", "合集页广告位", "Anuncio en la colección"],
+  content: ["In-content placement", "内容页广告位", "Anuncio en el contenido"],
+};
+
+export function AdSenseBanner({ placement = "home" }: { placement?: AdPlacement }) {
   const { lang } = useLang();
   const copy = COPY[lang];
   const config = getAdSenseConfig();
   const { consent, ready } = usePrivacy();
-  const slot = placement === "result" ? config.resultSlotId : config.homeSlotId;
-  const resultTitle = { en: "After-check advertisement", zh: "检测完成后广告位", es: "Publicidad tras la revisión" }[lang];
+  const slot = placement === "result" ? config.resultSlotId : placement === "home" ? config.homeSlotId : config.displaySlotId;
+  const placementTitle = PLACEMENT_TITLES[placement][lang === "zh" ? 1 : lang === "es" ? 2 : 0];
 
   if (config.mode === "preview") {
     return (
@@ -52,7 +62,7 @@ export function AdSenseBanner({ placement = "home" }: { placement?: "home" | "re
         <div className="ad-preview-canvas">
           <div className="ad-preview-symbol" aria-hidden="true"><span>AD</span></div>
           <div className="ad-preview-copy">
-            <p className="ad-preview-title">{placement === "result" ? resultTitle : copy.title}</p>
+            <p className="ad-preview-title">{placementTitle}</p>
             {placement === "home" && <p className="ad-preview-description">{copy.description}</p>}
           </div>
           <span className="ad-preview-format">{copy.format}</span>

@@ -1,4 +1,6 @@
 export type AdSenseMode = "off" | "preview" | "live";
+/** Manual display placements. All sit between content blocks, never inside a test or game surface. */
+export type AdPlacement = "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
 
 // Verified in the owner's AdSense account. This is a public identifier, not a secret.
 const MINDBENCH_PUBLISHER = "ca-pub-7552640548182350";
@@ -14,6 +16,8 @@ export function getAdSenseConfig() {
   const publisher = (process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? MINDBENCH_PUBLISHER).trim();
   const homeSlot = process.env.NEXT_PUBLIC_ADSENSE_HOME_SLOT?.trim() ?? "";
   const resultSlot = process.env.NEXT_PUBLIC_ADSENSE_RESULT_SLOT?.trim() ?? "";
+  // One display unit may serve every in-content placement; falls back to the homepage unit.
+  const displaySlot = process.env.NEXT_PUBLIC_ADSENSE_DISPLAY_SLOT?.trim() || homeSlot;
   const rewardedUnitPath = process.env.NEXT_PUBLIC_AD_MANAGER_REWARDED_UNIT_PATH?.trim() ?? "";
 
   return {
@@ -21,6 +25,7 @@ export function getAdSenseConfig() {
     clientId: /^ca-pub-\d{16}$/.test(publisher) ? publisher : null,
     homeSlotId: /^\d+$/.test(homeSlot) ? homeSlot : null,
     resultSlotId: /^\d+$/.test(resultSlot) ? resultSlot : null,
+    displaySlotId: /^\d+$/.test(displaySlot) ? displaySlot : null,
     rewardedUnitPath: /^\/\d+\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(rewardedUnitPath)
       ? rewardedUnitPath
       : null,
