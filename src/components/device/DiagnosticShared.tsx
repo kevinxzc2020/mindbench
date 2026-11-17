@@ -56,12 +56,12 @@ export function useDiagnosticSession<T extends SessionLog>(factory: () => T, int
 }
 export type Session<T extends SessionLog> = ReturnType<typeof useDiagnosticSession<T>>;
 
-export function SessionControls<T extends SessionLog>({ session }: { session: Session<T> }) {
+export function SessionControls<T extends SessionLog>({ session, hint }: { session: Session<T>; hint?: string }) {
   const { c, t } = useDeviceText();
   return <div className={styles.controls}>
     <button ref={session.startButton} type="button" className={styles.primary} onPointerDown={e => { if (session.active) e.preventDefault(); }} onClick={() => session.active ? session.pause() : session.start()}>{session.active ? <Pause size={17}/> : <Play size={17}/>} {c(session.active ? "pause" : "start")}</button>
     <button type="button" onClick={session.reset}><RotateCcw size={16}/>{c("reset")}</button>
-    <span role="status" className={session.active ? styles.live : styles.status}><i/>{c(session.active ? "active" : "idle")}{session.reason === "focus-lost" || session.reason === "page-hidden" ? ` · ${t("focus changed", "焦点已离开", "cambió el foco")}` : ""}</span>
+    <span role="status" className={session.active ? styles.live : styles.status}><i/>{hint && !session.active && session.startedAt.current === null ? hint : <>{c(session.active ? "active" : "idle")}{session.reason === "focus-lost" || session.reason === "page-hidden" ? ` · ${t("focus changed", "焦点已离开", "cambió el foco")}` : ""}</>}</span>
   </div>;
 }
 export function Stat({ label, value, warning = false }: { label: string; value: ReactNode; warning?: boolean }) { return <div className={warning ? styles.warningStat : styles.stat}><span>{label}</span><strong>{value}</strong></div>; }

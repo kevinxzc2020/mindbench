@@ -268,3 +268,14 @@
 .toolTopAd { margin:0 0 22px; }
 .toolTopAd:empty { display:none; }
 .toolTopAd :global(.ad-placement) { margin-bottom:0; }
+
+/* First screen first: the tool's start control should be visible without scrolling on a laptop. */
+.shell { padding-top: 14px; }
+.back { min-height: 28px; }
+.header { padding: 8px 0 16px; margin-bottom: 16px; }
+.header h1 { margin: 8px 0 6px; }
+.localNote { margin: 0 0 14px; }
+.steps { margin-bottom: 18px; }
+.toolTopAd { margin: 0 0 16px; }
+/* On a short screen the banner would push the tool below the fold. The bottom anchor and the ad under the tool stay. */
+@media (max-height: 899px) { .toolTopAd { display: none; } }

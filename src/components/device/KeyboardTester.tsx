@@ -102,6 +102,22 @@ export function KeyboardTester() {
     window.addEventListener("keyup", up);
     return () => window.removeEventListener("keyup", up);
   }, [platform, session.listening, session.state, session.clock, session.refresh]);
+  // A visitor who simply starts typing should see a response: the first plain key press on a fresh page begins the test and
+  // counts. Browser shortcuts, Tab, Esc, scroll keys and anything typed into a control are left alone.
+  useEffect(() => {
+    const NEVER = new Set(["Tab", "Escape", "F5", "F11", "F12", "Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End"]);
+    const first = (e: KeyboardEvent) => {
+      if (!e.isTrusted || e.repeat || session.listening.current || session.startedAt.current !== null) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || NEVER.has(e.code)) return;
+      if ((e.target as HTMLElement | null)?.closest?.("input, select, textarea, button, a, summary, [contenteditable]")) return;
+      session.start();
+      e.preventDefault();
+      keyDown(session.state.current, e.code || `Unidentified-${e.location}`, false, session.clock(), keyOptions.current.threshold, keyOptions.current.platform);
+      session.refresh();
+    };
+    window.addEventListener("keydown", first);
+    return () => window.removeEventListener("keydown", first);
+  }, [session.listening, session.startedAt, session.start, session.state, session.clock, session.refresh]);
   const cap = (k: KeyCap, placement?: CSSProperties) => {
     const result = s.keys[k.code];
     const state = result?.heldSince != null ? "held" : result?.suspects ? "review" : result?.presses ? "received" : "notTested";
@@ -116,9 +132,7 @@ export function KeyboardTester() {
         : autoLayout && <span>{t("The layout follows the keys you press (ISO key, numpad).", "布局会根据你按下的键自动调整（ISO 键、小键盘）。", "La distribución se ajusta a las teclas que pulses (ISO, teclado numérico).")}</span>}
       <details className={styles.advanced}><summary>{t("Advanced", "高级设置", "Avanzado")}</summary><label className={styles.inlineSelect}>{t("Rapid re-press threshold", "重复按下提示阈值", "Umbral de pulsación rápida")}<select value={threshold} disabled={session.active} onChange={e => { setThreshold(Number(e.target.value)); session.reset(); }}>{[10,20,30,50,100,200].map(n=><option key={n} value={n}>{n} ms</option>)}</select></label><p>{c("settingHint")} {t("This is an adjustable review threshold, not a hardware fault standard.", "这是可调的复核提示阈值，不是硬件故障标准。", "Es un umbral de revisión ajustable, no una norma de fallo.")}</p></details>
     </div>
-    <SessionControls session={session}/>
-    <div className={`${styles.systemKeyNotice} ${locked ? styles.locked : ""}`} role="note">{locked ? <Lock size={18} aria-hidden/> : <TriangleAlert size={18} aria-hidden/>}<div><strong>{locked ? t("System keys locked", "系统键已锁定", "Teclas del sistema bloqueadas") : t("Win/⌘ will open the Start menu", "按 Win/⌘ 会弹出开始菜单", "Win/⌘ abrirá el menú Inicio")}</strong><p>{locked ? t("Win/⌘, Alt and similar keys are only recorded. Press Esc to leave fullscreen; the test keeps running.", "Win/⌘、Alt 等系统键只会被记录，不会触发系统功能。按 Esc 退出全屏，检测会继续。", "Win/⌘, Alt y similares solo se registran. Pulsa Esc para salir de pantalla completa; la prueba continúa.") : lockNote || t("Turn on fullscreen lock to test them without side effects.", "开启全屏锁定即可避免。", "Activa el bloqueo en pantalla completa para evitarlo.")}</p></div>{!locked && <button type="button" onClick={() => void startLocked()}><Maximize size={16}/>{t("Fullscreen + lock system keys", "全屏并锁定系统键", "Pantalla completa y bloquear teclas")}</button>}</div>
-    <div className={styles.stats}><Stat label={t("Layout coverage", "当前布局已收到", "Cobertura de distribución")} value={`${seen.length} / ${codes.length}`}/><Stat label={t("Presses", "按下次数", "Pulsaciones")} value={s.presses}/><Stat label={t("Auto-repeat", "长按自动重复", "Repetición automática")} value={s.repeats}/><Stat label={t("Most keys held together", "最多同时按住", "Máximo simultáneo")} value={s.maxChord}/><Stat label={c("suspects")} value={s.suspects} warning={s.suspects>0}/></div>
+    <SessionControls session={session} hint={t("Press any key to begin", "按任意键开始", "Pulsa cualquier tecla para empezar")}/>
     <div ref={session.surface} tabIndex={0} role="region" aria-label={t("Keyboard test area", "键盘检测区域", "Área de prueba del teclado")} aria-describedby="keyboard-focus-help" className={`${styles.surface} ${styles.keyboardSurface} ${session.active ? styles.listening : ""} ${fullscreen ? styles.fullscreenMode : ""} ${flash ? styles.resultsFlash : ""}`}
       onClick={() => { if (!session.active) session.start(); }}
       onBlur={e=>{ if (!e.currentTarget.contains(e.relatedTarget as Node | null)) session.pause("focus-lost"); }}
@@ -149,6 +163,8 @@ export function KeyboardTester() {
       {extra.length>0 && <p className={styles.caption}>{t("Other keys received", "收到的其他按键", "Otras teclas recibidas")}: {extra.join(" · ")}</p>}
     </div>
     <p id="keyboard-focus-help" className={styles.caption}>{t("Clicking outside the test area pauses it. If Win, PrtSc or a window switch takes focus away, the test resumes when you come back. Esc is recorded like any other key, except in fullscreen where it exits fullscreen.", "点击检测区域外会暂停。按 Win、PrtSc 或切换窗口导致失去焦点时，回到页面后会自动继续。Esc 会像其他键一样被记录；全屏时按 Esc 则是退出全屏。", "Hacer clic fuera del área pausa la prueba. Si Win, ImprPant o un cambio de ventana quitan el foco, se reanuda al volver. Esc se registra como cualquier otra tecla, salvo en pantalla completa, donde sale de ella.")} {t("Pausing clears held states without inventing release events; down/up counts can differ after a pause.","暂停会清除按住状态，不补记松开事件，因此暂停后按下/松开次数可能不相等。","Pausar limpia los estados pulsados sin inventar liberaciones; los contadores pueden diferir tras una pausa.")}</p>
+    <div className={`${styles.systemKeyNotice} ${locked ? styles.locked : ""}`} role="note">{locked ? <Lock size={18} aria-hidden/> : <TriangleAlert size={18} aria-hidden/>}<div><strong>{locked ? t("System keys locked", "系统键已锁定", "Teclas del sistema bloqueadas") : t("Win/⌘ will open the Start menu", "按 Win/⌘ 会弹出开始菜单", "Win/⌘ abrirá el menú Inicio")}</strong><p>{locked ? t("Win/⌘, Alt and similar keys are only recorded. Press Esc to leave fullscreen; the test keeps running.", "Win/⌘、Alt 等系统键只会被记录，不会触发系统功能。按 Esc 退出全屏，检测会继续。", "Win/⌘, Alt y similares solo se registran. Pulsa Esc para salir de pantalla completa; la prueba continúa.") : lockNote || t("Turn on fullscreen lock to test them without side effects.", "开启全屏锁定即可避免。", "Activa el bloqueo en pantalla completa para evitarlo.")}</p></div>{!locked && <button type="button" onClick={() => void startLocked()}><Maximize size={16}/>{t("Fullscreen + lock system keys", "全屏并锁定系统键", "Pantalla completa y bloquear teclas")}</button>}</div>
+    <div className={styles.stats}><Stat label={t("Layout coverage", "当前布局已收到", "Cobertura de distribución")} value={`${seen.length} / ${codes.length}`}/><Stat label={t("Presses", "按下次数", "Pulsaciones")} value={s.presses}/><Stat label={t("Auto-repeat", "长按自动重复", "Repetición automática")} value={s.repeats}/><Stat label={t("Most keys held together", "最多同时按住", "Máximo simultáneo")} value={s.maxChord}/><Stat label={c("suspects")} value={s.suspects} warning={s.suspects>0}/></div>
     <SessionReport session={session} tool="keyboard" settings={{ layout, rapidRepressThresholdMs:threshold, thresholdIsHeuristic:true }} hasInput={s.presses>0}>
       <p>{s.presses === 0 ? c("noEvents") : s.suspects ? t("Review the marked keys. A rapid re-press or an unpaired event may also be caused by intentional input, software or lost events.", "请复测标记的按键。短间隔重复按下或事件不成对，也可能来自主动操作、软件或事件丢失。", "Revisa las teclas marcadas. Las pulsaciones rápidas o eventos sin pareja también pueden deberse al usuario, al software o a eventos perdidos.") : c("noSuspects")}</p>
       <details className={styles.details}><summary>{c("notTested")} · {missing.length}</summary><p>{missing.join(" · ") || t("All keys in this layout have sent a press event.", "当前布局的所有按键均已收到按下事件。", "Se recibió una pulsación de cada tecla de esta distribución.")}</p></details>
