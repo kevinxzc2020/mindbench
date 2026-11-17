@@ -16,20 +16,24 @@ export function WheelTester() {
   useEffect(()=>{
     const el=session.surface.current;if(!el)return;
     const onWheel=(e:WheelEvent)=>{
-      if(!session.listening.current||!e.isTrusted)return;
+      if(!e.isTrusted)return;
+      // Like the keyboard and mouse tests: input in the area starts (or resumes) the test and already counts.
+      if(!session.listening.current)session.start();
       if(e.cancelable)e.preventDefault();
       // Read deltaMode before deltas. Never pretend line/page values are pixel distances.
       const mode=e.deltaMode;wheelInput(session.state.current,e.deltaX,e.deltaY,mode,e.ctrlKey,expected,session.clock());session.refresh();
     };
-    el.addEventListener("wheel",onWheel,{passive:false});return()=>el.removeEventListener("wheel",onWheel);
-  },[expected,session.surface,session.listening,session.state,session.clock,session.refresh]);
+    const onDown=(e:PointerEvent)=>{if(e.isTrusted&&!session.listening.current)session.start();};
+    el.addEventListener("wheel",onWheel,{passive:false});el.addEventListener("pointerdown",onDown);
+    return()=>{el.removeEventListener("wheel",onWheel);el.removeEventListener("pointerdown",onDown);};
+  },[expected,session.surface,session.listening,session.state,session.clock,session.refresh,session.start]);
   const latest=s.samples[s.samples.length-1];
   // A chart uses one deltaMode at a time so incompatible units aren't compared.
   const mode=latest?.mode??0;
   const samples=s.samples.filter(sample=>sample.mode===mode);
   const max=Math.max(1,...samples.map(sample=>Math.abs(sample[axis])));
   return <>
-    <ol className={styles.steps}><li>{t("Choose free observation or one expected direction, then start the test.","选择自由观察或一个预期方向，然后开始检测。","Elige observación libre o una dirección e inicia la prueba.")}</li><li>{t("Move the pointer into the test area. In a one-way test, scroll slowly in that direction without reversing.","将光标放进检测区域。单向测试时，请缓慢朝同一方向滚动，不要主动反转。","Pon el cursor en el área. En una prueba unidireccional, desplázate despacio sin invertir el sentido.")}</li><li>{t("Pause and review opposite-direction events; repeat in the other direction separately.","暂停后复核反向事件，再新开一轮检测另一方向。","Pausa y revisa las entradas opuestas; prueba el otro sentido en otra sesión.")}</li></ol>
+    <ol className={styles.steps}><li>{t("Choose free observation or one expected direction. Scrolling or clicking in the test area starts the test.","选择自由观察或一个预期方向。在检测区域内滚动或点击即可开始检测。","Elige observación libre o una dirección. Desplazarte o hacer clic en el área inicia la prueba.")}</li><li>{t("Move the pointer into the test area. In a one-way test, scroll slowly in that direction without reversing.","将光标放进检测区域。单向测试时，请缓慢朝同一方向滚动，不要主动反转。","Pon el cursor en el área. En una prueba unidireccional, desplázate despacio sin invertir el sentido.")}</li><li>{t("Pause and review opposite-direction events; repeat in the other direction separately.","暂停后复核反向事件，再新开一轮检测另一方向。","Pausa y revisa las entradas opuestas; prueba el otro sentido en otra sesión.")}</li></ol>
     <div className={styles.settings}><label>{t("Expected direction","预期滚动方向","Dirección esperada")}<select value={expected} disabled={session.active} onChange={e=>{const v=e.target.value as WheelDirection;setExpected(v);setAxis(v==="left"||v==="right"?"x":"y");session.reset();}}>{Object.entries(directions).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><p>{c("settingHint")} {t("Direction means scroll input, not the physical rotation of your wheel.","方向指滚动输入方向，不是滚轮实体转动方向。","La dirección se refiere a la entrada de desplazamiento, no al giro físico de la rueda.")}</p></div>
     <SessionControls session={session}/>
     <div className={styles.stats}><Stat label={t("Scroll events","滚动事件","Eventos")} value={s.events}/><Stat label={t("Up / down","向上 / 向下","Arriba / abajo")} value={`${s.up} / ${s.down}`}/><Stat label={t("Left / right","向左 / 向右","Izquierda / derecha")} value={`${s.left} / ${s.right}`}/><Stat label={expected==="free"?t("Direction changes","方向变化","Cambios de dirección"):t("Opposite events","反向事件","Eventos opuestos")} value={expected==="free"?s.reversals:s.opposite} warning={expected!=="free"&&s.opposite>0}/></div>

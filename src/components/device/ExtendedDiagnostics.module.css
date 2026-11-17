@@ -73,3 +73,7 @@
 .stage { --paper:#34412c; --muted:#657057; --line:#d6deca; color:var(--paper); background:#fffef8; border-color:#d6deca; }.stageLabel { color:#59664a; background:#f4f5eaf0; border:1px solid #dce2cd; border-radius:7px; }
 .videoStage:has(.placeholder) { background:#e9eddf; border-color:#d3ddc4; }.videoStage .placeholder { color:#667457; }
 @media(max-width:600px) { .root select,.root input:not([type=checkbox]),.root textarea { font-size:16px; }.controls > button { flex:1 1 auto; } }
+
+/* An idle preview area starts the device when clicked. */
+.videoStage[data-startable=true] { cursor: pointer; }
+.videoStage[data-startable=true]:hover { filter: brightness(.98); }

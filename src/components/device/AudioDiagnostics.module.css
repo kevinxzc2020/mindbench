@@ -21,3 +21,7 @@
 .driver { background:radial-gradient(circle,#d3d8c5 19%,#b0b99d 20%,#edf0e3 40%,#b0b99d 41%,#e5e9d9 43%,#d2d9c2 64%,#f5f5ed 65%); border-color:#9eac88; box-shadow:inset 0 0 0 7px #e9eddf,0 8px 18px #3f502114; }.driver b { color:#5a6a46; }.sounding .driver { border-color:#d94d31; box-shadow:inset 0 0 0 7px #eed3bc,0 0 0 4px #d94d3110; }.sounding .driver b { color:#ac4b2a; }
 .meterLine meter::-webkit-meter-bar { background:#e6eada; }.progress::-webkit-progress-bar { background:#e3e7d7; }.channelNumber { color:#657057; }
 @media(max-width:600px) { .root select,.root input[type=number],.root textarea { font-size:16px; }.controls > button,.controls > a { flex:1 1 auto; } }
+
+/* An idle preview area starts the device when clicked. */
+.micStage[data-startable=true] { cursor: pointer; }
+.micStage[data-startable=true]:hover { filter: brightness(.98); }

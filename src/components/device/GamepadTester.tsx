@@ -31,9 +31,12 @@ export function GamepadTester() {
   useEffect(() => {
     setSupported(typeof navigator.getGamepads === "function" && window.isSecureContext);
     const hidden = () => { if (document.hidden) stop(); }; const escape = (e: KeyboardEvent) => { if (e.key === "Escape") stop(); };
-    window.addEventListener("blur", stop); document.addEventListener("visibilitychange", hidden); window.addEventListener("keydown", escape);
-    return () => { stop(); window.removeEventListener("blur", stop); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("keydown", escape); };
+    // Browsers reveal a controller on its first button press, so that press starts the test like a click in the other tools.
+    const connected = () => { if (!running.current && !document.hidden) startRef.current(); };
+    window.addEventListener("blur", stop); document.addEventListener("visibilitychange", hidden); window.addEventListener("keydown", escape); window.addEventListener("gamepadconnected", connected);
+    return () => { stop(); window.removeEventListener("blur", stop); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("keydown", escape); window.removeEventListener("gamepadconnected", connected); };
   }, [stop]);
+  const startRef = useRef<() => void>(() => {});
   const start = () => {
     journey.begin();
     setError(""); setMessage(""); running.current = true; setActive(true); let lastRender = 0;
@@ -67,6 +70,7 @@ export function GamepadTester() {
     };
     frame.current = requestAnimationFrame(read);
   };
+  startRef.current = start;
   const vibrate = async () => {
     try { const actuator = currentPad.current?.vibrationActuator; if (!actuator) throw new Error("unsupported"); const result = await actuator.playEffect("dual-rumble", { duration: 300, startDelay: 0, weakMagnitude: .3, strongMagnitude: .3 }); setMessage(result === "complete" ? t("The vibration command completed. Confirm by feel whether the controller vibrated.", "震动指令已完成，请通过手感确认是否实际震动。", "La orden terminó. Confirma físicamente si vibró.") : t("Vibration was interrupted or not completed.", "震动指令被打断或未完成。", "La vibración se interrumpió o no terminó.")); }
     catch { setMessage(t("Vibration is not available for this controller/browser combination.", "当前手柄与浏览器组合无法执行此震动测试。", "Esta combinación de mando y navegador no admite la vibración.")); }

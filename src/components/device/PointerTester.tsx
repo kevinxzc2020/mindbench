@@ -15,6 +15,7 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
   const { t } = useDeviceText(); const text = useRef(t); text.current = t;
   const surface = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null), listening = useRef(false), raf = useRef(0);
   const stats = useRef(freshPointerStats());
+  const startRef = useRef<() => void>(() => {});
   const scroll = useRef({ count: 0, zoom: 0, doubleClicks: 0, values: {} as Record<number, { x: number; y: number; absX: number; absY: number }> });
   const [active, setActive] = useState(false), [supported, setSupported] = useState<boolean | null>(null), [maxTouches, setMaxTouches] = useState<number | null>(null), [message, setMessage] = useState(""), [fullscreen, setFullscreen] = useState(false);
   const [geometry, setGeometry] = useState({ width: 0, height: 0 }); const [, render] = useState(0);
@@ -29,7 +30,9 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
     setSupported(typeof PointerEvent !== "undefined"); setMaxTouches(navigator.maxTouchPoints ?? 0);
     const sample = (e: PointerEvent): PointerSample => { const r = el.getBoundingClientRect(); return { id: e.pointerId, type: e.pointerType, x: r.width ? (e.clientX - r.left) / r.width : -1, y: r.height ? (e.clientY - r.top) / r.height : -1, pressure: e.pressure, tiltX: e.tiltX, tiltY: e.tiltY, twist: e.twist, buttons: e.buttons, width: e.width, height: e.height }; };
     const handle = (phase: "down" | "move" | "up" | "cancel") => (e: PointerEvent) => {
-      if (!listening.current || !e.isTrusted) return;
+      if (!e.isTrusted) return;
+      // The first contact of the right kind in the area starts (or resumes) the test and already counts.
+      if (!listening.current) { if (phase === "down" && acceptsPointer(tool, e.pointerType)) startRef.current(); else return; }
       if (phase === "down" && acceptsPointer(tool, e.pointerType)) { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch { /* Native up/cancel still finish the contact. */ } }
       const batch = phase === "move" && e.getCoalescedEvents ? e.getCoalescedEvents() : [];
       if (batch.length) batch.forEach(event => pointerSample(stats.current, tool, phase, sample(event))); else pointerSample(stats.current, tool, phase, sample(e));
@@ -38,7 +41,8 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
     const down = handle("down"), move = handle("move"), up = handle("up"), cancel = handle("cancel");
     const lost = (e: PointerEvent) => { if (stats.current.contacts.has(e.pointerId)) { pointerSample(stats.current, tool, "cancel", sample(e)); refresh(); } };
     const wheel = (e: WheelEvent) => {
-      if (!listening.current || tool !== "trackpad" || !e.isTrusted) return;
+      if (tool !== "trackpad" || !e.isTrusted) return;
+      if (!listening.current) startRef.current();
       e.preventDefault();
       if (e.ctrlKey) scroll.current.zoom++;
       else { scroll.current.count++; const unit = scroll.current.values[e.deltaMode] ??= { x: 0, y: 0, absX: 0, absY: 0 }; unit.x += e.deltaX; unit.y += e.deltaY; unit.absX += Math.abs(e.deltaX); unit.absY += Math.abs(e.deltaY); }
@@ -56,6 +60,7 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
     return () => { listening.current = false; cancelAnimationFrame(raf.current); resize.disconnect(); el.removeEventListener("pointerdown", down); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", cancel); el.removeEventListener("lostpointercapture", lost); el.removeEventListener("wheel", wheel); el.removeEventListener("dblclick", dbl); el.removeEventListener("contextmenu", prevent); el.removeEventListener("auxclick", prevent); window.removeEventListener("blur", stop); window.removeEventListener("keydown", escape); document.removeEventListener("visibilitychange", hidden); document.removeEventListener("fullscreenchange", changed); };
   }, [tool, refresh, stop]);
   const start = () => { journey.begin(); listening.current = true; setActive(true); setMessage(""); surface.current?.focus({ preventScroll: true }); };
+  startRef.current = start;
   const reset = () => { stop(); stats.current = freshPointerStats(); scroll.current = { count: 0, zoom: 0, doubleClicks: 0, values: {} }; setMessage(""); refresh(); };
   const toggleFullscreen = async () => { stop(); try { if (document.fullscreenElement) await document.exitFullscreen(); else await panel.current?.requestFullscreen(); } catch { setMessage(t("Fullscreen is unavailable; the embedded test area still works.", "此环境无法全屏，仍可使用页面内检测区域。", "La pantalla completa no está disponible; usa el área integrada.")); } };
   const s = stats.current, wheel = scroll.current, edges = Array.from(s.cells).filter(cell => isEdgeCell(cell)).length;
@@ -70,7 +75,7 @@ export function PointerTester({ tool }: { tool: PointerTool }) {
       <div className={styles.controls}><button className={styles.primary} disabled={supported === false} onClick={() => active ? stop() : start()}>{active ? <Pause size={16}/> : <Play size={16}/>} {active ? t("Pause test", "暂停检测", "Pausar") : t("Start test", "开始检测", "Iniciar")}</button><button onClick={reset}><RotateCcw size={15}/>{t("Reset", "重置", "Reiniciar")}</button><button onClick={() => void toggleFullscreen()}><Maximize size={15}/>{fullscreen ? t("Exit fullscreen", "退出全屏", "Salir de pantalla completa") : t("Fullscreen area", "全屏检测区域", "Área a pantalla completa")}</button><span className={styles.status}>{active ? t("Receiving input", "正在接收输入", "Recibiendo entradas") : t("Paused", "已暂停", "En pausa")}</span></div>
       <div ref={surface} className={styles.stage} role="region" tabIndex={0} aria-label={t("Pointer test area", "指针检测区域", "Área de prueba del puntero")} data-active={active} style={{ touchAction: active && tool !== "trackpad" ? "none" : "auto", userSelect: active ? "none" : undefined }}>
         <svg viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">{Array.from({ length: 48 }, (_, cell) => <rect key={cell} x={cell % 8 * 100} y={Math.floor(cell / 8) * 100} width={100} height={100} fill={s.cells.has(cell) ? "#b5c99b22" : "none"} stroke={isEdgeCell(cell) ? "#c5b28b55" : "#c5b28b22"}/>)}{s.strokes.map((stroke, i) => <polyline key={i} points={stroke.points.map(p => `${p.x * 800},${p.y * 600}`).join(" ")} fill="none" stroke={COLORS[Math.abs(stroke.id) % COLORS.length]} strokeWidth={tool === "pen" ? 2 + (stroke.points.at(-1)?.pressure ?? 0) * 7 : 2.5} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round"/>)}{Array.from(s.contacts.values()).map(p => <g key={p.id}><circle cx={p.x * 800} cy={p.y * 600} r="13" fill={COLORS[Math.abs(p.id) % COLORS.length]} fillOpacity=".35" stroke={COLORS[Math.abs(p.id) % COLORS.length]}/><text x={p.x * 800 + 17} y={p.y * 600 - 12} fill="#435434" fontSize="16">{p.id}</text></g>)}</svg>
-        {!s.downs && <div className={styles.stageLabel}>{active ? tool === "touch" ? t("Touch this area with your fingers", "请用手指触摸此区域", "Toca esta área con los dedos") : tool === "pen" ? t("Draw here with your pen", "请用触控笔在这里画线", "Dibuja aquí con el lápiz") : t("Click, drag or scroll here with your trackpad", "请用触控板在此点击、拖动或滚动", "Haz clic, arrastra o desplaza aquí") : t("Press Start to receive input", "点击开始后接收输入", "Pulsa Iniciar para recibir entradas")}</div>}
+        {!s.downs && <div className={styles.stageLabel}>{active ? tool === "touch" ? t("Touch this area with your fingers", "请用手指触摸此区域", "Toca esta área con los dedos") : tool === "pen" ? t("Draw here with your pen", "请用触控笔在这里画线", "Dibuja aquí con el lápiz") : t("Click, drag or scroll here with your trackpad", "请用触控板在此点击、拖动或滚动", "Haz clic, arrastra o desplaza aquí") : (tool === "touch" ? t("Touch this area to start", "触摸此区域即可开始", "Toca esta área para empezar") : tool === "pen" ? t("Draw here with your pen to start", "用触控笔在这里画线即可开始", "Dibuja aquí con el lápiz para empezar") : t("Click or scroll here to start", "在这里点击或滚动即可开始", "Haz clic o desplaza aquí para empezar"))}</div>}
       </div>
     </div>
     {message && <p role="status" className={styles.hint}>{message}</p>}
