@@ -24,13 +24,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Persist language choice
   useEffect(() => {
-    const stored = localStorage.getItem("mb-lang") as Lang | null;
-    if (stored && stored in translations) setLangState(stored);
+    let stored: Lang | null = null;
+    try { stored = localStorage.getItem("mb-lang") as Lang | null; } catch { /* storage blocked: fall back to the browser language */ }
+    if (stored && stored in translations) { setLangState(stored); return; }
+    // First visit: follow the browser's language instead of always opening in English.
+    const preferred = (navigator.languages?.[0] ?? navigator.language ?? "en").toLowerCase();
+    if (preferred.startsWith("zh")) setLangState("zh");
+    else if (preferred.startsWith("es")) setLangState("es");
   }, []);
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("mb-lang", l);
+    try { localStorage.setItem("mb-lang", l); } catch { /* the choice lasts for this visit only */ }
   };
 
   return (

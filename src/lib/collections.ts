@@ -66,7 +66,7 @@ const gameEntries = GAMES.filter(g => !("hidden" in g && g.hidden)).map(g => ({
   group: group[g.category], href: `/games/${g.id}`, image: GAME_COVERS[g.id], category: g.category,
 }));
 
-export const CATALOG: Record<CollectionId, readonly CatalogEntry[]> = {
+const CATALOG_AS_WRITTEN: Record<CollectionId, readonly CatalogEntry[]> = {
   mind: gameEntries.filter(g => g.category === "cognitive"),
   devices: [
     deviceTool("keyboard", words("Keyboard tester", "键盘检测", "Prueba de teclado"), words("Key response, repeated input and simultaneous key combinations.", "逐键响应、异常连击与多键同时按下检查。", "Respuesta de teclas, entradas repetidas y combinaciones simultáneas."), group.input),
@@ -99,6 +99,22 @@ export const CATALOG: Record<CollectionId, readonly CatalogEntry[]> = {
     ...MINI_GAMES.map(g => ({ id: g.id, title: g.title, description: g.description, group: group.mini, href: `/games/minigames/${g.slug}`, image: MINI_GAME_COVERS[g.id as keyof typeof MINI_GAME_COVERS] })),
   ],
 };
+
+/**
+ * Collection pages and search results lead with what people look up most (keyboard, microphone, webcam and
+ * screen checks; typing, click-speed and reaction tests). Entries not listed keep their order after these.
+ */
+const DEMAND_ORDER: Partial<Record<CollectionId, readonly string[]>> = {
+  devices: ["keyboard", "microphone", "webcam", "screen", "speakers", "mouse", "gamepad", "trackpad", "touch", "pen", "motion", "environment", "device-reports"],
+  mind: ["typing-test", "cps-test", "reaction-time", "aim-trainer", "number-memory", "sequence-memory", "visual-memory", "verbal-memory"],
+};
+const demandRank = (order: readonly string[], id: string) => { const index = order.indexOf(id); return index < 0 ? order.length : index; };
+export const CATALOG: Record<CollectionId, readonly CatalogEntry[]> = Object.fromEntries(
+  (Object.keys(CATALOG_AS_WRITTEN) as CollectionId[]).map(key => {
+    const order = DEMAND_ORDER[key];
+    return [key, order ? [...CATALOG_AS_WRITTEN[key]].sort((a, b) => demandRank(order, a.id) - demandRank(order, b.id)) : CATALOG_AS_WRITTEN[key]];
+  }),
+) as Record<CollectionId, readonly CatalogEntry[]>;
 
 export function getCollection(id: string) { return COLLECTIONS.find(c => c.id === id); }
 export function matchesEntry(entry: CatalogEntry, query: string) {

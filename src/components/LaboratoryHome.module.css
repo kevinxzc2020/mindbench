@@ -134,12 +134,6 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 .challengeLinks { display:flex; justify-content:flex-end; gap:12px 24px; flex-wrap:wrap; padding-top:12px; }
 .challengeLinks a { display:inline-flex; align-items:center; gap:8px; min-height:44px; font-size:12px; color:#747967; }
 .challengeLinks a:hover { color:#c04b30; }
-.exploreBlock { scroll-margin-top:0; margin-top:12px; }
-.exploreBlock > .sectionHead { margin-top:30px; }
-.exploreBlock > .sectionHead h2 { font-size:25px; }
-.exploreGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:17px; }
-.exploreGrid .toolCard { background:#fcf7ee; }
-.exploreGrid .toolImage { aspect-ratio:2 / 1; }
 .allTools { display:flex; align-items:center; justify-content:center; gap:11px; min-height:48px; width:fit-content; margin:27px auto 0; padding:8px 14px; font-size:13px; color:#69735c; }
 .allTools:hover { color:#bd4b2d; }
 .records { margin-top:35px; }
@@ -147,16 +141,9 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
  .challengeGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media(max-width:800px) {
- .exploreGrid { gap:12px; }
 }
 @media(max-width:600px) {
  .sectionHead h2 { line-height:1.3; }
- .exploreGrid { grid-template-columns:1fr; }
- .exploreGrid .toolCard { display:grid; grid-template-columns:104px minmax(0,1fr); column-gap:14px; }
- .exploreGrid .toolImage { grid-row:1 / span 4; aspect-ratio:auto; height:100%; min-height:130px; margin:0; }
- .exploreGrid .toolTop { margin-bottom:7px; }
- .exploreGrid .toolCard > p { margin-bottom:12px; }
- .exploreGrid .toolFoot { padding-top:10px; }
 }
 .gameShelf { margin:0 0 24px; padding:22px 24px 24px; border:1px solid #dfdfce; border-radius:12px; background:#fffdf6; }
 .gameShelfHead { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
@@ -237,3 +224,27 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 .adBottom { margin-top:34px; }
 @media(max-width:1000px) { .toolsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.toolsGrid > .toolsPanel:first-child { grid-column:1 / -1; }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px; } }
 @media(max-width:600px) { .toolsGrid { grid-template-columns:minmax(0,1fr); }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:minmax(0,1fr); }.toolsPanel { padding:15px; } }
+
+/* Why MindBench: the one dark band on the page, so the reasons to choose this site are not missed. */
+.why { margin:10px 0 34px; padding:36px 34px 32px; border-radius:18px; background:#2b3226; color:#f4f2e8; }
+.whyHead { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:12px 44px; align-items:end; margin-bottom:26px; }
+.why .eyebrow { color:#b9c3a4; }
+.why .eyebrow > span { background:#ee6a4d; }
+.whyHead h2 { font-size:clamp(26px,3vw,38px); font-weight:720; letter-spacing:-.045em; line-height:1.15; margin:10px 0 0; }
+.whyHead > p { font-size:14px; line-height:1.8; color:#cfd5c0; margin:0; max-width:48ch; }
+.whyGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.whyCard { display:flex; flex-direction:column; gap:10px; min-width:0; padding:20px 18px 12px; border:1px solid #434c3a; border-radius:14px; background:#323a2b; }
+.whyIcon { display:grid; place-items:center; width:40px; height:40px; border-radius:10px; background:#3f4a35; color:#f2a58f; }
+.whyCard h3 { font-size:16px; font-weight:650; letter-spacing:-.02em; margin:4px 0 0; }
+.whyCard p { font-size:13px; line-height:1.75; color:#cfd5c0; margin:0; }
+.whyChips { display:flex; flex-wrap:wrap; gap:6px; margin:auto 0 0; padding:6px 0 0; list-style:none; }
+.whyChips li { padding:3px 8px; border-radius:6px; background:#3f4a35; color:#e6e9d8; font:11px var(--font-mono); }
+.whyLink { display:inline-flex; align-items:center; gap:7px; min-height:44px; font-size:12.5px; color:#f4b3a1; }
+.whyLink:hover { color:#ffd2c5; text-decoration:underline; text-underline-offset:4px; }
+.whyLangs { display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-bottom:4px; }
+.whyLangs button { min-height:44px; padding:0 14px; border:1px solid #55604a; border-radius:9px; background:transparent; color:#e6e9d8; font-size:13px; }
+.whyLangs button:hover { border-color:#8b9a78; }
+.whyLangs button[aria-pressed=true] { border-color:#f4f2e8; background:#f4f2e8; color:#2b3226; }
+.why a:focus-visible, .why button:focus-visible { outline:3px solid #f4b3a1; outline-offset:3px; }
+@media(max-width:1000px) { .whyGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.whyHead { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:600px) { .why { padding:26px 18px 18px; border-radius:14px; }.whyGrid { grid-template-columns:minmax(0,1fr); } }
