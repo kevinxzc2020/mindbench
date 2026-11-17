@@ -11,6 +11,9 @@ import { AdSenseBanner } from "./AdSenseBanner";
 import { CONVERTERS } from "@/lib/converters";
 import styles from "./LaboratoryHome.module.css";
 
+/** Hand-picked games shown right under the hero; ids that lose their route or cover are skipped. */
+const GAME_PICKS = ["goose-grab", "sheep", "screw", "fruit", "number-chain", "reaction-time"];
+
 const ICONS = { mind: Brain, devices: Monitor, utilities: Wrench, drivers: FileDown, discover: Sparkles };
 export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard, mouse: Mouse, wheel: MoveVertical, screen: Monitor, microphone: Mic, speakers: AudioLines, "reaction-time": Zap, "cps-test": Mouse, "aim-trainer": Target, "voice-recorder": Mic, "device-reports": ClipboardList, mbti: Sparkles };
 const MIND_PICKS = ["reaction-time", "sequence-memory", "number-memory", "aim-trainer"];
@@ -122,6 +125,13 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
         <div className={styles.launchSearch}><h2>{c.searchLabel}</h2>{search}<Link href="/collections" className={styles.launchBrowse}>{c.browse}<ArrowRight size={16}/></Link></div>
         <Link href="/collections/drivers" className={styles.launchResource}><FileDown size={21}/><span>{h.driverTitle}<small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
       </aside>
+    </section>}
+    {!directoryOnly && <section className={styles.gameShelf} aria-labelledby="game-picks-title">
+      <div className={styles.gameShelfHead}><div><span className={styles.eyebrow}>PLAY / {lang === "zh" ? "小游戏" : lang === "es" ? "MINIJUEGOS" : "MINI-GAMES"}</span><h2 id="game-picks-title">{{ en: "Take a quick break", zh: "来玩一局", es: "Tómate un descanso" }[lang]}</h2></div><Link href="/collections/discover" className={styles.gameShelfAll}>{{ en: "All games", zh: "全部小游戏", es: "Todos los juegos" }[lang]}<ArrowRight size={15}/></Link></div>
+      <div className={styles.gameShelfRow}>{GAME_PICKS.map(id => [...CATALOG.discover, ...CATALOG.mind].find(entry => entry.id === id)).filter((entry): entry is CatalogEntry => Boolean(entry?.href && entry.image)).map(entry => <Link key={entry.id} href={entry.href!} className={styles.gameCard}>
+        <span className={styles.gameCover}><Image src={entry.image!} alt="" fill sizes="(max-width: 600px) 44vw, 210px"/></span>
+        <strong>{entry.title[lang]}</strong><small>{entry.group[lang]}</small>
+      </Link>)}</div>
     </section>}
     {!directoryOnly && <section className={styles.conversionShelf} aria-label={{ en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang]}>
       <div><span className={styles.eyebrow}>FILES / {lang === "zh" ? "本地处理" : lang === "es" ? "PROCESO LOCAL" : "LOCAL PROCESSING"}</span><h2>{{ en: "Need a different format?", zh: "文件换个格式？", es: "¿Necesitas otro formato?" }[lang]}</h2></div>

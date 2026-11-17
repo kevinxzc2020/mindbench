@@ -259,3 +259,17 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
  .deviceFoot { flex-direction:column; align-items:flex-start; gap:8px; }
  .deviceFoot .localNote { font-size:11px; }
 }
+.gameShelf { margin:0 0 24px; padding:22px 24px 24px; border:1px solid #dfdfce; border-radius:12px; background:#fffdf6; }
+.gameShelfHead { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.gameShelfHead h2 { font-size:20px; font-weight:650; letter-spacing:-.025em; margin-top:5px; }
+.gameShelfAll { display:flex; align-items:center; gap:8px; min-height:44px; font-size:12px; color:#a7472d; white-space:nowrap; }
+.gameShelfRow { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
+.gameCard { display:flex; flex-direction:column; gap:3px; min-width:0; padding:8px 8px 11px; border:1px solid #e4e4d4; border-radius:10px; background:#f7f5ec; transition:border-color .15s, transform .15s; }
+.gameCard:hover { border-color:#c76543; transform:translateY(-2px); }
+.gameCover { position:relative; display:block; aspect-ratio:4 / 3; border-radius:7px; overflow:hidden; background:#ebe8db; margin-bottom:6px; }
+.gameCover img { object-fit:cover; }
+.gameCard strong { font-size:13px; font-weight:620; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gameCard small { font-size:11px; color:#7b7d6f; }
+@media(max-width:1000px) { .gameShelfRow { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:600px) { .gameShelf { padding:17px; }.gameShelfRow { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }.gameShelfHead h2 { font-size:18px; } }
+@media(prefers-reduced-motion:reduce) { .gameCard, .gameCard:hover { transition:none; transform:none; } }
