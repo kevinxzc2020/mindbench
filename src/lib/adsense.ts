@@ -1,8 +1,8 @@
 export type AdSenseMode = "off" | "preview" | "live";
-/** Shape requested from AdSense: rectangle ~300×250, horizontal ~728×90 / 320×50. */
-export type AdFormat = "auto" | "rectangle" | "horizontal";
+/** Shape requested from AdSense: rectangle ~300×250, horizontal ~728×90 / 320×50, vertical ~160×600. */
+export type AdFormat = "auto" | "rectangle" | "horizontal" | "vertical";
 /** Manual display placements. All sit between content blocks, never inside a test or game surface. */
-export type AdPlacement = "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
+export type AdPlacement = "rail" | "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
 
 // Verified in the owner's AdSense account. This is a public identifier, not a secret.
 const MINDBENCH_PUBLISHER = "ca-pub-7552640548182350";

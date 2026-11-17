@@ -1822,3 +1822,16 @@
 .ad-live.ad-format-horizontal { min-height: 90px; }
 .ad-format-horizontal .ad-preview-canvas { min-height: 90px; }
 @media (max-width: 600px) { .ad-live.ad-format-horizontal, .ad-format-horizontal .ad-preview-canvas { min-height: 60px; } }
+
+/* Side rails: fixed skyscrapers in the page margins, only where they fit beside the 1420px column. */
+.side-rail { display: none; }
+@media (min-width: 1800px) {
+  .side-rail { display: block; position: fixed; top: 104px; z-index: 5; width: 160px; }
+  .side-rail-left { left: max(12px, calc((100vw - 1420px) / 2 - 184px)); }
+  .side-rail-right { right: max(12px, calc((100vw - 1420px) / 2 - 184px)); }
+  .side-rail .ad-placement { margin: 0; max-width: 160px; }
+  .side-rail .ad-preview-canvas { min-height: 600px; flex-direction: column; justify-content: center; text-align: center; padding: 14px 10px; }
+  .side-rail .ad-preview-note { font-size: 10px; }
+  .side-rail .ad-live { min-height: 600px; }
+}
+@media (min-width: 1800px) and (max-height: 760px) { .side-rail { display: none; } }

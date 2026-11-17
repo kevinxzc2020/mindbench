@@ -35,6 +35,7 @@ const COPY = {
 
 /** One top-of-page placement, separate from game filters and gameplay controls. */
 const PLACEMENT_TITLES: Record<AdPlacement, [string, string, string]> = {
+  rail: ["Side rail", "侧边广告", "Lateral"],
   top: ["Top banner placement", "顶部横幅广告位", "Banner superior"],
   home: ["Homepage banner placement", "首页顶部广告位", "Banner de la página principal"],
   "home-mid": ["Homepage mid-page placement", "首页中部广告位", "Anuncio a mitad de página"],
