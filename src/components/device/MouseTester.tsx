@@ -53,9 +53,11 @@ export function MouseTester() {
     const suppress = (e: Event) => { if (session.listening.current) e.preventDefault(); };
     // Side buttons (3 = back, 4 = forward) make the browser leave the page. Swallow them while the test is listening,
     // and also whenever the pointer is over the test area, so a stray press before Start cannot lose results.
+    // preventDefault alone blocks the navigation. Never stopPropagation here: this runs in the window capture phase,
+    // so stopping it would also hide the press from the test's own listeners and the side buttons would never register.
     const sideNav = (e: MouseEvent) => {
       if (e.button !== 3 && e.button !== 4) return;
-      if (session.listening.current || el.contains(e.target as Node)) { e.preventDefault(); e.stopPropagation(); }
+      if (session.listening.current || el.contains(e.target as Node)) e.preventDefault();
     };
     const leaveWindow = (e: MouseEvent) => { if (!e.relatedTarget) session.pause("window-left"); };
     el.addEventListener("mousedown",down); el.addEventListener("dblclick",dbl); el.addEventListener("contextmenu",suppress); el.addEventListener("auxclick",suppress);

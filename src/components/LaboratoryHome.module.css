@@ -86,6 +86,10 @@
 .filters button { min-height: 37px; padding: 8px 15px; font-size: 12px; color: #6d7562; border-radius: 7px; }
 .filters button[aria-pressed=true] { background: #2e3429; color: #fffdf5; }
 .filters button:hover:not([aria-pressed=true]) { background: #e8eadd; color: #32382b; }
+.filters a { display: inline-flex; align-items: center; gap: 5px; min-height: 37px; padding: 8px 15px; font-size: 12px; color: #6d7562; border-radius: 7px; }
+.filters a svg { opacity: .55; }
+.filters a:hover { background: #e8eadd; color: #32382b; }
+.filters a:focus-visible { outline: 3px solid #bd4a30; outline-offset: 2px; }
 .filters label { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: #6d7562; }
 .filters input { accent-color: #d84a30; }
 .resultCount { margin: 14px 0; font: 10px/1.6 var(--font-mono); color: #6d7562; }
