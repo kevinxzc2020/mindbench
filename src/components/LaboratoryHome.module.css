@@ -233,3 +233,10 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 .adBottom { margin-top:34px; }
 @media(max-width:1000px) { .toolsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.toolsGrid > .toolsPanel:first-child { grid-column:1 / -1; }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px; } }
 @media(max-width:600px) { .toolsGrid { grid-template-columns:minmax(0,1fr); }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:minmax(0,1fr); }.toolsPanel { padding:15px; } }
+
+/* First-screen ads: a rectangle replaces the hero illustration when an ad is shown; phones get a slim top banner instead. */
+.heroAd:empty { display:none; }
+.heroAd :global(.ad-placement) { margin:0 0 4px; }
+.heroArt:has(.heroAd :global(.ad-placement)) .heroImage { display:none; }
+.mobileTopAd { display:none; }
+@media(max-width:760px) { .heroAd { display:none; }.heroArt:has(.heroAd :global(.ad-placement)) .heroImage { display:block; }.mobileTopAd { display:block; margin-top:14px; }.mobileTopAd:empty { display:none; }.mobileTopAd :global(.ad-placement) { margin-bottom:0; } }

@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { ADSENSE_SCRIPT_ID, getAdSenseConfig, isLocalAdPreview, type AdPlacement } from "@/lib/adsense";
+import { ADSENSE_SCRIPT_ID, getAdSenseConfig, isLocalAdPreview, type AdFormat, type AdPlacement } from "@/lib/adsense";
 import { useLang } from "@/lib/language-context";
 import { usePrivacy } from "./PrivacyPreferences";
 
@@ -35,6 +35,8 @@ const COPY = {
 
 /** One top-of-page placement, separate from game filters and gameplay controls. */
 const PLACEMENT_TITLES: Record<AdPlacement, [string, string, string]> = {
+  hero: ["First-screen placement", "首屏广告位", "Anuncio en primera pantalla"],
+  top: ["Top banner placement", "顶部横幅广告位", "Banner superior"],
   home: ["Homepage banner placement", "首页顶部广告位", "Banner de la página principal"],
   "home-mid": ["Homepage mid-page placement", "首页中部广告位", "Anuncio a mitad de página"],
   "home-bottom": ["Homepage bottom placement", "首页底部广告位", "Anuncio al final de la página"],
@@ -44,7 +46,7 @@ const PLACEMENT_TITLES: Record<AdPlacement, [string, string, string]> = {
   content: ["In-content placement", "内容页广告位", "Anuncio en el contenido"],
 };
 
-export function AdSenseBanner({ placement = "home" }: { placement?: AdPlacement }) {
+export function AdSenseBanner({ placement = "home", format = "auto" }: { placement?: AdPlacement; format?: AdFormat }) {
   const { lang } = useLang();
   const copy = COPY[lang];
   const config = getAdSenseConfig();
@@ -54,7 +56,7 @@ export function AdSenseBanner({ placement = "home" }: { placement?: AdPlacement 
 
   if (config.mode === "preview") {
     return (
-      <aside className="ad-placement ad-preview" aria-label={copy.preview}>
+      <aside className={`ad-placement ad-preview ad-format-${format}`} aria-label={copy.preview}>
         <div className="ad-placement-heading">
           <span>{copy.label}</span>
           <span className="ad-preview-badge"><i aria-hidden="true" />{copy.preview}</span>
@@ -74,10 +76,10 @@ export function AdSenseBanner({ placement = "home" }: { placement?: AdPlacement 
 
   if (config.mode !== "live" || !config.clientId || !slot || !ready || !consent.advertising) return null;
 
-  return <LiveBanner key={`${placement}-${slot}`} clientId={config.clientId} slotId={slot} label={copy.label} />;
+  return <LiveBanner key={`${placement}-${slot}`} clientId={config.clientId} slotId={slot} label={copy.label} format={format} />;
 }
 
-function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: string; label: string }) {
+function LiveBanner({ clientId, slotId, label, format }: { clientId: string; slotId: string; label: string; format: AdFormat }) {
   const placementRef = useRef<HTMLElement>(null);
   const adRef = useRef<HTMLModElement>(null);
   const requestedRef = useRef(false);
@@ -118,7 +120,7 @@ function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: str
   if (!eligible || failed) return null;
 
   return (
-    <aside ref={placementRef} className="ad-placement ad-live" aria-label={label}>
+    <aside ref={placementRef} className={`ad-placement ad-live ad-format-${format}`} aria-label={label}>
       <div className="ad-placement-heading"><span>{label}</span></div>
       <ins
         ref={adRef}
@@ -126,8 +128,8 @@ function LiveBanner({ clientId, slotId, label }: { clientId: string; slotId: str
         style={{ display: "block" }}
         data-ad-client={clientId}
         data-ad-slot={slotId}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-format={format}
+        data-full-width-responsive={format === "rectangle" ? "false" : "true"}
       />
       {visible && (
         <Script

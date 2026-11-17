@@ -32,6 +32,9 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 
 | 位置 | placement | 单元 |
 | --- | --- | --- |
+| 首页首屏右侧（电脑、平板，有广告时替换插图） | `hero`，矩形 | DISPLAY_SLOT |
+| 首页顶部横幅（仅手机） | `top`，横幅 | DISPLAY_SLOT |
+| 设备检测页标题下方、检测区上方 | `top`，横幅 | DISPLAY_SLOT |
 | 首页小游戏推荐栏下方 | `home` | HOME_SLOT |
 | 首页「更多工具」与「能力测试」之间 | `home-mid` | DISPLAY_SLOT |
 | 首页底部、「浏览全部工具」上方 | `home-bottom` | DISPLAY_SLOT |

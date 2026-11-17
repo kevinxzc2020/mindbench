@@ -1815,3 +1815,10 @@
   .ad-preview-title { font-size: .8rem; }
   .ad-preview-description { font-size: .68rem; }
 }
+
+/* Ad shapes: reserve space up front so first-screen ads do not shift the page. */
+.ad-format-rectangle .ad-preview-canvas { min-height: 250px; flex-direction: column; justify-content: center; text-align: center; }
+.ad-live.ad-format-rectangle { min-height: 280px; }
+.ad-live.ad-format-horizontal { min-height: 90px; }
+.ad-format-horizontal .ad-preview-canvas { min-height: 90px; }
+@media (max-width: 600px) { .ad-live.ad-format-horizontal, .ad-format-horizontal .ad-preview-canvas { min-height: 60px; } }

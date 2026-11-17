@@ -41,6 +41,7 @@ function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
   return <div className={styles.shell}>
     <Link href="/collections/devices" className={styles.back}><ArrowLeft size={15}/>{c("back")}</Link>
     <header className={styles.header}><div><p className={styles.eyebrow}><Icon size={17}/> MINDBENCH / DEVICE LAB</p><h1>{toolText(lang,DEVICE_TOOLS[page].title)}</h1><p>{toolText(lang,DEVICE_TOOLS[page].intro)}</p></div><div className={styles.labStamp} aria-hidden="true"><Icon size={50} strokeWidth={1}/><span>INPUT / OUTPUT</span></div></header>
+    {tool!=="device-reports"&&<div className={styles.toolTopAd}><AdSenseBanner placement="top" format="horizontal"/></div>}
     <div className={styles.workspace}>
     <aside className={styles.toolSidebar}>
       <label className={styles.mobileTools}>{t("Switch tool","切换检测工具","Cambiar herramienta")}<select value={page} onChange={e=>router.push(`/tools/${e.target.value}`)}>{groups.map(group=><optgroup key={group.label} label={group.label}>{group.ids.map(id=><option key={id} value={id}>{toolText(lang,DEVICE_TOOLS[id].title)}</option>)}</optgroup>)}</select></label>
