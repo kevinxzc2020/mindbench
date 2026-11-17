@@ -2,7 +2,7 @@ export type AdSenseMode = "off" | "preview" | "live";
 /** Shape requested from AdSense: rectangle ~300×250, horizontal ~728×90 / 320×50. */
 export type AdFormat = "auto" | "rectangle" | "horizontal";
 /** Manual display placements. All sit between content blocks, never inside a test or game surface. */
-export type AdPlacement = "hero" | "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
+export type AdPlacement = "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
 
 // Verified in the owner's AdSense account. This is a public identifier, not a secret.
 const MINDBENCH_PUBLISHER = "ca-pub-7552640548182350";
@@ -49,12 +49,12 @@ export function autoAdsEnabled() {
 }
 
 /**
- * Pages where the Auto ads script may run. Everything else — device checks (/tools),
- * games, validation pages, tests and account pages — never loads it, so full-screen
- * vignettes and side rails cannot cover an active check or game.
+ * Pages where the Auto ads script may run. Device checks are included so Google's side rails
+ * and bottom anchor can show beside them (overlays never cover a fullscreen test). Games,
+ * validation pages, ability tests and account pages never load it, so nothing covers gameplay.
  */
 const AUTO_ADS_EXACT = new Set(["/", "/about", "/collections", "/leaderboard", "/daily", "/stats"]);
-const AUTO_ADS_PREFIXES = ["/collections/", "/drivers/"];
+const AUTO_ADS_PREFIXES = ["/collections/", "/drivers/", "/tools/", "/convert"];
 
 export function isAutoAdsRoute(pathname: string) {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;

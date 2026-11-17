@@ -32,8 +32,6 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 
 | 位置 | placement | 单元 |
 | --- | --- | --- |
-| 首页首屏右侧（电脑、平板，有广告时替换插图） | `hero`，矩形 | DISPLAY_SLOT |
-| 首页顶部横幅（仅手机） | `top`，横幅 | DISPLAY_SLOT |
 | 设备检测页标题下方、检测区上方 | `top`，横幅 | DISPLAY_SLOT |
 | 首页小游戏推荐栏下方 | `home` | HOME_SLOT |
 | 首页「更多工具」与「能力测试」之间 | `home-mid` | DISPLAY_SLOT |
@@ -42,6 +40,8 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 | 每个设备检测页底部（技术依据下方） | `tool` | DISPLAY_SLOT |
 | 合集页底部、相关合集上方 | `collection` | DISPLAY_SLOT |
 | 驱动详情页底部 | `content` | DISPLAY_SLOT |
+
+首页首屏不放手动广告，保持干净；首屏收入来自自动广告的侧边栏（宽屏）和锚定广告（手机）。
 
 所有广告位都在内容区块之间，并标注「广告」。不放在检测区域、游戏区域或按钮旁边，避免误点；游戏页只使用激励复活广告。
 
@@ -52,13 +52,13 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 代码侧（`src/components/AdSenseAutoAds.tsx`）：
 
 - 仅当 `NEXT_PUBLIC_ADSENSE_MODE=live`、`NEXT_PUBLIC_ADSENSE_AUTO_ADS=on`、发布商 ID 有效、非 localhost、访客已同意广告时加载脚本。
-- 仅在白名单页面加载：`/`、`/about`、`/collections`、`/collections/*`、`/drivers/*`、`/leaderboard`、`/daily`、`/stats`（见 `src/lib/adsense.ts` 的 `isAutoAdsRoute`）。设备检测 `/tools/*`、游戏、验证页、测试和账号页不加载。
-- 脚本加载后无法在单页跳转中卸载。从已加载脚本的页面跳到非白名单页面时，会整页重新加载目标页一次，避免侧边栏或插页广告带入检测和游戏。
+- 仅在白名单页面加载：`/`、`/about`、`/collections`、`/collections/*`、`/drivers/*`、`/tools/*`、`/convert*`、`/leaderboard`、`/daily`、`/stats`（见 `src/lib/adsense.ts` 的 `isAutoAdsRoute`）。设备检测页也加载，让 Google 的左右侧边栏和底部锚定广告显示在检测页旁边；全屏检测时叠加广告不会盖住全屏内容。游戏、验证页、能力测试和账号页不加载。
+- 脚本加载后无法在单页跳转中卸载。从已加载脚本的页面跳到非白名单页面（如游戏）时，会整页重新加载目标页一次，避免侧边栏或插页广告带入游戏。
 
 AdSense 后台：
 
 1. 「广告 → 按网站 → 编辑」开启自动广告，开启「插页式广告」「侧边栏广告」和「锚定广告」（手机底部横条，收入较高）。页内广告可先关闭，因为手动广告位已覆盖内容区块之间的位置。
-2. 在「页面排除」中排除 `/tools/*`、`/games/*`、`/audio-validation`、`/camera-validation` 等页面。完成检测后的横幅也会加载同一脚本，没有后台排除时，自动广告可能在检测页出现。
+2. 在「页面排除」中排除 `/games/*`、`/audio-validation`、`/camera-validation` 等页面（游戏页的「看广告复活」也会加载同一脚本）。设备检测页不要排除。
 3. 本站使用 Next.js 客户端路由。插页式广告依赖站内链接跳转触发，在单页跳转中出现的频率尚未实测；上线后需在正式域名确认。
 
 ## 检测漏斗

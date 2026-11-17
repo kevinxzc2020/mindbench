@@ -109,7 +109,7 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
       <p className={styles.intro}>{c.directoryDesc}</p>
       {search}
       <div className={styles.searchHints}><span>{c.hint}</span><Link href="/tools/keyboard">{c.keyboard}</Link><Link href="/tools/screen">{c.screen}</Link><Link href="/collections/drivers">{c.drivers}</Link></div>
-    </section> : <><div className={styles.mobileTopAd}><AdSenseBanner placement="top" format="horizontal"/></div><section className={styles.hero} aria-labelledby="lab-title">
+    </section> : <section className={styles.hero} aria-labelledby="lab-title">
       <div className={styles.heroMain}>
         <p className={styles.eyebrow}><span/>{h.eyebrow}</p>
         <h1 id="lab-title">{h.title}</h1>
@@ -117,7 +117,6 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
         <div className={styles.heroSearch}>{search}<Link href="/collections" className={styles.heroBrowse}>{c.browse}<ArrowRight size={15}/></Link></div>
       </div>
       <aside className={styles.heroArt} aria-label={h.support}>
-        <div className={styles.heroAd}><AdSenseBanner placement="hero" format="rectangle"/></div>
         <div className={styles.heroImage}><Image src={LABORATORY_ART.home.src} alt={LABORATORY_ART.home.alt[lang]} fill priority sizes="(max-width: 760px) 120px, 340px"/></div>
         <ul className={styles.heroTrust}>{HERO_TRUST.map(item => <li key={item.en}><Check size={14} aria-hidden="true"/>{item[lang]}</li>)}</ul>
       </aside>
@@ -138,7 +137,7 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
         <Link href="/tools/device-reports"><ClipboardList size={16}/>{h.explore}</Link>
         <Link href="/collections/drivers"><FileDown size={16}/>{h.driverTitle}</Link>
       </div>
-    </section></>}
+    </section>}
     {!directoryOnly && <section className={styles.gameShelf} aria-labelledby="game-picks-title">
       <div className={styles.gameShelfHead}><div><span className={styles.eyebrow}>PLAY / {lang === "zh" ? "小游戏" : lang === "es" ? "MINIJUEGOS" : "MINI-GAMES"}</span><h2 id="game-picks-title">{{ en: "Take a quick break", zh: "来玩一局", es: "Tómate un descanso" }[lang]}</h2></div><Link href="/collections/discover" className={styles.gameShelfAll}>{{ en: "All games", zh: "全部小游戏", es: "Todos los juegos" }[lang]}<ArrowRight size={15}/></Link></div>
       <div className={styles.gameShelfRow}>{GAME_PICKS.map(id => [...CATALOG.discover, ...CATALOG.mind].find(entry => entry.id === id)).filter((entry): entry is CatalogEntry => Boolean(entry?.href && entry.image)).map(entry => <Link key={entry.id} href={entry.href!} className={styles.gameCard}>
