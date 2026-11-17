@@ -2,70 +2,41 @@
 .conversionShelf { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px; padding:21px 24px; margin:0 0 24px; border:1px solid #dfdfce; border-radius:12px; background:#f0eee3; }
 .conversionShelf h2 { font-size:18px; font-weight:650; letter-spacing:-.025em; margin-top:5px; }.conversionShelf nav { display:flex; flex-wrap:wrap; gap:7px; }.conversionShelf a { display:flex; align-items:center; gap:10px; min-height:44px; font-size:12px; padding:10px 13px; background:#fffdf6; border:1px solid #dcdfcd; border-radius:7px; }.conversionShelf a:hover { border-color:#c76543; }.conversionShelf .conversionAll { color:#a7472d; background:transparent; border-color:transparent; }
 @media(max-width:600px) { .conversionShelf { padding:17px; }.conversionShelf nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }.conversionShelf a { justify-content:space-between; min-width:0; font-size:11px; }.conversionShelf a svg { flex-shrink:0; } }
-.launchHero { display:grid; grid-template-columns:minmax(0,1fr) 280px; align-items:start; gap:32px; padding:38px 0 28px; }
-.launchMain { min-width:0; }
-.launchMain h1 { font-size:clamp(30px,3vw,42px); font-weight:730; line-height:1.2; letter-spacing:-.045em; margin:12px 0 10px; }
-.launchIntro { max-width:660px; font-size:14px; line-height:1.7; color:#68705e; margin:0 0 23px; }
-.launchGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.launchCard { min-width:0; display:flex; flex-direction:column; padding:18px; border:1px solid #d8dcd0; border-radius:12px; background:#fffef9; transition:border-color .15s,background .15s,box-shadow .15s; }
-.launchCardTop { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#b64b31; }
-.launchCardTop > svg { transition:transform .15s; }
-.launchIcon { display:grid; place-items:center; width:42px; height:42px; border:1px solid #efd8cb; border-radius:10px; color:#c04b30; background:#faeee4; }
-.launchCard h2 { font-size:16px; line-height:1.4; font-weight:650; margin:13px 0 6px; letter-spacing:-.02em; }
-.launchCard p { font-size:11px; line-height:1.65; color:#68705e; margin:0; }
-.launchCard:hover { border-color:#d45a38; background:#fff9f0; box-shadow:0 4px 14px #773f1e0a; }
-.launchCard:hover .launchCardTop > svg { transform:translate(2px,-2px); }
-.launchHero a:focus-visible { outline:3px solid #bd4a30; outline-offset:3px; }
-.launchFoot { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 18px; margin-top:10px; }
-.launchFoot a { display:inline-flex; align-items:center; gap:8px; min-height:44px; color:#637052; font-size:12px; }
-.launchFoot a:first-child { color:#b3482d; }
-.launchFoot a:hover,.launchBrowse:hover { text-decoration:underline; text-underline-offset:4px; }
-.launchAside { min-width:0; padding:12px; border:1px solid #dfded1; border-radius:14px; background:#f0eee4; }
-.launchArt { position:relative; aspect-ratio:1.9; overflow:hidden; border-radius:8px; background:#eee7db; }
-.launchArt img { object-fit:cover; }
-.launchSearch { min-width:0; padding-top:19px; }
-.launchSearch h2 { font-size:13px; font-weight:600; margin:0 0 10px; }
-.launchSearch .searchBox { padding-inline:6px; gap:3px; min-height:48px; box-shadow:none; border-radius:8px; }
-.launchSearch .searchBox input { font-size:11px; padding-block:15px; }
-.launchSearch .searchBox button { min-width:32px; height:40px; }
-.launchBrowse { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:44px; font-size:11px; color:#616b53; }
-.launchResource { display:flex; align-items:center; gap:9px; min-height:72px; padding:15px 0 3px; margin-top:6px; border-top:1px solid #dcdccf; font-size:12px; line-height:1.5; }
-.launchResource > svg { flex-shrink:0; color:#7c856c; }
-.launchResource > svg:last-child { margin-left:auto; }
-.launchResource small { display:block; color:#6c735f; font-size:10px; line-height:1.65; margin-top:5px; }
-.launchResource:hover { color:#b3482d; }
-@media(max-width:1000px) {
- .launchHero { grid-template-columns:minmax(0,1fr) 240px; gap:22px; }
- .launchGrid { gap:10px; }
- .launchCard { padding:13px; }
- .launchCard h2 { font-size:14px; }
-}
-@media(max-width:800px) {
- .launchHero { grid-template-columns:1fr; padding-top:28px; gap:18px; }
- .launchAside { display:grid; grid-template-columns:180px minmax(0,1fr); gap:0 20px; align-items:center; }
- .launchArt { grid-row:1 / span 2; aspect-ratio:1.3; }
- .launchSearch { padding-top:0; }
- .launchResource { margin-top:0; }
-}
-@media(max-width:600px) {
- .launchHero { padding:24px 0; }
- .launchMain h1 { font-size:30px; margin:10px 0; }
- .launchIntro { font-size:12px; margin-bottom:17px; }
- .launchGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
- .launchCard { padding:12px; }
- .launchIcon { width:34px; height:34px; border-radius:8px; }
- .launchIcon svg { width:21px; height:21px; }
- .launchCard h2 { margin-top:9px; font-size:13px; }
- .launchCard p { font-size:10px; line-height:1.6; }
- .launchFoot { gap:0 10px; }
- .launchFoot a { font-size:11px; }
- .launchAside { grid-template-columns:minmax(0,1fr) 80px; gap:0 12px; padding:13px; }
- .launchArt { grid-column:2; grid-row:1; aspect-ratio:1; }
- .launchSearch { grid-column:1; grid-row:1; }
- .launchSearch h2 { margin-bottom:7px; }
- .launchSearch .searchBox button { min-width:25px; }
- .launchResource { grid-column:1 / -1; padding-top:12px; }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .eyebrow { display: flex; align-items: center; gap: 8px; font: 10px/1.6 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: #6d7562; }
 .eyebrow > span { width: 6px; height: 6px; border-radius: 50%; background: #dd4e32; }
 .directoryHero h1 { font-size: clamp(36px,4.3vw,60px); font-weight: 730; line-height: 1.2; letter-spacing: -.055em; margin: 22px 0 20px; }
@@ -273,3 +244,37 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 @media(max-width:1000px) { .gameShelfRow { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:600px) { .gameShelf { padding:17px; }.gameShelfRow { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }.gameShelfHead h2 { font-size:18px; } }
 @media(prefers-reduced-motion:reduce) { .gameCard, .gameCard:hover { transition:none; transform:none; } }
+
+/* Homepage hero: search first, six quick checks, trust notes beside the illustration. */
+.hero { display:grid; grid-template-columns:minmax(0,1fr) 340px; grid-template-areas:"main art" "checks checks" "foot foot"; gap:26px 40px; padding:42px 0 30px; }
+.heroMain { grid-area:main; min-width:0; align-self:center; }
+.heroMain h1 { font-size:clamp(32px,3.6vw,50px); font-weight:740; line-height:1.08; letter-spacing:-.05em; margin:12px 0; }
+.heroIntro { max-width:640px; font-size:15px; line-height:1.7; color:#68705e; margin:0 0 22px; }
+.heroSearch { max-width:620px; }
+.heroBrowse { display:inline-flex; align-items:center; gap:8px; min-height:40px; margin-top:6px; font-size:12px; color:#a7472d; }
+.heroBrowse:hover, .heroFoot a:hover { text-decoration:underline; text-underline-offset:4px; }
+.heroArt { grid-area:art; min-width:0; padding:10px; border:1px solid #dfded1; border-radius:16px; background:#f0eee4; }
+.heroImage { position:relative; aspect-ratio:1.45; overflow:hidden; border-radius:10px; background:#eee7db; }
+.heroImage img { object-fit:cover; }
+.heroTrust { display:grid; gap:7px; margin:12px 6px 4px; padding:0; list-style:none; font-size:12px; color:#4f5844; }
+.heroTrust li { display:flex; align-items:center; gap:8px; }
+.heroTrust svg { flex-shrink:0; color:#4f7a35; }
+.heroChecks { grid-area:checks; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.heroCheck { display:flex; align-items:center; gap:14px; min-width:0; min-height:76px; padding:14px 16px; border:1px solid #d8dcd0; border-radius:12px; background:#fffef9; transition:border-color .15s, background .15s, box-shadow .15s; }
+.heroCheckIcon { display:grid; place-items:center; flex-shrink:0; width:44px; height:44px; border-radius:11px; color:#c04b30; background:#faeee4; border:1px solid #efd8cb; transition:background .15s, color .15s; }
+.heroCheckText { display:flex; flex-direction:column; gap:3px; min-width:0; flex:1; }
+.heroCheckText strong { font-size:15px; font-weight:650; letter-spacing:-.02em; }
+.heroCheckText small { font-size:11px; line-height:1.5; color:#68705e; }
+.heroCheckArrow { flex-shrink:0; color:#b64b31; opacity:.55; transition:transform .15s, opacity .15s; }
+.heroCheck:hover { border-color:#d45a38; background:#fff9f0; box-shadow:0 4px 14px #773f1e0f; }
+.heroCheck:hover .heroCheckIcon { background:#c04b30; color:#fff; border-color:#c04b30; }
+.heroCheck:hover .heroCheckArrow { opacity:1; transform:translate(2px,-2px); }
+.hero a:focus-visible { outline:3px solid #bd4a30; outline-offset:3px; }
+.heroFoot { grid-area:foot; display:flex; flex-wrap:wrap; align-items:center; gap:4px 22px; margin-top:-8px; }
+.heroFoot a { display:inline-flex; align-items:center; gap:8px; min-height:44px; font-size:12px; color:#637052; }
+.heroFoot .heroAll { color:#b3482d; font-weight:600; margin-right:auto; }
+.heroAll span { display:inline-grid; place-items:center; min-width:22px; height:20px; padding:0 6px; border-radius:999px; background:#faeee4; font-size:11px; }
+@media(max-width:1000px) { .hero { grid-template-columns:minmax(0,1fr) 260px; gap:22px 26px; }.heroChecks { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:760px) { .hero { grid-template-columns:1fr; grid-template-areas:"main" "checks" "art" "foot"; padding:26px 0 22px; gap:18px; }.heroArt { display:grid; grid-template-columns:120px minmax(0,1fr); gap:14px; align-items:center; }.heroImage { aspect-ratio:1.2; }.heroTrust { margin:0; } }
+@media(max-width:600px) { .heroMain h1 { font-size:32px; }.heroIntro { font-size:13px; margin-bottom:16px; }.heroChecks { grid-template-columns:1fr; gap:8px; }.heroCheck { min-height:64px; padding:11px 13px; }.heroCheckIcon { width:38px; height:38px; }.heroFoot { margin-top:0; gap:0 16px; }.heroFoot .heroAll { margin-right:0; width:100%; } }
+@media(prefers-reduced-motion:reduce) { .heroCheck, .heroCheckIcon, .heroCheckArrow { transition:none; }.heroCheck:hover .heroCheckArrow { transform:none; } }

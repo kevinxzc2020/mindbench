@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, ArrowUpRight, AudioLines, Brain, ChevronRight, ClipboardList, FileDown, Gamepad2, Keyboard, Mic, Monitor, Mouse, MoveVertical, Search, ShieldCheck, Sparkles, Target, Trophy, Wrench, X, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, AudioLines, Brain, Camera, Check, ChevronRight, ClipboardList, FileDown, Gamepad2, Keyboard, Mic, Monitor, Mouse, MoveVertical, Search, ShieldCheck, Sparkles, Target, Trophy, Wrench, X, Zap } from "lucide-react";
 import { useLang } from "@/lib/language-context";
 import { CATALOG, COLLECTIONS, matchesEntry, type CatalogEntry, type CollectionId } from "@/lib/collections";
 import { LABORATORY_ART } from "@/lib/laboratory-art";
@@ -15,7 +15,7 @@ import styles from "./LaboratoryHome.module.css";
 const GAME_PICKS = ["goose-grab", "sheep", "screw", "fruit", "number-chain", "reaction-time"];
 
 const ICONS = { mind: Brain, devices: Monitor, utilities: Wrench, drivers: FileDown, discover: Sparkles };
-export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard, mouse: Mouse, wheel: MoveVertical, screen: Monitor, microphone: Mic, speakers: AudioLines, "reaction-time": Zap, "cps-test": Mouse, "aim-trainer": Target, "voice-recorder": Mic, "device-reports": ClipboardList, mbti: Sparkles };
+export const TOOL_ICONS: Record<string, typeof Keyboard> = { keyboard: Keyboard, mouse: Mouse, wheel: MoveVertical, screen: Monitor, microphone: Mic, speakers: AudioLines, webcam: Camera, "reaction-time": Zap, "cps-test": Mouse, "aim-trainer": Target, "voice-recorder": Mic, "device-reports": ClipboardList, mbti: Sparkles };
 const MIND_PICKS = ["reaction-time", "sequence-memory", "number-memory", "aim-trainer"];
 const QUICK_CHECKS = [
   { id: "keyboard", summary: { en: "Key response · Repeats · Combos", zh: "按键响应 · 连击 · 多键冲突", es: "Teclas · Repeticiones · Combinaciones" } },
@@ -23,6 +23,12 @@ const QUICK_CHECKS = [
   { id: "screen", summary: { en: "Colors · Dead pixels · Motion", zh: "纯色 · 坏点观察 · 拖影", es: "Colores · Píxeles · Movimiento" } },
   { id: "speakers", summary: { en: "Left / right channels · Test tones", zh: "左右声道 · 测试音 · 扫频", es: "Canales izq. / der. · Tonos" } },
   { id: "microphone", summary: { en: "Input level · Record & replay", zh: "输入电平 · 录音回放", es: "Nivel de entrada · Grabación" } },
+  { id: "webcam", summary: { en: "Live preview · Resolution · Frame rate", zh: "实时预览 · 分辨率 · 帧率", es: "Vista previa · Resolución · FPS" } },
+] as const;
+const HERO_TRUST = [
+  { en: "Nothing to install", zh: "无需安装", es: "Sin instalar nada" },
+  { en: "No account needed", zh: "无需注册", es: "Sin registrarte" },
+  { en: "Test inputs stay on your device", zh: "检测数据留在本机", es: "Los datos quedan en tu equipo" },
 ] as const;
 const MORE_DEVICE_PICKS = ["trackpad", "webcam", "gamepad", "touch", "pen", "environment"];
 const HOME_COPY = {
@@ -103,28 +109,34 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
       <p className={styles.intro}>{c.directoryDesc}</p>
       {search}
       <div className={styles.searchHints}><span>{c.hint}</span><Link href="/tools/keyboard">{c.keyboard}</Link><Link href="/tools/screen">{c.screen}</Link><Link href="/collections/drivers">{c.drivers}</Link></div>
-    </section> : <section className={styles.launchHero} aria-labelledby="lab-title">
-      <div className={styles.launchMain}>
+    </section> : <section className={styles.hero} aria-labelledby="lab-title">
+      <div className={styles.heroMain}>
         <p className={styles.eyebrow}><span/>{h.eyebrow}</p>
         <h1 id="lab-title">{h.title}</h1>
-        <p className={styles.launchIntro}>{h.intro}</p>
-        <nav className={styles.launchGrid} aria-label={h.start}>
-          {QUICK_CHECKS.map(({id, summary}) => {
-            const entry = CATALOG.devices.find(item => item.id === id)!;
-            const Icon = TOOL_ICONS[id];
-            return <Link href={entry.href!} key={id} className={styles.launchCard}>
-              <span className={styles.launchCardTop}><span className={styles.launchIcon}><Icon size={24} aria-hidden="true"/></span><ArrowUpRight size={19} aria-hidden="true"/></span>
-              <h2>{entry.title[lang]}</h2><p>{summary[lang]}</p>
-            </Link>;
-          })}
-        </nav>
-        <div className={styles.launchFoot}><Link href="/collections/devices">{h.allDevices}<ArrowRight size={16}/></Link><Link href="/tools/device-reports"><ClipboardList size={16}/>{h.explore}</Link></div>
+        <p className={styles.heroIntro}>{h.intro}</p>
+        <div className={styles.heroSearch}>{search}<Link href="/collections" className={styles.heroBrowse}>{c.browse}<ArrowRight size={15}/></Link></div>
       </div>
-      <aside className={styles.launchAside} aria-label={h.support}>
-        <div className={styles.launchArt}><Image src={LABORATORY_ART.home.src} alt={LABORATORY_ART.home.alt[lang]} fill priority sizes="(max-width: 600px) 96px, (max-width: 1000px) 240px, 280px"/></div>
-        <div className={styles.launchSearch}><h2>{c.searchLabel}</h2>{search}<Link href="/collections" className={styles.launchBrowse}>{c.browse}<ArrowRight size={16}/></Link></div>
-        <Link href="/collections/drivers" className={styles.launchResource}><FileDown size={21}/><span>{h.driverTitle}<small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
+      <aside className={styles.heroArt} aria-label={h.support}>
+        <div className={styles.heroImage}><Image src={LABORATORY_ART.home.src} alt={LABORATORY_ART.home.alt[lang]} fill priority sizes="(max-width: 760px) 120px, 340px"/></div>
+        <ul className={styles.heroTrust}>{HERO_TRUST.map(item => <li key={item.en}><Check size={14} aria-hidden="true"/>{item[lang]}</li>)}</ul>
       </aside>
+      <nav className={styles.heroChecks} aria-label={h.start}>
+        {QUICK_CHECKS.map(({id, summary}) => {
+          const entry = CATALOG.devices.find(item => item.id === id);
+          if (!entry?.href) return null;
+          const Icon = TOOL_ICONS[id];
+          return <Link href={entry.href} key={id} className={styles.heroCheck}>
+            <span className={styles.heroCheckIcon}><Icon size={22} aria-hidden="true"/></span>
+            <span className={styles.heroCheckText}><strong>{entry.title[lang]}</strong><small>{summary[lang]}</small></span>
+            <ArrowUpRight size={17} className={styles.heroCheckArrow} aria-hidden="true"/>
+          </Link>;
+        })}
+      </nav>
+      <div className={styles.heroFoot}>
+        <Link href="/collections/devices" className={styles.heroAll}>{h.allDevices} <span>{CATALOG.devices.filter(entry => entry.href && entry.id !== "device-reports").length}</span><ArrowRight size={16}/></Link>
+        <Link href="/tools/device-reports"><ClipboardList size={16}/>{h.explore}</Link>
+        <Link href="/collections/drivers"><FileDown size={16}/>{h.driverTitle}</Link>
+      </div>
     </section>}
     {!directoryOnly && <section className={styles.gameShelf} aria-labelledby="game-picks-title">
       <div className={styles.gameShelfHead}><div><span className={styles.eyebrow}>PLAY / {lang === "zh" ? "小游戏" : lang === "es" ? "MINIJUEGOS" : "MINI-GAMES"}</span><h2 id="game-picks-title">{{ en: "Take a quick break", zh: "来玩一局", es: "Tómate un descanso" }[lang]}</h2></div><Link href="/collections/discover" className={styles.gameShelfAll}>{{ en: "All games", zh: "全部小游戏", es: "Todos los juegos" }[lang]}<ArrowRight size={15}/></Link></div>
