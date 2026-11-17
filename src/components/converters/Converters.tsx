@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Check, Download, File, FileImage, FileText, Files, Music2, ShieldCheck, Table2, Upload, X } from "lucide-react";
 import { useLang } from "@/lib/language-context";

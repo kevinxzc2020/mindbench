@@ -12,6 +12,7 @@ import { ScreenColorInput } from "./ScreenColorInput";
 import styles from "./ScreenTester.module.css";
 import { SaveCheckup } from "./SaveCheckup";
 import { metric } from "@/lib/device-history";
+import { localizePath } from "@/lib/i18n";
 
 interface Observation { id: number; at: string; mode: ScreenMode; pattern: string; result: "clear" | "review" | "unsure"; note: string; geometry: ScreenGeometry | null; settings: PatternSettings; frames: FrameReadout["summary"]; sampleArea: FrameReadout["sampleArea"] }
 function download(name: string, content: string, type: string) { const url = URL.createObjectURL(new Blob([content], { type })); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
@@ -45,7 +46,7 @@ export function ScreenTester() {
   const patternName = mode === "solid" ? color : mode === "gradient" ? `${gradient} / ${vertical ? "vertical" : "horizontal"} / ${steps ?? "continuous"}` : `${speed} CSS px/s / ${targetSize} CSS px / ${direction}`;
   const currentSpace = view.geometry ? geometryKey(view.geometry) : "";
   const visibleMarks = marks.filter(mark => mark.space === currentSpace);
-  const changeMode = (next: ScreenMode) => { if (next === mode) return; beginCheck(); pause(); setReadout(null); setMessage(""); router.replace(`/tools/screen?mode=${next}`, { scroll: false }); };
+  const changeMode = (next: ScreenMode) => { if (next === mode) return; beginCheck(); pause(); setReadout(null); setMessage(""); router.replace(localizePath(lang, `/tools/screen?mode=${next}`), { scroll: false }); };
   const nextColor = useCallback((delta: number) => { beginCheck(); setCustom(null); setColorIndex(index => cycleIndex(index, delta, SOLID_COLORS.length)); }, [beginCheck]);
   const changeMotion = (fn: () => void) => { pause(); setReadout(null); setResetKey(k => k + 1); fn(); };
   useEffect(() => { pause(); setMarking(false); setMessage(""); view.setHidden(false); }, [mode, pause, view.setHidden]);

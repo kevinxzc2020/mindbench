@@ -1,10 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { translations, type Lang, type Translations } from "./translations";
+import { localizePath, rememberLang, stripLangPrefix } from "./i18n";
 
 interface LanguageContextValue {
   lang: Lang;
+  /** Remember the choice and open the current page in that language (its own `/zh` or `/es` URL). */
   setLang: (l: Lang) => void;
   t: Translations;
 }
@@ -15,36 +18,37 @@ const LanguageContext = createContext<LanguageContextValue>({
   t: translations.en,
 });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
-
-  useEffect(() => {
-    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
-  }, [lang]);
-
-  // Persist language choice
-  useEffect(() => {
-    let stored: Lang | null = null;
-    try { stored = localStorage.getItem("mb-lang") as Lang | null; } catch { /* storage blocked: fall back to the browser language */ }
-    if (stored && stored in translations) { setLangState(stored); return; }
-    // First visit: follow the browser's language instead of always opening in English.
-    const preferred = (navigator.languages?.[0] ?? navigator.language ?? "en").toLowerCase();
-    if (preferred.startsWith("zh")) setLangState("zh");
-    else if (preferred.startsWith("es")) setLangState("es");
-  }, []);
-
-  const setLang = (l: Lang) => {
-    setLangState(l);
-    try { localStorage.setItem("mb-lang", l); } catch { /* the choice lasts for this visit only */ }
-  };
-
-  return (
-    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+/**
+ * The language comes from the URL (`/zh/...`), so the server renders each page in its own language
+ * and `<html lang>` is correct before any script runs. The provider only mirrors it to client code.
+ */
+export function LanguageProvider({ lang, children }: { lang: Lang; children: ReactNode }) {
+  const router = useRouter();
+  const setLang = useCallback((next: Lang) => {
+    rememberLang(next);
+    if (next === lang) return;
+    const { pathname, search, hash } = window.location;
+    router.push(localizePath(next, `${pathname}${search}${hash}`));
+  }, [lang, router]);
+  const value = useMemo(() => ({ lang, setLang, t: translations[lang] }), [lang, setLang]);
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
 export function useLang() {
   return useContext(LanguageContext);
+}
+
+/**
+ * The current path without its language prefix. A statically generated English page is rendered
+ * as `/en/...` on the server but shown at `/...`, so raw `usePathname()` output must never reach
+ * the markup directly; this is the same value on the server and in the browser.
+ */
+export function useBarePathname() {
+  return stripLangPrefix(usePathname() ?? "/");
+}
+
+/** `localize("/tools/mouse")` → the same page in the current language. */
+export function useLocalizeHref() {
+  const { lang } = useLang();
+  return useCallback((href: string) => localizePath(lang, href), [lang]);
 }

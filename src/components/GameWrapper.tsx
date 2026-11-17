@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameRunContext } from "./GameRunContext";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";

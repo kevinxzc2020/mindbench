@@ -1,7 +1,7 @@
 "use client";
 import { useCheckupJourney } from "./CheckupJourney";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { metric } from "@/lib/device-history";

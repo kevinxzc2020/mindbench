@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useState } from "react";
 import { Save } from "lucide-react";
 import { useLang } from "@/lib/language-context";

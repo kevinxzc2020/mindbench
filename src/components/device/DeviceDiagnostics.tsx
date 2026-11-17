@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowLeft, ArrowUpRight, Keyboard, Mouse, MoveVertical, Monitor, Headphones, Mic, Camera, Gamepad2, Hand, PenTool, MousePointer2, ScanSearch, History } from "lucide-react";
-import { useLang } from "@/lib/language-context";
+import { useLang, useLocalizeHref } from "@/lib/language-context";
 import type { DiagnosticTool } from "@/lib/device-diagnostics";
 import { DEVICE_TOOLS, toolText } from "./diagnostic-copy";
 import { useDeviceText } from "./DiagnosticShared";
@@ -30,7 +30,7 @@ export function DeviceDiagnostics({tool}:{tool:DiagnosticTool}) {
   return tool === "device-reports" ? <DeviceDiagnosticsContent tool={tool}/> : <CheckupJourney key={tool} tool={tool}><DeviceDiagnosticsContent tool={tool}/></CheckupJourney>;
 }
 function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
-  const {lang}=useLang(); const {c,t}=useDeviceText(); const router=useRouter();
+  const {lang}=useLang(); const {c,t}=useDeviceText(); const router=useRouter(); const localize=useLocalizeHref();
   // Mouse buttons and scroll wheel share one page with two tabs; each tab keeps its own route and report.
   const mouseFamily = tool==="mouse"||tool==="wheel"; const page: DiagnosticTool = mouseFamily ? "mouse" : tool; const Icon=icons[page];
   const groups: { label: string; ids: DiagnosticTool[] }[] = [
@@ -44,7 +44,7 @@ function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
     {tool!=="device-reports"&&<div className={styles.toolTopAd}><AdSenseBanner placement="top"/></div>}
     <div className={styles.workspace}>
     <aside className={styles.toolSidebar}>
-      <label className={styles.mobileTools}>{t("Switch tool","切换检测工具","Cambiar herramienta")}<select value={page} onChange={e=>router.push(`/tools/${e.target.value}`)}>{groups.map(group=><optgroup key={group.label} label={group.label}>{group.ids.map(id=><option key={id} value={id}>{toolText(lang,DEVICE_TOOLS[id].title)}</option>)}</optgroup>)}</select></label>
+      <label className={styles.mobileTools}>{t("Switch tool","切换检测工具","Cambiar herramienta")}<select value={page} onChange={e=>router.push(localize(`/tools/${e.target.value}`))}>{groups.map(group=><optgroup key={group.label} label={group.label}>{group.ids.map(id=><option key={id} value={id}>{toolText(lang,DEVICE_TOOLS[id].title)}</option>)}</optgroup>)}</select></label>
       <nav className={styles.toolNav} aria-label={c("back")}>{groups.map(group=><div key={group.label}><p>{group.label}</p>{group.ids.map(id=>{const ToolIcon=icons[id];return <Link href={`/tools/${id}`} aria-current={id===page?"page":undefined} key={id}><ToolIcon size={16}/><span>{toolText(lang,DEVICE_TOOLS[id].title)}</span></Link>;})}</div>)}</nav>
     </aside><div className={styles.toolContent}>
     <p className={styles.localNote}>{c("local")}</p>

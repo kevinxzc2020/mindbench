@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useEffect, useState } from "react";
 import { ArrowRight, ArrowUpRight, AudioLines, Brain, Camera, Check, ChevronRight, ClipboardList, FileDown, Gamepad2, Gauge, Keyboard, Languages, Mic, Monitor, Mouse, MoveVertical, Search, ShieldCheck, Sparkles, Target, Trophy, Wrench, X, Zap } from "lucide-react";
 import { useLang } from "@/lib/language-context";

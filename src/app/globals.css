@@ -245,6 +245,10 @@
 }
 
 .language-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   min-width: 1.9rem;
   padding: 0.32rem 0.38rem;
   color: #71888e;

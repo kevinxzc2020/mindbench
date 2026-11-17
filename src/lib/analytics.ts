@@ -1,5 +1,6 @@
 import { REPORT_TOOLS, type ReportTool } from "./device-history";
 import { isLocalAdPreview } from "./adsense";
+import { langOfPath, localizePath, stripLangPrefix } from "./i18n";
 import { getConverter, type ConverterId } from "./converters";
 
 export function getAnalyticsId() {
@@ -47,9 +48,12 @@ export function trackConversion(name: "conversion_start" | "conversion_complete"
 
 /** Query strings, fragments and private/dynamic paths are not analytics dimensions. */
 export function analyticsPath(pathname: string) {
-  const path = pathname.split(/[?#]/)[0];
-  if (path === "/convert" || (path.startsWith("/convert/") && getConverter(path.slice("/convert/".length)))) return path;
-  if (/^\/(?:$|tools\/[a-z-]+$|collections(?:\/[a-z-]+)?$|games\/(?:minigames\/)?[a-z0-9-]+$|drivers(?:\/[a-z0-9-]+){0,2}$|(?:mbti|iq-test|tarot|daily|progress|leaderboard|privacy|cookies|terms|about|contact|rights)$)/.test(path)) return path;
+  const full = pathname.split(/[?#]/)[0];
+  const lang = langOfPath(full);
+  const path = stripLangPrefix(full);
+  // The language stays in the reported path (`/zh/tools/keyboard`) so reports can split by language.
+  if (path === "/convert" || (path.startsWith("/convert/") && getConverter(path.slice("/convert/".length)))) return localizePath(lang, path);
+  if (/^\/(?:$|tools\/[a-z-]+$|collections(?:\/[a-z-]+)?$|games\/(?:minigames\/)?[a-z0-9-]+$|drivers(?:\/[a-z0-9-]+){0,2}$|(?:mbti|iq-test|tarot|daily|progress|leaderboard|privacy|cookies|terms|about|contact|rights)$)/.test(path)) return localizePath(lang, path);
   return "/other";
 }
 

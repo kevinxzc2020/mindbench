@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useLang } from "@/lib/language-context";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
 import { readAttempts, recordAttempt, type Attempt } from "@/lib/progress";

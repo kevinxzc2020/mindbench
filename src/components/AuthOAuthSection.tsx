@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useLang } from "@/lib/language-context";
+import { useLang, useLocalizeHref } from "@/lib/language-context";
 
 export function AuthOAuthSection() {
   const { t } = useLang();
+  const localize = useLocalizeHref();
   const [google, setGoogle] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -25,7 +26,7 @@ export function AuthOAuthSection() {
     <div className="space-y-4">
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
+        onClick={() => signIn("google", { callbackUrl: localize("/") })}
         className="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-600 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-50"
       >
         <GoogleGlyph className="h-5 w-5 shrink-0" />

@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useLang } from "@/lib/language-context";
+import Link from "@/components/LocaleLink";
+import { useBarePathname, useLang } from "@/lib/language-context";
 import { INFORMATION_LINKS, INFORMATION_LABELS } from "@/lib/site-information";
 import { COLLECTION_NAV, activeCollection } from "@/lib/collection-navigation";
 import styles from "./SiteFooter.module.css";
@@ -17,7 +16,7 @@ const COPY = {
 
 export function SiteFooter({ year }: { year: number }) {
   const { lang } = useLang();
-  const pathname = usePathname();
+  const pathname = useBarePathname();
   const copy = COPY[lang];
   return (
     <footer className={styles.footer}>

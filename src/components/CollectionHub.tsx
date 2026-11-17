@@ -2,7 +2,7 @@
 
 import { AdSenseBanner } from "./AdSenseBanner";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useState } from "react";
 import { ArrowLeft, ArrowUpRight, Wrench, Brain, Check, ChevronRight, FileDown, Keyboard, Search, SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { useLang } from "@/lib/language-context";

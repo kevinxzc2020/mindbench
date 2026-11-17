@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ReactNode, type MouseEvent } from "react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 
 /**
  * MagneticCard — 鼠标悬浮时跟着鼠标轻微 3D 倾斜的卡片包装。

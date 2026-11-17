@@ -1,3 +1,5 @@
+import { stripLangPrefix } from "./i18n";
+
 export type AdSenseMode = "off" | "preview" | "live";
 /**
  * Standard Google ad sizes, as [min available width px, width, height]. The width is the space
@@ -72,7 +74,9 @@ const AUTO_ADS_EXACT = new Set(["/", "/about", "/collections", "/leaderboard", "
 const AUTO_ADS_PREFIXES = ["/collections/", "/drivers/", "/tools/", "/convert"];
 
 export function isAutoAdsRoute(pathname: string) {
-  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  // `/zh/tools/mouse` and `/tools/mouse` are the same page in two languages.
+  const bare = stripLangPrefix(pathname.split(/[?#]/)[0]);
+  const path = bare.length > 1 ? bare.replace(/\/+$/, "") : bare;
   return AUTO_ADS_EXACT.has(path) || AUTO_ADS_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 

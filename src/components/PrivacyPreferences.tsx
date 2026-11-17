@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/language-context";
 import { getAnalyticsId, setAnalyticsSender } from "@/lib/analytics";

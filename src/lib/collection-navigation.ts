@@ -1,4 +1,5 @@
 import type { Lang } from "./translations";
+import { stripLangPrefix } from "./i18n";
 import { GAMES } from "./utils";
 
 export type CollectionId = "mind" | "devices" | "utilities" | "drivers" | "discover";
@@ -23,7 +24,7 @@ export function collectionRedirect(slug: string): string | undefined {
 
 /** Resolve the owning collection for both its landing page and its tools. */
 export function activeCollection(pathname: string): CollectionId | undefined {
-  const path = pathname.split(/[?#]/)[0];
+  const path = stripLangPrefix(pathname.split(/[?#]/)[0]);
   const segments = path.split("/").filter(Boolean);
   if (segments[0] === "collections") {
     const slug = segments[1];

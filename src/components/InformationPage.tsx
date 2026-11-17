@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArrowUpRight, Info, Mail } from "lucide-react";
 import { useLang } from "@/lib/language-context";
 import { INFORMATION_CONTENT, INFORMATION_LABELS, INFORMATION_LINKS, POLICY_DRAFT_UPDATED, type InformationKind } from "@/lib/site-information";

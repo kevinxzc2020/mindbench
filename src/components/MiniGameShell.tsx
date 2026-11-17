@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArrowUpRight, Maximize2, Minimize2, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/language-context";

@@ -3,8 +3,8 @@ export type Lang = "zh" | "en" | "es";
 export const translations = {
   zh: {
     // Site
-    siteTitle: "MindBench — 测试你的大脑极限",
-    siteDesc: "一系列认知能力测试：反应时间、记忆力、视觉感知……挑战你的大脑极限，与全球玩家比较成绩。",
+    siteTitle: "MindBench — 设备检测与实用小工具",
+    siteDesc: "在线检测键盘、鼠标、滚轮、屏幕、扬声器和麦克风；在本地保存检测摘要，查找官方驱动，再来试试认知测试和小游戏。",
     footer: "测试你的大脑极限",
 
     // Nav
@@ -377,8 +377,8 @@ export const translations = {
   },
 
   en: {
-    siteTitle: "MindBench — Test Your Brain's Limits",
-    siteDesc: "A series of cognitive tests: reaction time, memory, visual perception… Push your brain to its limits and compare with players worldwide.",
+    siteTitle: "MindBench — Device checks & everyday tools",
+    siteDesc: "Check your keyboard, mouse, scroll wheel, screen, speakers and microphone. Keep local checkup summaries, find official drivers, then explore cognitive tests and games.",
     footer: "Test Your Brain's Limits",
 
     home: "Home",
@@ -740,8 +740,8 @@ export const translations = {
   },
 
   es: {
-    siteTitle: "MindBench — Pon a prueba tu cerebro",
-    siteDesc: "Una serie de pruebas cognitivas: tiempo de reacción, memoria, percepción visual… Lleva tu cerebro al límite y compara con jugadores de todo el mundo.",
+    siteTitle: "MindBench — Pruebas de dispositivos y herramientas útiles",
+    siteDesc: "Comprueba tu teclado, ratón, rueda de desplazamiento, pantalla, altavoces y micrófono. Guarda resúmenes locales, encuentra controladores oficiales y explora pruebas cognitivas y juegos.",
     footer: "Pon a prueba tu cerebro",
 
     home: "Inicio",

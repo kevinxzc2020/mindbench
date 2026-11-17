@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useLang } from "@/lib/language-context";
 import { INFORMATION_LABELS } from "@/lib/site-information";
 import styles from "./AuthPrivacyNotice.module.css";

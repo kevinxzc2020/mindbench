@@ -10,7 +10,7 @@
 | 样式 | Tailwind CSS |
 | 数据库 | PostgreSQL (Neon 云端) via Prisma ORM |
 | 认证 | NextAuth.js (邮箱 + 密码) |
-| 国际化 | 自建 `language-context` （en / zh / es） |
+| 国际化 | 自建 `language-context`（en / zh / es），每种语言有独立 URL：英文 `/…`、中文 `/zh/…`、西语 `/es/…`，详见 `docs/MULTILINGUAL-SEO.md` |
 
 ## 功能一览
 
@@ -142,7 +142,7 @@ npm run dev
 
 ```
 src/
-├── app/
+├── app/                             # 页面都在 [lang]/ 下渲染（en 用无前缀 URL，zh→/zh，es→/es），见 docs/MULTILINGUAL-SEO.md
 │   ├── api/
 │   │   ├── auth/                    # NextAuth + 注册接口
 │   │   ├── scores/                  # 成绩提交 & 按难度过滤的排行榜 & 个人记录
@@ -182,7 +182,9 @@ src/
     ├── utils.ts                     # 游戏注册表 & 通用工具 + categoryCta()
     ├── difficulty.ts                # 难度枚举 + 每个游戏的参数配置
     ├── translations.ts              # 三语文案
-    ├── language-context.tsx         # 语言切换 Context
+    ├── language-context.tsx         # 语言 Context（语言取自 URL 前缀）
+    ├── i18n.ts                      # /zh /es 前缀、链接本地化、语言切换的纯函数
+    ├── site-routes.ts               # 每个公开页面的三语标题与描述（元数据 + 站点地图的来源）
     ├── mbti-data.ts                 # 16 型人格描述
     ├── mbti-scenarios.ts            # MBTI 场景化题目 + 加权计分
     ├── tarot-data.ts                # 22 大阿尔卡那 + 三牌抽取
@@ -234,7 +236,7 @@ model Score {
 1. 在 `src/lib/utils.ts` 的 `GAMES` 数组里加游戏配置（icon、配色、`lowerIsBetter`）
 2. 在 `src/lib/difficulty.ts` 加 `<GAME_ID>_CONFIG: Record<Difficulty, {...}>` 定义四档参数
 3. 在 `src/lib/translations.ts` 加三语标题/描述
-4. 创建 `src/app/games/<game-id>/page.tsx`，用 `<GameWrapper gameId="..." noDifficulty?>` 包住
+4. 创建 `src/app/[lang]/games/<game-id>/page.tsx`（用 `<GameWrapper gameId="..." noDifficulty?>` 包住）和同目录的 `layout.tsx`（`export const generateMetadata = routeMetadata("/games/<game-id>")`，三语标题与描述来自 `GAMES` + `translations.ts`）；`tests/seo.test.ts` 会检查每个公开页面都有元数据
 5. 游戏组件接受 `(onComplete, difficulty)` 两个参数，基于 difficulty 读取对应 config
 6. 调用 `onComplete(score)` 提交成绩
 

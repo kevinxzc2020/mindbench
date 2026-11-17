@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useEffect, useState } from "react";
 import { Download, Trash2, Upload, Undo2 } from "lucide-react";
 import { compareRecords, downloadCheckups, HISTORY_KEY, HISTORY_LIMIT, mergeHistory, parseHistory, readHistory, writeHistory, type CheckMetric, type CheckupRecord } from "@/lib/device-history";

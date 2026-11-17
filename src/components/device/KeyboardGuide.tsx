@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArrowRight, Gamepad2, Mouse } from "lucide-react";
 import { useDeviceText } from "./DiagnosticShared";
 import styles from "./DeviceDiagnostics.module.css";

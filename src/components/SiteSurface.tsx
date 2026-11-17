@@ -1,14 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { ArrowLeft, ChevronRight } from "lucide-react";
-import { useLang } from "@/lib/language-context";
+import { useBarePathname, useLang } from "@/lib/language-context";
 import type { ReactNode } from "react";
 
 /** Shared laboratory chrome; test stimuli keep their own explicit palettes. */
 export function SiteSurface({ children }: { children: ReactNode }) {
-  const path = usePathname();
+  const path = useBarePathname();
   const { lang } = useLang();
   const cognitive = path === "/daily" || /\/games\/(reaction-time|number-memory|sequence-memory|visual-memory|cps-test|aim-trainer|typing-test|verbal-memory)$/.test(path);
   const activity = path === "/daily" || path.startsWith("/games/") || /^\/(iq-test|mbti|tarot|fortune)(\/|$)/.test(path);
