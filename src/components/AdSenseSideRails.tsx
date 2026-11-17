@@ -13,7 +13,7 @@ export function AdSenseSideRails() {
   const pathname = usePathname() ?? "/";
   if (!isAutoAdsRoute(pathname)) return null;
   return <>
-    <div className="side-rail side-rail-left" key={`left-${pathname}`}><AdSenseBanner placement="rail" format="vertical"/></div>
-    <div className="side-rail side-rail-right" key={`right-${pathname}`}><AdSenseBanner placement="rail" format="vertical"/></div>
+    <div className="side-rail side-rail-left" key={`left-${pathname}`}><AdSenseBanner placement="rail"/></div>
+    <div className="side-rail side-rail-right" key={`right-${pathname}`}><AdSenseBanner placement="rail"/></div>
   </>;
 }

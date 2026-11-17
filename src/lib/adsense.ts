@@ -1,6 +1,19 @@
 export type AdSenseMode = "off" | "preview" | "live";
-/** Shape requested from AdSense: rectangle ~300×250, horizontal ~728×90 / 320×50, vertical ~160×600. */
-export type AdFormat = "auto" | "rectangle" | "horizontal" | "vertical";
+/**
+ * Standard Google ad sizes, as [min available width px, width, height]. The width is the space
+ * the ad's own container has (CSS container queries), not the screen, so an ad never overflows.
+ * banner: top-of-tool leaderboard; content: between content blocks; rail: margin skyscraper.
+ * The CSS in globals.css (.ad-unit-*) must use the same breakpoints.
+ */
+export const AD_SIZES = {
+  banner: [[0, 320, 100], [728, 728, 90]],
+  content: [[0, 300, 250], [728, 728, 90], [970, 970, 90]],
+  rail: [[0, 160, 600]],
+} as const;
+export type AdSize = keyof typeof AD_SIZES;
+export function adSizeFor(placement: AdPlacement): AdSize {
+  return placement === "rail" ? "rail" : placement === "top" ? "banner" : "content";
+}
 /** Manual display placements. All sit between content blocks, never inside a test or game surface. */
 export type AdPlacement = "rail" | "top" | "home" | "home-mid" | "home-bottom" | "result" | "tool" | "collection" | "content";
 

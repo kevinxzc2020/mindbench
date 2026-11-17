@@ -1816,13 +1816,6 @@
   .ad-preview-description { font-size: .68rem; }
 }
 
-/* Ad shapes: reserve space up front so first-screen ads do not shift the page. */
-.ad-format-rectangle .ad-preview-canvas { min-height: 250px; flex-direction: column; justify-content: center; text-align: center; }
-.ad-live.ad-format-rectangle { min-height: 280px; }
-.ad-live.ad-format-horizontal { min-height: 90px; }
-.ad-format-horizontal .ad-preview-canvas { min-height: 90px; }
-@media (max-width: 600px) { .ad-live.ad-format-horizontal, .ad-format-horizontal .ad-preview-canvas { min-height: 60px; } }
-
 /* Side rails: fixed skyscrapers in the page margins, only where they fit beside the 1420px column. */
 .side-rail { display: none; }
 @media (min-width: 1800px) {
@@ -1830,8 +1823,26 @@
   .side-rail-left { left: max(12px, calc((100vw - 1420px) / 2 - 184px)); }
   .side-rail-right { right: max(12px, calc((100vw - 1420px) / 2 - 184px)); }
   .side-rail .ad-placement { margin: 0; max-width: 160px; }
-  .side-rail .ad-preview-canvas { min-height: 600px; flex-direction: column; justify-content: center; text-align: center; padding: 14px 10px; }
   .side-rail .ad-preview-note { font-size: 10px; }
-  .side-rail .ad-live { min-height: 600px; }
 }
 @media (min-width: 1800px) and (max-height: 760px) { .side-rail { display: none; } }
+
+/* Google standard ad sizes (keep in sync with AD_SIZES in src/lib/adsense.ts).
+   Sizes follow the width the ad's container actually has, so ads never overflow a column. */
+.ad-placement.ad-size-banner, .ad-placement.ad-size-content { container-type: inline-size; text-align: center; }
+.ad-placement .ad-placement-heading { text-align: left; }
+.ad-unit { display: inline-block; vertical-align: top; }
+.ad-unit-banner { width: 320px; height: 100px; }
+.ad-unit-content { width: 300px; height: 250px; }
+.ad-unit-rail { width: 160px; height: 600px; }
+@container (min-width: 728px) { .ad-unit-banner, .ad-unit-content { width: 728px; height: 90px; } }
+@container (min-width: 970px) { .ad-unit-content { width: 970px; height: 90px; } }
+.ad-live { min-height: 0; }
+.ad-live:has(ins[data-ad-status="unfilled"]) { display: none; }
+.ad-preview-box { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px dashed #c9cdbd; border-radius: 6px; background: repeating-linear-gradient(135deg, #f3f1e8 0 10px, #eeebe0 10px 20px); color: #6b7260; font-size: 12px; }
+.ad-preview-box strong { font-weight: 600; }
+.ad-dim { display: none; font: 11px var(--font-mono, monospace); color: #8a8f7c; }
+.ad-dim-0 { display: inline; }
+@container (min-width: 728px) { .ad-dim-0 { display: none; } .ad-dim-728 { display: inline; } }
+@container (min-width: 970px) { .ad-size-content .ad-dim-728, .ad-dim-728:has(~ .ad-dim-970) { display: none; } .ad-dim-970 { display: inline; } }
+.ad-unit-rail.ad-preview-box { padding: 0 10px; text-align: center; }
