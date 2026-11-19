@@ -279,3 +279,13 @@
 .toolTopAd { margin: 0 0 16px; }
 /* On a short screen the banner would push the tool below the fold. The bottom anchor and the ad under the tool stay. */
 @media (max-height: 899px) { .toolTopAd { display: none; } }
+
+/* Phones and tablets with no mouse or trackpad: say up front that keyboard and mouse checks have nothing to read there. */
+.touchNotice { display:none; margin:0 0 18px; padding:14px 16px; border:1px solid #efd8bf; border-radius:12px; background:#fbf1e4; }
+@media (any-pointer: coarse) { .touchNotice { display:grid; gap:9px; } }
+@media (any-pointer: fine) { .touchNotice { display:none; } }
+.touchNotice strong { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#8a4b1c; }
+.touchNotice p { margin:0; font-size:12px; line-height:1.7; color:#6f5a3f; }
+.touchNotice ul { display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 0; padding:0; list-style:none; }
+.touchNotice a { display:inline-flex; align-items:center; min-height:40px; padding:8px 13px; border:1px solid #d7e1c7; border-radius:999px; background:#fffef9; color:#4c6538; font-size:12px; font-weight:600; }
+.touchNotice a:hover { border-color:#c16d45; color:#c16d45; }

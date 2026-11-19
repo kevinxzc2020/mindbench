@@ -18,6 +18,8 @@ export const DEVICE_TOOLS: Record<DiagnosticTool, { title: [string, string, stri
 };
 export function localText(lang: Lang, en: string, zh: string, es: string) { return lang === "zh" ? zh : lang === "es" ? es : en; }
 export function toolText(lang: Lang, text: [string, string, string]) { return localText(lang, ...text); }
+/** Checks a touch screen can run by itself, offered where a keyboard or mouse check has nothing to read. */
+export const TOUCH_FRIENDLY_CHECKS: readonly DiagnosticTool[] = ["touch", "screen", "speakers", "microphone", "webcam"];
 
 export const COMMON = {
   back: ["Device checkup", "设备自检", "Pruebas de dispositivos"],

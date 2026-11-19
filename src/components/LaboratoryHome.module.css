@@ -197,6 +197,7 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 /* Tools band: more device checks, converters, drivers & records. */
 .toolsBand { scroll-margin-top:0; margin:12px 0 30px; }
 .toolsGrid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr); gap:14px; }
+.toolsGridTwo { grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); align-items:start; }
 .toolsPanel { display:flex; flex-direction:column; min-width:0; padding:18px; border:1px solid #dfe2d6; border-radius:14px; background:#fffef9; }
 .toolsPanel h3 { font-size:14px; font-weight:650; margin:0 0 10px; letter-spacing:-.01em; }
 .toolsPanel ul { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
@@ -222,29 +223,27 @@ a.toolCard:hover { border-color: #bfc8ad; box-shadow: 0 6px 20px #2a37120a; tran
 .toolsBand .localNote { margin-top:14px; }
 .toolsBand a:focus-visible { outline:3px solid #bd4a30; outline-offset:2px; }
 .adBottom { margin-top:34px; }
-@media(max-width:1000px) { .toolsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.toolsGrid > .toolsPanel:first-child { grid-column:1 / -1; }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px; } }
+@media(max-width:1000px) { .toolsGridTwo { grid-template-columns:minmax(0,1fr); }.toolsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.toolsGrid > .toolsPanel:first-child { grid-column:1 / -1; }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px; } }
 @media(max-width:600px) { .toolsGrid { grid-template-columns:minmax(0,1fr); }.toolsGrid > .toolsPanel:first-child ul { grid-template-columns:minmax(0,1fr); }.toolsPanel { padding:15px; } }
 
-/* Why MindBench: the one dark band on the page, so the reasons to choose this site are not missed. */
-.why { margin:10px 0 34px; padding:36px 34px 32px; border-radius:18px; background:#2b3226; color:#f4f2e8; }
+/* Why MindBench: same ivory cards as the rest of the page, so it reads as part of it. */
+.why { margin:10px 0 34px; padding:34px 0 8px; border-top:1px solid #e1e4d8; color:#25291f; }
 .whyHead { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:12px 44px; align-items:end; margin-bottom:26px; }
-.why .eyebrow { color:#b9c3a4; }
-.why .eyebrow > span { background:#ee6a4d; }
 .whyHead h2 { font-size:clamp(26px,3vw,38px); font-weight:720; letter-spacing:-.045em; line-height:1.15; margin:10px 0 0; }
-.whyHead > p { font-size:14px; line-height:1.8; color:#cfd5c0; margin:0; max-width:48ch; }
+.whyHead > p { font-size:14px; line-height:1.8; color:#6d7562; margin:0; max-width:48ch; }
 .whyGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
-.whyCard { display:flex; flex-direction:column; gap:10px; min-width:0; padding:20px 18px 12px; border:1px solid #434c3a; border-radius:14px; background:#323a2b; }
-.whyIcon { display:grid; place-items:center; width:40px; height:40px; border-radius:10px; background:#3f4a35; color:#f2a58f; }
+.whyCard { display:flex; flex-direction:column; gap:10px; min-width:0; padding:20px 18px 12px; border:1px solid #e1e4d8; border-radius:12px; background:#fffef9; }
+.whyIcon { display:grid; place-items:center; width:40px; height:40px; border-radius:10px; background:#f6efe2; color:#dd4e32; }
 .whyCard h3 { font-size:16px; font-weight:650; letter-spacing:-.02em; margin:4px 0 0; }
-.whyCard p { font-size:13px; line-height:1.75; color:#cfd5c0; margin:0; }
+.whyCard p { font-size:13px; line-height:1.75; color:#6d7562; margin:0; }
 .whyChips { display:flex; flex-wrap:wrap; gap:6px; margin:auto 0 0; padding:6px 0 0; list-style:none; }
-.whyChips li { padding:3px 8px; border-radius:6px; background:#3f4a35; color:#e6e9d8; font:11px var(--font-mono); }
-.whyLink { display:inline-flex; align-items:center; gap:7px; min-height:44px; font-size:12.5px; color:#f4b3a1; }
-.whyLink:hover { color:#ffd2c5; text-decoration:underline; text-underline-offset:4px; }
+.whyChips li { padding:3px 8px; border-radius:6px; background:#f1f2ea; color:#5b6350; font:11px var(--font-mono); }
+.whyLink { display:inline-flex; align-items:center; gap:7px; min-height:44px; font-size:12.5px; color:#c4432a; }
+.whyLink:hover { color:#dd4e32; text-decoration:underline; text-underline-offset:4px; }
 .whyLangs { display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-bottom:4px; }
-.whyLangs button { min-height:44px; padding:0 14px; border:1px solid #55604a; border-radius:9px; background:transparent; color:#e6e9d8; font-size:13px; }
-.whyLangs button:hover { border-color:#8b9a78; }
-.whyLangs button[aria-pressed=true] { border-color:#f4f2e8; background:#f4f2e8; color:#2b3226; }
-.why a:focus-visible, .why button:focus-visible { outline:3px solid #f4b3a1; outline-offset:3px; }
+.whyLangs button { min-height:44px; padding:0 14px; border:1px solid #e1e4d8; border-radius:9px; background:transparent; color:#25291f; font-size:13px; }
+.whyLangs button:hover { border-color:#aaae9f; }
+.whyLangs button[aria-pressed=true] { border-color:#25291f; background:#25291f; color:#fffef9; }
+.why a:focus-visible, .why button:focus-visible { outline:3px solid #dd4e32; outline-offset:3px; }
 @media(max-width:1000px) { .whyGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }.whyHead { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:600px) { .why { padding:26px 18px 18px; border-radius:14px; }.whyGrid { grid-template-columns:minmax(0,1fr); } }

@@ -3,15 +3,18 @@
 import { useSession } from "next-auth/react";
 import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GameRunContext } from "./GameRunContext";
+import { GameRunContext, useGameJourney } from "./GameRunContext";
 import { GAMES, formatScore, type GameId } from "@/lib/utils";
 import { useLang } from "@/lib/language-context";
 import {
+  DEFAULT_DIFFICULTY,
   DIFFICULTIES,
   type Difficulty,
 } from "@/lib/difficulty";
 import { GAME_ICONS, DIFFICULTY_LUCIDE_ICONS } from "@/lib/icons";
+import { ChevronDown } from "lucide-react";
 import { ResultProgress, saveLocalResult } from "./ResultProgress";
+import { NextTests } from "./NextTests";
 
 interface GameWrapperProps {
   gameId: GameId;
@@ -29,9 +32,9 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
   const { t } = useLang();
   const game = GAMES.find((g) => g.id === gameId)!;
 
-  // When noDifficulty is set, auto-pick "medium" so the game starts immediately.
+  // Every game opens on the default difficulty, so one click on its own start screen begins play. The badge and the result card reopen the chooser.
   const [difficulty, setDifficulty] = useState<Difficulty | null>(
-    noDifficulty ? "medium" : null
+    DEFAULT_DIFFICULTY
   );
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,8 +50,15 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
     setError("");
   }, []);
 
+  // Games build random boards while rendering, so they are mounted after hydration instead of arriving in the server HTML.
+  // Games that never showed a chooser (noDifficulty) keep rendering on the server as before.
+  const [ready, setReady] = useState(noDifficulty);
+  useEffect(() => { setReady(true); }, []);
+  const run = useGameJourney(gameId, difficulty, clearRunResult);
+
   const handleComplete = async (score: number) => {
     if (!Number.isFinite(score) || score < 0) return;
+    run.complete();
     if (difficulty && !noSave) setLocalSaveFailed(!saveLocalResult(gameId, difficulty, score));
     setResultKey((key) => key + 1);
     setLatestScore(score);
@@ -89,6 +99,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
   const resetForNewRun = (d: Difficulty | null) => {
     // For noDifficulty games, we always stay on "medium" — never go null.
     setDifficulty(d === null && noDifficulty ? "medium" : d);
+    run.rest();
     setLatestScore(null);
     setSaved(false);
     setError("");
@@ -147,7 +158,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
               const DI = DIFFICULTY_LUCIDE_ICONS[difficulty];
               return <DI size={13} strokeWidth={2.6} />;
             })()}
-            {diffLabel[difficulty]}
+            {diffLabel[difficulty]}<ChevronDown size={13} strokeWidth={2.6} aria-hidden="true" />
           </button>
         )}
       </div>
@@ -190,8 +201,8 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
           id="mb-game-area" 是给 scrollToGameArea() 工具用的全局锚点 */}
       {difficulty && (
         <div id="mb-game-area" className="game-stage" ref={gameAreaRef} key={runKey}>
-          <GameRunContext.Provider value={clearRunResult}>
-            {children(handleComplete, difficulty)}
+          <GameRunContext.Provider value={run.value}>
+            {ready ? children(handleComplete, difficulty) : <div className="card min-h-[20rem]" aria-hidden="true" />}
           </GameRunContext.Provider>
         </div>
       )}
@@ -210,7 +221,7 @@ export function GameWrapper({ gameId, children, noDifficulty = false, noSave = f
           <p className="text-4xl font-extrabold text-brand-400">
             {formatScore(gameId, latestScore, t)}
           </p>
-          {!noSave && <ResultProgress key={resultKey} gameId={gameId} value={latestScore} difficulty={difficulty} storageFailed={localSaveFailed} onRetry={() => resetForNewRun(difficulty)} />}
+          {!noSave && <ResultProgress key={resultKey} gameId={gameId} value={latestScore} difficulty={difficulty} storageFailed={localSaveFailed} onRetry={() => resetForNewRun(difficulty)} />}<NextTests gameId={gameId} />
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
             {saving && <span className="text-gray-400">{t.saving}</span>}
             {saved && (

@@ -24,6 +24,7 @@ import { CheckupJourney } from "./CheckupJourney";
 import { AdSenseBanner } from "../AdSenseBanner";
 import { MouseGuide } from "./MouseGuide";
 import { KeyboardGuide } from "./KeyboardGuide";
+import { TouchOnlyNotice } from "./TouchOnlyNotice";
 
 const icons={keyboard:Keyboard,mouse:Mouse,wheel:MoveVertical,screen:Monitor,speakers:Headphones,microphone:Mic,webcam:Camera,gamepad:Gamepad2,touch:Hand,pen:PenTool,trackpad:MousePointer2,environment:ScanSearch,"device-reports":History};
 export function DeviceDiagnostics({tool}:{tool:DiagnosticTool}) {
@@ -49,6 +50,7 @@ function DeviceDiagnosticsContent({tool}:{tool:DiagnosticTool}) {
     </aside><div className={styles.toolContent}>
     <p className={styles.localNote}>{c("local")}</p>
     {mouseFamily&&<nav className={styles.subTabs} aria-label={t("Mouse checks","鼠标检测项目","Pruebas del ratón")}>{([["mouse",t("Buttons","按键","Botones")],["wheel",t("Scroll wheel","滚轮","Rueda")]] as const).map(([id,label])=>{const TabIcon=icons[id];return <Link key={id} href={`/tools/${id}`} aria-current={id===tool?"page":undefined} scroll={false}><TabIcon size={15}/>{label}</Link>;})}</nav>}
+    {(tool==="keyboard"||tool==="mouse"||tool==="wheel"||tool==="trackpad")&&<TouchOnlyNotice tool={tool}/>}
     {tool==="webcam"?<WebcamTester/>:tool==="gamepad"?<GamepadTester/>:tool==="touch"||tool==="pen"||tool==="trackpad"?<PointerTester tool={tool}/>:tool==="environment"?<EnvironmentTester/>:tool==="device-reports"?<DeviceHistory/>:tool==="speakers"?<SpeakerTester/>:tool==="microphone"?<MicrophoneTester/>:tool==="screen"?<Suspense fallback={<p role="status">{t("Loading screen patterns…","正在加载屏幕图案…","Cargando patrones…")}</p>}><ScreenTester/></Suspense>:tool==="keyboard"?<KeyboardTester/>:tool==="mouse"?<MouseTester/>:<WheelTester/>}
     {mouseFamily&&<MouseGuide/>}
     {tool==="keyboard"&&<KeyboardGuide/>}

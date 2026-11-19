@@ -215,6 +215,8 @@ function MakeSevenGame({
         ArrowUp: "up", ArrowDown: "down",
         a: "left", d: "right", w: "up", s: "down",
       };
+      // The board listens on the whole page, so leave browser shortcuts (Ctrl+A, Ctrl+S) and typing into fields alone.
+      if (e.ctrlKey || e.metaKey || e.altKey || (e.target as HTMLElement | null)?.closest?.("input, textarea, select, [contenteditable]")) return;
       const dir = map[e.key];
       if (dir) { e.preventDefault(); handleDirRef.current(dir); }
     };

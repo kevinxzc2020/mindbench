@@ -25,7 +25,7 @@ localhost、`.localhost` 子域和环回 IP 不加载这两项真实服务。广
 2a. 如需插页式 + 侧边栏广告，见下方「自动广告（插页式 / 侧边栏）」。
 3. 在 AdSense「隐私权与消息」配置并发布所需的 Google 认证 CMP 消息，包含适用地区、语言和隐私政策链接。本站偏好开关不是 TCF CMP，不能替代它。适用地区的实际同意流程需要上线验证。
 4. 创建 GA4 网站数据流并填写衡量 ID。**关闭该数据流的增强型衡量（Enhanced Measurement）**：应用已手动发送路由 page_view；自动 history page_view 会重复计数，自动表单或站内搜索事件也不属于本次允许采集的范围。
-5. 在 GA4 创建事件范围的自定义维度 `tool_id`、`content_id`、`content_type`、`placement`。可将 `tool_complete` 标为关键事件，并建立下面的漏斗。
+5. 在 GA4 创建事件范围的自定义维度 `tool_id`、`game_id`、`difficulty`、`content_id`、`content_type`、`placement`。可将 `tool_complete` 标为关键事件，并建立下面的漏斗。
 6. 使用正式站点的自有测试访问核实拒绝、允许、撤回、换页和再次检测。通过 GA4 Realtime / Tag Assistant 检查事件及重复计数。AdSense 填充和收入只能由后台真实数据确认。
 
 ## 手动广告位
@@ -91,6 +91,21 @@ AdSense 后台：
 漏斗只反映同意采集且未阻止统计的访问；不重放同意前操作，不把完成计数当成全部访客或收入。`tool_complete` 表示用户结束观察，不表示硬件通过检测。录音、图像、按键内容、原始输入、设备 ID、备注、自定义标签和检查指标都不在 GA4 事件参数中。
 
 地址不含查询参数/片段；私有动态路径归为 `/other`。外部 referrer 只保留来源域名。GA4 配置关闭 Google Signals 和广告个性化信号；统计与展示广告是分开的选择。首次未选择时不加载；页脚可撤回并刷新以卸载已加载脚本。没有 ID 的环境依然能正常使用所有工具。
+
+## 游戏漏斗
+
+所有使用统一游戏外框的游戏页（打字、反应、瞄准、点击速度、各类记忆测试和几个小游戏）发同一套事件，与上面的检测漏斗分开统计：
+
+| 事件 | 触发条件 | 参数 |
+| --- | --- | --- |
+| `game_open` | 进入一个游戏页面；同意之后可补记当前页面打开 | `game_id` |
+| `game_start` | 游戏离开开始画面，进入一局（回到开始画面或切换难度之后再开始，算新的一局） | `game_id`, `difficulty` |
+| `game_complete` | 一局产生了成绩 | `game_id`, `difficulty` |
+| `recommendation_click` | 点击成绩下方的「接着试试别的」 | `game_id`, `content_id`, `content_type`, `placement=game_result` |
+
+游戏默认以中等难度打开，点标题右侧的难度标签可以重新选择。所以 `game_start` 里 `difficulty` 不是 `medium` 的占比，就是改过难度的人有多少；使用率看 `game_start` 与 `game_open` 的比值。没有开始画面的拼图（make-seven）一出现就算开始，它的比值没有参考意义。
+
+事件参数只有游戏编号、难度标签和目录编号。成绩、答案、打字内容和用时都不进入事件参数；同意统计之前不发送，也不补发。
 
 ## 官方依据
 

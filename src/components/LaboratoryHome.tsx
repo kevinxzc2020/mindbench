@@ -224,12 +224,24 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
     {!directoryOnly && <>
       <WhySection/>
       <section id="device-lab" className={styles.toolsBand} aria-labelledby="device-title">
-        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>01 / {h.devices}</p><h2 id="device-title">{{ en: "More tools", zh: "更多工具", es: "Más herramientas" }[lang]}</h2><p>{h.deviceIntro}</p></div><Link href="/collections/devices">{h.allDevices}<ArrowUpRight size={17}/></Link></div>
-        <div className={styles.toolsGrid}>
+        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>01 / {h.devices}</p><h2 id="device-title">{{ en: "Device checks & records", zh: "设备检测与记录", es: "Pruebas de dispositivos e historial" }[lang]}</h2><p>{h.deviceIntro}</p></div><Link href="/collections/devices">{h.allDevices}<ArrowUpRight size={17}/></Link></div>
+        <div className={`${styles.toolsGrid} ${styles.toolsGridTwo}`}>
           <div className={styles.toolsPanel}>
             <h3>{{ en: "More device checks", zh: "更多设备检测", es: "Más pruebas de dispositivos" }[lang]}</h3>
             <ul>{MORE_DEVICE_PICKS.map(id => { const entry = CATALOG.devices.find(item => item.id === id); if (!entry?.href) return null; const Icon = TOOL_ICONS[id] ?? Monitor; return <li key={id}><Link href={entry.href} className={styles.toolsRow}><span className={styles.toolsThumb}>{entry.image ? <Image src={entry.image} alt="" fill sizes="44px"/> : <Icon size={20}/>}</span><span><strong>{entry.title[lang]}</strong><small>{entry.description[lang]}</small></span><ArrowUpRight size={15}/></Link></li>; })}</ul>
           </div>
+          <div className={styles.toolsPanel}>
+            <h3>{{ en: "Drivers & records", zh: "驱动与记录", es: "Controladores e historial" }[lang]}</h3>
+            <Link href="/collections/drivers" className={styles.toolsFeature}><FileDown size={22}/><span><strong>{h.driverTitle}</strong><small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
+            <Link href="/tools/device-reports" className={styles.toolsFeature}><ClipboardList size={22}/><span><strong>{c.reports}</strong><small>{{ en: "Saved summaries of your checks, kept in this browser.", zh: "保存在本浏览器里的检测摘要。", es: "Resúmenes de tus pruebas guardados en este navegador." }[lang]}</small></span><ChevronRight size={16}/></Link>
+          </div>
+        </div>
+        <p className={styles.localNote}><ShieldCheck size={15}/>{c.local}</p>
+      </section>
+      <div className={styles.ad}><AdSenseBanner placement="home-mid"/></div>
+      <section id="utilities-lab" className={styles.toolsBand} aria-labelledby="utilities-title">
+        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>02 / {{ en: "UTILITIES", zh: "实用工具", es: "HERRAMIENTAS" }[lang]}</p><h2 id="utilities-title">{h.utilityTitle}</h2><p>{h.utilityDesc}</p></div><Link href="/collections/utilities">{{ en: "All utilities", zh: "全部实用工具", es: "Todas las herramientas" }[lang]}<ArrowUpRight size={17}/></Link></div>
+        <div className={`${styles.toolsGrid} ${styles.toolsGridTwo}`}>
           <div className={styles.toolsPanel}>
             <h3>{{ en: "File converters", zh: "文件转换", es: "Conversores de archivos" }[lang]}</h3>
             <p className={styles.toolsNote}>{{ en: "Converted on your device. Files are not uploaded.", zh: "在本机完成转换，文件不会上传。", es: "Se convierten en tu equipo. No se suben archivos." }[lang]}</p>
@@ -237,20 +249,18 @@ export function LaboratoryHome({ directoryOnly = false }: { directoryOnly?: bool
             <Link href="/convert" className={styles.toolsMore}>{{ en: "All converters", zh: "全部转换器", es: "Todos los conversores" }[lang]}<ArrowRight size={15}/></Link>
           </div>
           <div className={styles.toolsPanel}>
-            <h3>{{ en: "Drivers & records", zh: "驱动与记录", es: "Controladores e historial" }[lang]}</h3>
-            <Link href="/collections/drivers" className={styles.toolsFeature}><FileDown size={22}/><span><strong>{h.driverTitle}</strong><small>{h.driverDesc}</small></span><ChevronRight size={16}/></Link>
-            <Link href="/tools/device-reports" className={styles.toolsFeature}><ClipboardList size={22}/><span><strong>{c.reports}</strong><small>{{ en: "Saved summaries of your checks, kept in this browser.", zh: "保存在本浏览器里的检测摘要。", es: "Resúmenes de tus pruebas guardados en este navegador." }[lang]}</small></span><ChevronRight size={16}/></Link>
-            <Link href="/collections/utilities" className={styles.toolsFeature}><Wrench size={22}/><span><strong>{h.utilityTitle}</strong><small>{h.utilityDesc}</small></span><ChevronRight size={16}/></Link>
+            <h3>{{ en: "Sound", zh: "声音", es: "Sonido" }[lang]}</h3>
+            <Link href="/tools/microphone" className={styles.toolsFeature}><Mic size={22}/><span><strong>{{ en: "Record & replay", zh: "录音与回放", es: "Grabar y escuchar" }[lang]}</strong><small>{{ en: "Record with your microphone, replay and download. Audio stays on your device.", zh: "用麦克风录音、回放并下载，音频保存在本机。", es: "Graba con tu micrófono, escucha y descarga. El audio se queda en tu equipo." }[lang]}</small></span><ChevronRight size={16}/></Link>
           </div>
         </div>
-        <p className={styles.localNote}><ShieldCheck size={15}/>{c.local}</p>
       </section>
-      <div className={styles.ad}><AdSenseBanner placement="home-mid"/></div>
       <section id="play-lab" className={styles.playZone} aria-labelledby="play-title">
         <span id="games" className={styles.anchor}/>
-        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>02 / {h.play}</p><h2 id="play-title">{h.tests}</h2><p>{h.testsDesc}</p></div><Link href="/collections/mind">{h.allTests}<ArrowUpRight size={17}/></Link></div>
+        <div className={styles.sectionHead}><div><p className={styles.eyebrow}>03 / {h.play}</p><h2 id="play-title">{h.tests}</h2><p>{h.testsDesc}</p></div><Link href="/collections/mind">{h.allTests}<ArrowUpRight size={17}/></Link></div>
         <div className={`${styles.toolGrid} ${styles.challengeGrid}`}>{MIND_PICKS.map(id => { const entry = CATALOG.mind.find(item => item.id === id); return entry ? <ToolCard key={id} entry={entry} category="mind"/> : null; })}</div>
         <div className={styles.challengeLinks}><Link href="/tarot"><Sparkles size={17}/>{h.tarot}<ArrowRight size={15}/></Link><Link href="/progress"><Brain size={17}/>{c.progress}<ArrowRight size={15}/></Link><Link href="/leaderboard"><Trophy size={17}/>{c.ranking}<ArrowRight size={15}/></Link></div>
+      </section>
+      <section id="games-lab" className={styles.playZone} aria-label={{ en: "Mini-games", zh: "小游戏", es: "Minijuegos" }[lang]}>
         <PickShelf id="fun-tests" labelId="games-title" ids={GAME_PICKS} eyebrow={`PLAY / ${{ en: "MINI-GAMES", zh: "小游戏", es: "MINIJUEGOS" }[lang]}`} title={{ en: "Take a quick break", zh: "来玩一局", es: "Tómate un descanso" }[lang]} href="/collections/discover" linkLabel={{ en: "All games", zh: "全部小游戏", es: "Todos los juegos" }[lang]}/>
       </section>
       <div className={`${styles.ad} ${styles.adBottom}`}><AdSenseBanner placement="home-bottom"/></div>

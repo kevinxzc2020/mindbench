@@ -1,4 +1,5 @@
 import { REPORT_TOOLS, type ReportTool } from "./device-history";
+import type { Difficulty } from "./difficulty";
 import { isLocalAdPreview } from "./adsense";
 import { langOfPath, localizePath, stripLangPrefix } from "./i18n";
 import { getConverter, type ConverterId } from "./converters";
@@ -34,6 +35,36 @@ let send: ((name: string, params: Record<string, string>) => void) | null = null
 export function setAnalyticsSender(sender: typeof send) { send = sender; }
 export function trackJourney(event: JourneyEvent) {
   const payload = analyticsPayload(event);
+  if (!payload || !send) return false;
+  send(payload.name, payload.params);
+  return true;
+}
+
+/** The game funnel: a game page opened, a run started, a run produced a score, and a click on the shelf shown under a score. */
+export type GameEvent =
+  | { name: "game_open"; game: string }
+  | { name: "game_start" | "game_complete"; game: string; difficulty: Difficulty }
+  | { name: "recommendation_click"; game: string; target: string; kind: "test" | "game" };
+
+const CATALOGUE_ID = /^[a-z0-9-]{1,60}$/;
+// Kept here, not imported, so the analytics module stays out of the game configuration; a test keeps the two lists equal.
+const DIFFICULTY_LABELS = ["easy", "medium", "hard", "hell"];
+
+/** Only catalogue identifiers and the difficulty label leave the browser: never a score, an answer, typed text or a timing. */
+export function gamePayload(event: GameEvent) {
+  if (!CATALOGUE_ID.test(event.game)) return null;
+  const params: Record<string, string> = { game_id: event.game };
+  if (event.name === "game_open") return { name: event.name, params };
+  if (event.name === "recommendation_click") {
+    if (!CATALOGUE_ID.test(event.target) || !["test", "game"].includes(event.kind)) return null;
+    return { name: event.name, params: { ...params, content_id: event.target, content_type: event.kind, placement: "game_result" } };
+  }
+  if (event.name !== "game_start" && event.name !== "game_complete") return null;
+  if (!DIFFICULTY_LABELS.includes(event.difficulty)) return null;
+  return { name: event.name, params: { ...params, difficulty: event.difficulty } };
+}
+export function trackGame(event: GameEvent) {
+  const payload = gamePayload(event);
   if (!payload || !send) return false;
   send(payload.name, payload.params);
   return true;
